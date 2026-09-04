@@ -1,0 +1,3 @@
+# Deterministic LeWM: one rollout, terminal latent distance to the goal.
+name: baseline
+planner: baseline

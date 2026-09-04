@@ -1,12 +1,27 @@
+# Shared PushT evaluation protocol. The planner is chosen with `method=<name>`
+# (see config/eval/method/*.yaml); everything else is identical across methods.
+#
+#   python evaluate.py method=mc5 seed=42
+
 defaults:
   - launcher: local
   - solver: cem
+  - method: baseline
   - _self_
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
 
 world:
   env_name: swm/PushT-v1
   num_envs: ${eval.num_eval}
-  max_episode_steps: ??? # make sure it's >= eval_budget
+  max_episode_steps: ???   # set in code: 2 * eval.eval_budget
+
+seed: 42
+policy: pusht/lewm        # checkpoint folder under $STABLEWM_HOME/checkpoints/
+cache_dir: null
 
 dataset:
   stats: ${eval.dataset_name}
@@ -15,15 +30,19 @@ dataset:
     - proprio
     - state
 
-seed: 42
-policy: random # ckpt name or random
-
+# planning budget (locked protocol: horizon 5, replan every 5 env steps)
 plan_config:
   horizon: 5
   receding_horizon: 5
-  action_block: 5 # frameskip
+  action_block: 5          # frameskip
 
-# evaluation from dataset (replay expert trajectories)
+# CEM budget (locked protocol: 300 candidates / 30 iterations / top-30)
+solver:
+  num_samples: 300
+  n_steps: 30
+  topk: 30
+
+# evaluation from dataset (replay expert start states, goal = state 25 steps later)
 eval:
   num_eval: 50
   goal_offset_steps: 25
@@ -31,16 +50,16 @@ eval:
   img_size: 224
   dataset_name: pusht_expert_train
   callables:
-    # -- set state
     - method: _set_state
       args:
         state:
           value: state
-    # -- set goal state
     - method: _set_goal_state
       args:
         goal_state:
           value: goal_state
-          
+
 output:
-  filename: pusht_results.txt
+  dir: results             # relative to the repository root
+  run_id: null             # default: <method.name>_s<seed>
+  video: false             # true -> results/videos/<run_id>/env_*.mp4

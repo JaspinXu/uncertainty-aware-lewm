@@ -1,0 +1,12 @@
+# MC aggregation: mean of 5 MC-dropout rollouts, full-horizon terminal distance.
+name: mc5
+planner: ua
+n_samples: 5
+history_size: 3
+truncation:
+  mode: none
+  omega: 1.0
+  k_base: 5
+  k_min: 1
+  k_max: null
+  threshold: null

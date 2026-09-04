@@ -1,0 +1,16 @@
+# Gated horizon truncation on top of MC-5: candidates whose step-0 sigma^2 is
+# below `threshold` keep the full horizon; the rest are scored at
+# k* = clamp(round(-omega * sigma^2 + k_base), k_min, k_max).
+# `threshold` is the planning-time sigma^2 median from
+# results/calibration/gated_lewm_strong_rh5.json (scripts/calibrate_gated_threshold.py).
+name: gated
+planner: ua
+n_samples: 5
+history_size: 3
+truncation:
+  mode: gated
+  omega: 1.0
+  k_base: 5
+  k_min: 1
+  k_max: null
+  threshold: 0.2535046935081482

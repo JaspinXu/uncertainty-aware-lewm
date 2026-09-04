@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 """Build the final 9-seed success-rate table (report Table 1 / slides Fig. 4-5).
 
-Inputs (all produced by the locked protocol: n=50, CEM 300/30/30, RH=5):
-  seeds 42-45      -> pusht/locked_s42_45/results/{baseline,mc_n5,gated_n5,goal_a0p1}_s<seed>.txt
-  seeds 1011-5055  -> pusht/fair_ua_final/results/test_{baseline,mc_n5,gated_n5}_s<seed>.txt
-                      pusht/locked_s42_45/results/goal_a0p1_s<seed>.txt
+Inputs: results/<method>_s<seed>.txt for methods baseline / mc5 / gated /
+goal_cvar and seeds 42-45, 1011-5055 (locked protocol: n=50, CEM 300/30/30,
+RH=5), as written by scripts/run_locked_panel.sh.
 
-Output (also printed to the terminal):
-  pusht/locked_s42_45/combined_9seeds.md
+Output (also printed to the terminal): results/combined_9seeds.md
 
 Run from the repo root:
   python scripts/summarize_locked_9seeds.py
@@ -21,20 +19,19 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
-LOCKED = ROOT / "pusht" / "locked_s42_45" / "results"
-FAIR = ROOT / "pusht" / "fair_ua_final" / "results"
-OUT_MD = ROOT / "pusht" / "locked_s42_45" / "combined_9seeds.md"
+RESULTS = ROOT / "results"
+OUT_MD = RESULTS / "combined_9seeds.md"
 
 SEEDS_A = [42, 43, 44, 45]
 SEEDS_B = [1011, 2022, 3033, 4044, 5055]
 SEEDS = SEEDS_A + SEEDS_B
 
-# method label -> (file pattern for seeds 42-45, file pattern for seeds 1011-5055)
+# table label -> method name (config/eval/method/<name>.yaml)
 METHODS = {
-    "Baseline": (LOCKED / "baseline_s{}.txt", FAIR / "test_baseline_s{}.txt"),
-    "MC-5": (LOCKED / "mc_n5_s{}.txt", FAIR / "test_mc_n5_s{}.txt"),
-    "Gated N=5": (LOCKED / "gated_n5_s{}.txt", FAIR / "test_gated_n5_s{}.txt"),
-    "Goal-CVaR α=0.1": (LOCKED / "goal_a0p1_s{}.txt", LOCKED / "goal_a0p1_s{}.txt"),
+    "Baseline": "baseline",
+    "MC-5": "mc5",
+    "Gated N=5": "gated",
+    "Goal-CVaR α=0.1": "goal_cvar",
 }
 
 
@@ -48,9 +45,8 @@ def success_rate(path: Path) -> float:
 
 def collect() -> dict[str, np.ndarray]:
     table = {}
-    for name, (pat_a, pat_b) in METHODS.items():
-        vals = [success_rate(Path(str(pat_a).format(s))) for s in SEEDS_A]
-        vals += [success_rate(Path(str(pat_b).format(s))) for s in SEEDS_B]
+    for name, method in METHODS.items():
+        vals = [success_rate(RESULTS / f"{method}_s{s}.txt") for s in SEEDS]
         table[name] = np.asarray(vals, dtype=float)
     return table
 

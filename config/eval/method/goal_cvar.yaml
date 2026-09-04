@@ -1,0 +1,18 @@
+# Goal-CVaR soft penalty on top of MC-5 (see ua/goal_cvar.py).
+# num_samples / topk for the elite calibration are taken from the solver config.
+name: goal_cvar
+planner: goal_cvar
+n_samples: 5
+history_size: 3
+alpha: 0.1
+tail_fraction: 0.4
+tail_count: null
+cap: 2.0
+eps: 1.0e-8
+truncation:
+  mode: none
+  omega: 1.0
+  k_base: 5
+  k_min: 1
+  k_max: null
+  threshold: null

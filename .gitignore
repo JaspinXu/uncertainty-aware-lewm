@@ -16,8 +16,6 @@ outputs/
 wandb/
 *.mp4
 *.log
-pusht/*/logs/
-pusht/*/runs/
-pusht/*/archive/
-pusht/*/calibration_runs/
-pusht/env_*.mp4
+results/logs/
+results/videos/
+results/archive/
