@@ -1,0 +1,72 @@
+
+==== CONFIG ====
+cache_dir: null
+solver:
+  _target_: stable_worldmodel.solver.CEMSolver
+  model: ???
+  batch_size: 1
+  num_samples: 300
+  var_scale: 1.0
+  n_steps: 30
+  topk: 30
+  device: mps
+  seed: ${seed}
+world:
+  env_name: swm/PushT-v1
+  num_envs: 50
+  max_episode_steps: 100
+seed: 4044
+policy: pusht/lewm
+ua:
+  estimator: mcdropout
+  n_samples: 5
+  ensemble_ckpts: []
+  perturb_std: 0.01
+  history_size: 3
+  truncation:
+    mode: none
+    omega: 0.1
+    k_base: 5
+    k_min: 1
+    k_max: null
+    threshold: null
+    penalty_weight: 0
+dataset:
+  stats: ${eval.dataset_name}
+  keys_to_cache:
+  - action
+  - proprio
+  - state
+plan_config:
+  horizon: 5
+  receding_horizon: 5
+  action_block: 5
+eval:
+  num_eval: 50
+  goal_offset_steps: 25
+  eval_budget: 50
+  img_size: 224
+  dataset_name: pusht_expert_train
+  callables:
+  - method: _set_state
+    args:
+      state:
+        value: state
+  - method: _set_goal_state
+    args:
+      goal_state:
+        value: goal_state
+output:
+  filename: fair_ua_final/results/test_mc_n5_s4044.txt
+
+==== RESULTS ====
+device: mps
+metrics: {'success_rate': 88.0, 'episode_successes': array([ True,  True, False,  True, False,  True,  True,  True,  True,
+        True,  True,  True,  True,  True,  True, False,  True,  True,
+        True,  True,  True,  True,  True,  True, False,  True, False,
+        True,  True,  True,  True,  True,  True,  True,  True,  True,
+        True,  True,  True,  True,  True,  True,  True,  True,  True,
+        True,  True, False,  True,  True]), 'seeds': None}
+mean_truncation_length: 5.0
+mean_sigma2: 1.0357087721660112
+evaluation_time: 826.7772972583771 seconds

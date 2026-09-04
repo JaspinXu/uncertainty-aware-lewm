@@ -1,0 +1,23 @@
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+
+# editors / macOS
+.DS_Store
+.idea/
+.cursor/
+.vscode/
+
+# data and run-time artifacts (never committed)
+datasets/
+outputs/
+wandb/
+*.mp4
+*.log
+pusht/*/logs/
+pusht/*/runs/
+pusht/*/archive/
+pusht/*/calibration_runs/
+pusht/env_*.mp4

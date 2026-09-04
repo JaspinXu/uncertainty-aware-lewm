@@ -1,0 +1,83 @@
+
+==== RESOLVED CONFIG ====
+cache_dir: /Users/lijunping/Desktop/ECE4880J/uncertainty-aware-lewm
+solver:
+  _target_: stable_worldmodel.solver.CEMSolver
+  model: ???
+  batch_size: 1
+  num_samples: 300
+  var_scale: 1.0
+  n_steps: 30
+  topk: 30
+  device: mps
+  seed: 43
+world:
+  env_name: swm/PushT-v1
+  num_envs: 50
+  max_episode_steps: 100
+seed: 43
+policy: pusht/lewm
+risk:
+  estimator: mcdropout
+  n_samples: 5
+  ensemble_ckpts: []
+  perturb_std: 0.01
+  history_size: 3
+  objective:
+    mode: goal_cvar_eot
+    alpha: 0.1
+    num_samples: 300
+    topk: 30
+    tail_fraction: 0.4
+    tail_count: null
+    cap: 2.0
+    eps: 1.0e-08
+    lambda_weight: null
+    distance_scale: 1.0
+    uncertainty_scale: 1.0
+  truncation:
+    mode: none
+    omega: 1.0
+    k_base: 5
+    k_min: 1
+    k_max: null
+    threshold: null
+    penalty_weight: 0.0
+dataset:
+  stats: pusht_expert_train
+  keys_to_cache:
+  - action
+  - proprio
+  - state
+plan_config:
+  horizon: 5
+  receding_horizon: 5
+  action_block: 5
+eval:
+  num_eval: 50
+  goal_offset_steps: 25
+  eval_budget: 50
+  img_size: 224
+  dataset_name: pusht_expert_train
+  callables:
+  - method: _set_state
+    args:
+      state:
+        value: state
+  - method: _set_goal_state
+    args:
+      goal_state:
+        value: goal_state
+output:
+  filename: ../../../../results/goal_a0p1_s43.txt
+
+==== RESULTS ====
+device: mps
+metrics: {'success_rate': 86.0, 'episode_successes': array([ True,  True,  True,  True,  True, False,  True,  True,  True,
+        True,  True, False,  True, False,  True,  True,  True,  True,
+        True, False,  True,  True,  True,  True,  True, False,  True,
+        True,  True,  True,  True,  True,  True,  True,  True,  True,
+        True,  True,  True,  True,  True,  True,  True,  True, False,
+        True,  True,  True, False,  True]), 'seeds': None}
+risk_diagnostics: {"cost": 67.6667145461984, "delta_d": 7.186245913323157, "mean_truncation_length": 5.0, "penalized_fraction": 0.7147777770467795, "penalty": 0.46850396838202013, "penalty_to_goal": 0.01002218869586012, "risk": 8.167248817122047, "scale": 3.048614848751188, "tau": 4.683540956961001, "terminal_distance": 67.19821032696083, "topk_elite_overlap": 0.9792896051550172, "truncation_length": 5.0}
+evaluation_time: 812.763879776001 seconds
