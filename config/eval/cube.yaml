@@ -1,0 +1,95 @@
+# OGBench-Cube (single cube) evaluation protocol, identical to the LeWM paper /
+# le-wm config/eval/cube.yaml. The planner is chosen with `method=<name>`
+# (config/eval/method/*.yaml); everything else is shared across methods.
+#
+#   python evaluate.py --config-name cube method=baseline seed=42
+#   python evaluate.py --config-name cube method=baseline seed=42 record.enabled=true
+
+defaults:
+  - launcher: local
+  - solver: cem
+  - method: baseline
+  - _self_
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+world:
+  env_name: swm/OGBCube-v0
+  num_envs: ${eval.num_eval}
+  max_episode_steps: ???   # set in code: 2 * eval.eval_budget
+  env_type: single
+  ob_type: states
+  multiview: false
+  width: 224
+  height: 224
+  visualize_info: false
+  terminate_at_goal: true
+
+seed: 42
+policy: cube/lewm         # $STABLEWM_HOME/checkpoints/cube/lewm/{weights.pt,config.json}
+cache_dir: null
+# L4/L5 representation variants (cube/variants.py) read the robot proprio:
+# map env info keys proprio/x -> dataset names proprio_x (see evaluate.build_world)
+map_proprio_keys: false
+# constructor overrides for the loaded checkpoint, e.g. +model_overrides.w_prop=0.1
+model_overrides: {}
+
+dataset:
+  stats: ${eval.dataset_name}
+  keys_to_cache:
+    - action
+
+# planning budget (paper protocol: horizon 5 blocks, replan every 5 blocks = 25 env steps)
+plan_config:
+  horizon: 5
+  receding_horizon: 5
+  action_block: 5          # frameskip
+
+# CEM budget (paper protocol: 300 candidates / 30 iterations / top-30).
+# All envs are solved in one batch (faster on GPU; per-env math is unchanged).
+solver:
+  num_samples: 300
+  n_steps: 30
+  topk: 30
+  batch_size: ${eval.num_eval}
+
+# evaluation from dataset: start = expert state, goal = state 25 steps later
+eval:
+  num_eval: 50
+  goal_offset_steps: 25
+  eval_budget: 50
+  img_size: 224
+  dataset_name: ogbench/cube_single_expert   # $STABLEWM_HOME/datasets/ogbench/cube_single_expert.h5
+  callables:
+    - method: set_state
+      args:
+        qpos:
+          value: qpos
+        qvel:
+          value: qvel
+    - method: set_target_pos
+      args:
+        cube_id:
+          value: 0
+          in_dataset: false
+        target_pos:
+          value: goal_privileged_block_0_pos
+        target_quat:
+          value: goal_privileged_block_0_quat
+
+# L1 signal test: log every planning call (cube/recording.py). Off by default.
+record:
+  enabled: false
+  dir: results/cube/records   # relative to the repository root (git-ignored)
+  n_mc: 8                     # MC-dropout masks used to score the final CEM population
+  n_elite: 30                 # elites kept for oracle replay
+  n_random: 20                # extra non-elite candidates kept for oracle replay
+  history_size: 3
+
+output:
+  dir: results/cube/runs   # relative to the repository root
+  run_id: null             # default: <method.name>_s<seed>
+  video: false

@@ -1,4 +1,6 @@
 # python 3.10 | CUDA 12.8 wheels: pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
+# (PushT pilot). For the OGBench-Cube experiments use cluster/requirements-cluster.txt,
+# the exact package set they were developed and tested with (see cluster/setup_env.sh).
 torch==2.8.0
 torchvision
 lightning==2.6.5
@@ -17,5 +19,9 @@ rich==15.0.0
 tqdm==4.68.2
 matplotlib
 pillow
+# keep transformers 4.50 importable (stable-pretraining pulls `datasets`)
+huggingface-hub>=0.26,<1.0
+datasets>=3.0,<4.0
+pyarrow>=20,<25
 -e ./stable-worldmodel
 -e ./stable-pretraining

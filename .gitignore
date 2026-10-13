@@ -19,3 +19,16 @@ wandb/
 results/logs/
 results/videos/
 results/archive/
+
+# cluster job logs (keep the folder)
+logs/*
+!logs/.gitkeep
+
+# large Cube experiment artifacts (kept on the cluster)
+results/cube/records/
+results/cube/oracle/
+results/cube/smoke/records/
+results/cube/smoke/oracle/
+results/cube/**/*.csv.gz
+results/cube/**/*.pt
+results/cube/**/*.npz

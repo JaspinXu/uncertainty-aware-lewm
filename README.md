@@ -16,6 +16,23 @@ receding horizon 5):
 | Gated N=5 | `method=gated` | MC-5 + horizon truncation when step-0 σ² exceeds a calibrated threshold |
 | Goal-CVaR α=0.1 | `method=goal_cvar` | MC-5 distance + CVaR soft penalty on the worst dropout samples |
 
+## CS5478 extension: OGBench-Cube
+
+The final project moves the study to the harder OGBench-Cube manipulation task
+(LeWM paper protocol: 50 episodes per seed, goal = expert state 25 steps
+ahead, CEM 300/30/30, horizon 5 blocks of 5 env steps) and asks first whether
+MC-dropout σ² is a usable risk signal at all before building on it:
+
+| Level | Question | Code | Output |
+|---|---|---|---|
+| L0 | data, checkpoint, protocol on the cluster | `cluster/`, `config/eval/cube.yaml`, `scripts/cube/download_assets.py` | `results/cube/smoke/` |
+| L1 | does σ² flag the plans that fail in the real simulator? | `cube/recording.py` (logs every CEM call), `cube/oracle.py` + `scripts/cube/oracle_replay.py` (replays candidates from the exact simulator state), `scripts/cube/analyze_signal.py` | `results/cube/l1/signal_report.md` |
+| L2 | σ²-based planners on Cube | `config/eval/method/{mc5,gated,goal_cvar,penalty}.yaml` | `results/cube/summary/l2_panel.md` |
+| L3 | learned risk head vs. raw σ² | `ua/risk.py`, `scripts/cube/train_risk_head.py`, `method=risk` | `results/cube/l3/`, `results/cube/summary/planning_panel.md` |
+
+How to run everything on the SoC cluster: [`cluster/README.md`](cluster/README.md).
+Unit tests: `PYTHONPATH=.:stable-worldmodel:stable-pretraining pytest -q tests/`.
+
 ## Project layout
 
 | Path | Role |
