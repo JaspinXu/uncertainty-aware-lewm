@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Submit experiment phases with their Slurm dependencies.
 #
+#   bash cluster/submit.sh bootstrap  # env setup -> data/checkpoint download -> smoke test (chained)
 #   bash cluster/submit.sh planning   # L1 -> L2 -> L3 chained (recommended after the smoke test)
 #   bash cluster/submit.sh l1         # record + oracle (cal/test/train seeds) -> L1 analysis
 #   bash cluster/submit.sh l2         # needs L1 results: calibrate gate -> 4 planners x 9 seeds -> panel
@@ -79,6 +80,12 @@ submit_l5() {  # $1 = variant
 }
 
 case "${1:-}" in
+  bootstrap)
+    J0=$(sbatch --parsable cluster/jobs/00_setup_env.sbatch)
+    J1=$(sbatch --parsable --dependency=afterok:"$J0" cluster/jobs/01_download_cube.sbatch)
+    J2=$(sb --dependency=afterok:"$J1" cluster/jobs/02_smoke_test.sbatch)
+    echo "bootstrap: setup $J0 -> download $J1 -> smoke test $J2 (logs/lewm_smoke_$J2.out)" >&2
+    ;;
   l1) submit_l1 > /dev/null ;;
   l2) submit_l2 > /dev/null ;;
   l3) submit_l3 ;;
@@ -95,7 +102,7 @@ case "${1:-}" in
   l5) submit_l5 "${2:?variant}" ;;
   report) sbatch --parsable cluster/jobs/50_report.sbatch > /dev/null; echo "L6 report job submitted" >&2 ;;
   *)
-    sed -n '2,12p' "$0" >&2
+    sed -n '2,15p' "$0" >&2
     exit 2
     ;;
 esac

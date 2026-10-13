@@ -13,7 +13,12 @@ Do not run heavy work on the login node: everything goes through `sbatch`
 ```bash
 git clone --recursive https://github.com/JaspinXu/uncertainty-aware-lewm.git
 cd uncertainty-aware-lewm
-mkdir -p logs
+bash cluster/submit.sh bootstrap     # = steps 0-2 below, chained: setup -> download -> smoke test
+```
+
+or step by step:
+
+```bash
 sbatch cluster/jobs/00_setup_env.sbatch          # Miniforge + conda env "lewm" (~15 min)
 ```
 

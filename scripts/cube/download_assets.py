@@ -56,15 +56,50 @@ def fetch_model(root: Path) -> Path:
     return out
 
 
-def fetch_archive(root: Path) -> Path:
-    from huggingface_hub import hf_hub_download
+def http_download(url: str, dest: Path, chunk: int = 1 << 24) -> None:
+    """Plain HTTPS download with resume (fallback when the HF client fails)."""
+    import requests
 
+    part = dest.with_suffix(dest.suffix + ".part")
+    for attempt in range(20):
+        have = part.stat().st_size if part.exists() else 0
+        headers = {"Range": f"bytes={have}-"} if have else {}
+        try:
+            with requests.get(url, headers=headers, stream=True, timeout=60, allow_redirects=True) as r:
+                if r.status_code == 416:  # already complete
+                    break
+                r.raise_for_status()
+                mode = "ab" if have and r.status_code == 206 else "wb"
+                total = int(r.headers.get("Content-Length", 0)) + (have if mode == "ab" else 0)
+                with part.open(mode) as f:
+                    for i, block in enumerate(r.iter_content(chunk_size=chunk)):
+                        f.write(block)
+                        if i % 64 == 0:
+                            print(f"[data]   {part.stat().st_size / 1e9:.1f} / {total / 1e9:.1f} GB", flush=True)
+            break
+        except Exception as e:  # network hiccup: resume
+            print(f"[data] download interrupted ({type(e).__name__}: {e}); retry {attempt + 1}/20", flush=True)
+            time.sleep(10)
+    os.replace(part, dest)
+
+
+def fetch_archive(root: Path, use_hf: bool = True) -> Path:
     raw = root / "raw"
     raw.mkdir(parents=True, exist_ok=True)
     t0 = time.time()
-    p = Path(hf_hub_download(DATA_REPO, ARCHIVE, repo_type="dataset", local_dir=raw))
-    print(f"[data] archive {p} ({p.stat().st_size / 1e9:.2f} GB, {time.time() - t0:.0f}s)")
-    return p
+    dest = raw / ARCHIVE
+    if use_hf:
+        try:
+            from huggingface_hub import hf_hub_download
+
+            dest = Path(hf_hub_download(DATA_REPO, ARCHIVE, repo_type="dataset", local_dir=raw))
+        except Exception as e:
+            print(f"[data] huggingface_hub download failed ({type(e).__name__}: {e}); falling back to plain HTTPS")
+            use_hf = False
+    if not use_hf:
+        http_download(f"https://huggingface.co/datasets/{DATA_REPO}/resolve/main/{ARCHIVE}", dest)
+    print(f"[data] archive {dest} ({dest.stat().st_size / 1e9:.2f} GB, {time.time() - t0:.0f}s)")
+    return dest
 
 
 def extract(archive: Path, root: Path) -> Path:
@@ -117,6 +152,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--only", choices=("model", "data"), default=None)
     ap.add_argument("--keep-archive", action="store_true")
+    ap.add_argument("--plain-http", action="store_true", help="skip the HF client, download with resumable HTTPS")
     args = ap.parse_args()
     root = stablewm_home()
     print(f"[assets] STABLEWM_HOME={root}")
@@ -127,7 +163,7 @@ def main() -> None:
         if target.exists():
             print(f"[data] {target} already present, skipping download")
         else:
-            archive = fetch_archive(root)
+            archive = fetch_archive(root, use_hf=not args.plain_http)
             extract(archive, root)
             if not args.keep_archive:
                 archive.unlink()
