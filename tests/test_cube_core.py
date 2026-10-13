@@ -169,3 +169,34 @@ def test_normalized_to_env_actions_matches_policy():
     expected = np.stack([scaler.inverse_transform(per_step[:, t].numpy()) for t in range(25)], axis=1)
     ours = normalized_to_env_actions(plan, 5, mean, scale)
     np.testing.assert_allclose(ours, expected, rtol=1e-6)
+
+
+# --------------------------------------------------------------------------- #
+# L4 helpers
+# --------------------------------------------------------------------------- #
+def test_r2_redundancy_extremes():
+    from train_cube import r2_redundancy
+
+    torch.manual_seed(0)
+    p = torch.randn(2048, 8)
+    assert r2_redundancy(p @ torch.randn(8, 16), p).item() > 0.99
+    assert r2_redundancy(torch.randn(2048, 16), p).item() < 0.05
+
+
+def test_lr_schedule():
+    from train_cube import lr_at
+
+    assert lr_at(0, 100, 1.0, 10) == pytest.approx(0.1)
+    assert lr_at(10, 100, 1.0, 10) == pytest.approx(1.0)
+    assert lr_at(100, 100, 1.0, 10) == pytest.approx(0.0, abs=1e-9)
+
+
+def test_variant_block_cost():
+    from cube.variants import LeWMVariant
+
+    m = LeWMVariant.__new__(LeWMVariant)
+    torch.nn.Module.__init__(m)
+    m.vis_dim, m.prop_latent, m.w_prop = 3, 2, 0.5
+    pred = torch.tensor([[1.0, 0, 0, 2.0, 0]])
+    goal = torch.zeros(1, 5)
+    assert m.block_cost(pred, goal).item() == pytest.approx(1.0 + 0.5 * 4.0)

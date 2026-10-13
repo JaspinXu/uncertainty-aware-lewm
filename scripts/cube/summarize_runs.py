@@ -112,19 +112,27 @@ def summarize(runs: dict, labels: list[str], reference: str | None, dist: dict) 
             common = sorted(set(ref) & set(runs[label]))
             if not common:
                 continue
-            a = np.concatenate([np.asarray(ref[s]["episode_successes"], bool) for s in common])
-            b = np.concatenate([np.asarray(runs[label][s]["episode_successes"], bool) for s in common])
-            deltas = [100 * (np.mean(runs[label][s]["episode_successes"]) - np.mean(ref[s]["episode_successes"])) for s in common]
+            # pair episodes by their (dataset episode, start step) within each seed
+            a, b, keys, deltas = [], [], [], []
+            for s in common:
+                ra = {(e, t): ok for e, t, ok in zip(ref[s]["episodes"], ref[s]["start_steps"], ref[s]["episode_successes"])}
+                rb = {(e, t): ok for e, t, ok in zip(runs[label][s]["episodes"], runs[label][s]["start_steps"], runs[label][s]["episode_successes"])}
+                shared = [k for k in ra if k in rb]
+                a += [bool(ra[k]) for k in shared]
+                b += [bool(rb[k]) for k in shared]
+                keys += shared
+                if shared:
+                    deltas.append(100 * (np.mean([rb[k] for k in shared]) - np.mean([ra[k] for k in shared])))
+            a, b = np.asarray(a, bool), np.asarray(b, bool)
             cmp = {
                 "seeds": common,
-                "delta_mean_pp": float(np.mean(deltas)),
+                "n_paired": int(len(a)),
+                "delta_mean_pp": float(np.mean(deltas)) if deltas else float("nan"),
                 "delta_per_seed_pp": [float(x) for x in deltas],
                 "mcnemar": mcnemar_exact(a, b),
             }
             if dist:
-                nt = np.concatenate(
-                    [[dist[(e, t)] > SUCCESS_RADIUS for e, t in zip(ref[s]["episodes"], ref[s]["start_steps"])] for s in common]
-                ).astype(bool)
+                nt = np.asarray([dist[k] > SUCCESS_RADIUS for k in keys], dtype=bool)
                 cmp["nontrivial_delta_pp"] = float(100 * (b[nt].mean() - a[nt].mean())) if nt.any() else None
                 cmp["nontrivial_mcnemar"] = mcnemar_exact(a[nt], b[nt]) if nt.any() else None
             out["comparisons"][label] = cmp

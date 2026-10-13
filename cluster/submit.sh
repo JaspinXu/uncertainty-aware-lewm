@@ -5,6 +5,10 @@
 #   bash cluster/submit.sh l1         # record + oracle (cal/test/train seeds) -> L1 analysis
 #   bash cluster/submit.sh l2         # needs L1 results: calibrate gate -> 4 planners x 9 seeds -> panel
 #   bash cluster/submit.sh l3         # needs L1 results: train risk head -> closed loop x 9 seeds -> panel
+#   bash cluster/submit.sh l4 [variants]   # train representation variants (default: all five);
+#                                          # each one submits its own L5 evaluation when done
+#   bash cluster/submit.sh l5 <variant>    # (normally automatic) probes + planning for one variant
+#   bash cluster/submit.sh report          # L6: collect every result into results/cube/RESULTS.md
 #
 # Extra sbatch options for every GPU job go through SBATCH_EXTRA, e.g.
 #   SBATCH_EXTRA="--gpus=a100-80:1" bash cluster/submit.sh planning
@@ -50,6 +54,30 @@ submit_l3() {  # $1 = dependency job ids "a:b" (optional)
   echo "L3: risk head $j_tr -> panel $j_pan ($n runs) -> summary $j_sum" >&2
 }
 
+submit_l4() {
+  local v
+  for v in "$@"; do
+    sb cluster/jobs/40_l4_train.sbatch "$v" > /dev/null
+    echo "L4: training $v submitted" >&2
+  done
+  # the pretrained checkpoint is the reference for every L5 table
+  [[ -f results/cube/l5/repr_cube__lewm.json ]] || sb cluster/jobs/41_l5_repr.sbatch cube/lewm > /dev/null
+}
+
+submit_l5() {  # $1 = variant
+  local v="$1" j_sel j_test
+  sb cluster/jobs/41_l5_repr.sbatch "cube/l4_$v" > /dev/null
+  case "$v" in
+    prop*)
+      j_sel=$(sb --array=0-8 cluster/jobs/42_l5_plan.sbatch "$v" select)
+      j_test=$(sb --dependency=afterok:"$j_sel" --array=0-8 cluster/jobs/42_l5_plan.sbatch "$v" test)
+      echo "L5 $v: representation eval, w_prop selection $j_sel -> test panel $j_test" >&2 ;;
+    *)
+      j_test=$(sb --array=0-8 cluster/jobs/42_l5_plan.sbatch "$v" test)
+      echo "L5 $v: representation eval, test panel $j_test" >&2 ;;
+  esac
+}
+
 case "${1:-}" in
   l1) submit_l1 > /dev/null ;;
   l2) submit_l2 > /dev/null ;;
@@ -59,6 +87,13 @@ case "${1:-}" in
     submit_l2 "$J_AN" > /dev/null
     submit_l3 "$J_AN:$J_TR"
     ;;
+  l4)
+    shift
+    if [[ $# -eq 0 ]]; then set -- lewm ms prop prop_aux prop_ms; fi
+    submit_l4 "$@"
+    ;;
+  l5) submit_l5 "${2:?variant}" ;;
+  report) sbatch --parsable cluster/jobs/50_report.sbatch > /dev/null; echo "L6 report job submitted" >&2 ;;
   *)
     sed -n '2,12p' "$0" >&2
     exit 2
