@@ -371,7 +371,10 @@ def write_report(s: dict, out: Path) -> None:
     d = s["difficulty"]
     L.append("## Protocol checks\n")
     L.append(f"- Oracle replay fidelity: executed plan replayed vs. state the evaluation reached, max |Δqpos| = "
-             f"{f.get('max_abs_qpos_diff')} over {f.get('n_checked')} transitions")
+             f"{f.get('max_abs_qpos_diff')} over {f.get('n_checked')} transitions "
+             f"(start-of-episode plans: {f.get('start_of_episode', {}).get('max_abs_qpos_diff')} over "
+             f"{f.get('start_of_episode', {}).get('n')}; mid-episode plans: "
+             f"{f.get('mid_episode', {}).get('max_abs_qpos_diff')} over {f.get('mid_episode', {}).get('n')})")
     L.append(f"- Oracle vs. closed-loop outcome: {fmt(f.get('oracle_vs_closed_loop_agreement'), True)} agreement over "
              f"{f.get('episodes_compared')} episodes")
     L.append(f"- Trivial first plans (cube already within {SUCCESS_RADIUS * 100:.0f} cm): {fmt(d['trivial_first_plan_frac'], True)}")
@@ -461,18 +464,27 @@ def write_report(s: dict, out: Path) -> None:
 
 
 def oracle_fidelity_meta(oracle_dir: Path, runs: list[str]) -> dict:
+    """Worst replay error over all runs, overall and for start-of-episode /
+    mid-episode plans (oracle_replay.fidelity_check)."""
     import torch
 
-    worst, n = 0.0, 0
+    agg = {g: {"n": 0, "max": 0.0} for g in ("all", "first", "last")}
     for r in runs:
         p = oracle_dir / f"{r}.pt"
         if not p.exists():
             continue
         fm = torch.load(p, map_location="cpu", weights_only=False)["meta"].get("fidelity", {})
-        if fm.get("n"):
-            n += fm["n"]
-            worst = max(worst, fm["max_abs_qpos_diff"])
-    return {"n_checked": n, "max_abs_qpos_diff": worst}
+        for g in agg:
+            sub = fm if g == "all" else fm.get(g, {})
+            if sub.get("n"):
+                agg[g]["n"] += sub["n"]
+                agg[g]["max"] = max(agg[g]["max"], sub["max_abs_qpos_diff"])
+    return {
+        "n_checked": agg["all"]["n"],
+        "max_abs_qpos_diff": agg["all"]["max"],
+        "start_of_episode": {"n": agg["first"]["n"], "max_abs_qpos_diff": agg["first"]["max"]},
+        "mid_episode": {"n": agg["last"]["n"], "max_abs_qpos_diff": agg["last"]["max"]},
+    }
 
 
 def main() -> None:

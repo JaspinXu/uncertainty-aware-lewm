@@ -63,6 +63,11 @@ _MLP = {
 }
 
 
+
+def _num(v) -> float:
+    return float(v.detach()) if torch.is_tensor(v) else float(v)
+
+
 def model_config(prop_keys: list[str], prop_dim: int, args, spec: dict) -> dict:
     vis = 192
     lat = vis + (args.prop_latent if spec["prop"] else 0)
@@ -207,7 +212,7 @@ def validate(model, sigreg, loader, spec, args, stats, max_batches: int = 50) ->
         with torch.autocast("cuda", dtype=torch.bfloat16, enabled=args.device.startswith("cuda")):
             losses = compute_losses(model, sigreg, batch, spec, args, stats)
         for k, v in losses.items():
-            acc[k] = acc.get(k, 0.0) + float(v)
+            acc[k] = acc.get(k, 0.0) + _num(v)
         n += 1
     model.train()
     return {f"val_{k}": v / max(1, n) for k, v in acc.items()}
@@ -312,9 +317,13 @@ def main() -> None:
         train_ds, batch_size=args.batch_size, shuffle=True, drop_last=True, generator=g,
         num_workers=args.workers, pin_memory=True, persistent_workers=args.workers > 0,
         prefetch_factor=2 if args.workers > 0 else None,
+        # stable_worldmodel imports lance, which is not fork-safe
+        multiprocessing_context="spawn" if args.workers > 0 else None,
     )
+    val_workers = min(4, args.workers)
     val_loader = torch.utils.data.DataLoader(
-        val_ds, batch_size=args.batch_size, shuffle=False, num_workers=min(4, args.workers), pin_memory=True
+        val_ds, batch_size=args.batch_size, shuffle=False, num_workers=val_workers, pin_memory=True,
+        multiprocessing_context="spawn" if val_workers > 0 else None,
     )
 
     log_path = run_dir / "log.csv"
@@ -340,7 +349,7 @@ def main() -> None:
             if step % args.log_every == 0 or step == 1:
                 row = {"step": step, "lr": opt.param_groups[0]["lr"], "grad_norm": float(gn),
                        "samples_per_s": n_seen / max(1e-6, time.time() - t_log),
-                       **{k: float(v) for k, v in losses.items()}}
+                       **{k: _num(v) for k, v in losses.items()}}
                 if step % args.val_every == 0:
                     row.update(validate(model, sigreg, val_loader, spec, args, stats))
                 if writer is None:

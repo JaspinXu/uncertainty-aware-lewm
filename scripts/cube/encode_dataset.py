@@ -71,7 +71,9 @@ def main() -> None:
         dim = int(model.encode({"pixels": torch.zeros(1, 1, 3, 224, 224, device=args.device)})["emb"].shape[-1])
     lat = np.lib.format.open_memmap(out, mode="w+", dtype=np.float16, shape=(n_rows, dim))
     loader = torch.utils.data.DataLoader(
-        Chunks(src, n_rows, args.chunk), batch_size=None, shuffle=False, num_workers=args.workers, prefetch_factor=4 if args.workers else None
+        Chunks(src, n_rows, args.chunk), batch_size=None, shuffle=False, num_workers=args.workers,
+        prefetch_factor=4 if args.workers else None,
+        multiprocessing_context="spawn" if args.workers else None,  # lance (imported by stable_worldmodel) is not fork-safe
     )
     t0 = time.time()
     with torch.no_grad():

@@ -280,3 +280,35 @@ def test_warm_start_reproduces_pretrained(tmp_path, monkeypatch):
         z = model.encode({"pixels": px, "proprio": torch.randn(1, 1, 3)})["emb"]
         out = rollout_from_latents(model, z, acts)
     torch.testing.assert_close(out[..., :192], ref, rtol=1e-4, atol=1e-4)
+
+
+# --------------------------------------------------------------------------- #
+# oracle replay of mid-episode plans (cube/simstate.py)
+# --------------------------------------------------------------------------- #
+def test_mid_episode_replay_is_exact():
+    """Replaying from qpos/qvel + solver warm start + stale end-effector pose
+    reproduces the live trajectory bit for bit, whatever the replay env did before."""
+    pytest.importorskip("ogbench")
+    from cube.oracle import make_cube_env, replay
+    from cube.simstate import sim_state
+
+    rng = np.random.default_rng(0)
+    acts = np.clip(rng.normal(0, 0.6, size=(30, 5)), -1, 1).astype(np.float32)
+    live = make_cube_env(seed=3)
+    tid = live._cube_target_mocap_ids[0]
+    goal, goal_q = live._data.mocap_pos[tid].copy(), live._data.mocap_quat[tid].copy()
+    for a in acts[:15]:
+        live._reset_next_step = False
+        live.step(a)
+    snap = {"qpos": live._data.qpos.copy(), "qvel": live._data.qvel.copy(), **sim_state(live)}
+    for a in acts[15:]:
+        live._reset_next_step = False
+        live.step(a)
+
+    other = make_cube_env(seed=4)
+    for a in acts[:5]:  # unrelated history in the replay env
+        other._reset_next_step = False
+        other.step(-a)
+    res = replay(other, snap["qpos"], snap["qvel"], goal, goal_q, acts[None, 15:], render_every=0,
+                 sim=snap, mid_episode=True)
+    np.testing.assert_array_equal(res.final_qpos[0], live._data.qpos)

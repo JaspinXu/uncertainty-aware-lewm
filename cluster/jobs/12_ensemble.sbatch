@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=lewm_ens
 #SBATCH --time=03:00:00
+#SBATCH --partition=gpu
 #SBATCH --gpus=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
@@ -12,6 +13,7 @@ set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:-.}"
 source cluster/env.sh
 job_banner
+require_gpu || exit 1
 python scripts/cube/encode_dataset.py --policy cube/lewm
 python train_ensemble.py --policy cube/lewm --members "${ENS_MEMBERS:-5}" --steps "${ENS_STEPS:-20000}"
 mkdir -p results/cube/ensemble

@@ -109,7 +109,19 @@ def build_world(cfg):
             if c.startswith("proprio_")
         }
         extra_wrappers.append(partial(MapKeysWrapper, key_map=key_map))
-    world = swm.World(**cfg.world, image_shape=(224, 224), extra_wrappers=extra_wrappers or None)
+    pre_wrappers = []
+    if cfg.get("record") is not None and cfg.record.get("enabled", False):
+        # solver warm start + end-effector pose in every info dict, so that the
+        # oracle can replay mid-episode plans exactly (cube/simstate.py)
+        from cube.simstate import SimStateInfo
+
+        pre_wrappers.append(SimStateInfo)
+    world = swm.World(
+        **cfg.world,
+        image_shape=(224, 224),
+        pre_wrappers=pre_wrappers or None,
+        extra_wrappers=extra_wrappers or None,
+    )
     transform = {"pixels": img_transform(cfg), "goal": img_transform(cfg)}
 
     process = {}
@@ -275,6 +287,7 @@ def run(cfg: DictConfig) -> None:
     write_outputs(cfg, run_id, results_dir, device, metrics, model, elapsed, episodes, start_steps)
 
     if recorder is not None:
+        recorder.record_final(world.infos, getattr(policy, "_t", int(cfg.eval.eval_budget)))
         scaler = process["action"]
         meta = {
             "run_id": run_id,

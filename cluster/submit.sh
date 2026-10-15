@@ -1,112 +1,286 @@
 #!/usr/bin/env bash
-# Submit experiment phases with their Slurm dependencies.
+# Submit experiment phases with their Slurm dependencies (run on the login node).
 #
-#   bash cluster/submit.sh bootstrap  # env setup -> data/checkpoint download -> smoke test (chained)
-#   bash cluster/submit.sh planning   # L1 -> L2 -> L3 chained (recommended after the smoke test)
-#   bash cluster/submit.sh l1         # record + oracle (cal/test/train seeds) + latent ensemble -> L1 analysis
-#   bash cluster/submit.sh l2         # needs L1 results: calibrate gate -> 5 planners x 9 seeds -> panel
-#   bash cluster/submit.sh l3         # needs L1 results: train risk head -> closed loop x 9 seeds -> panel
+#   bash cluster/submit.sh bootstrap   # env setup -> data/checkpoint download -> smoke test
+#                                      #   (steps already done are skipped)
+#   bash cluster/submit.sh smoke       # smoke test only
+#   bash cluster/submit.sh planning    # L1 -> L2 -> L3 chained (after a clean smoke test)
+#   bash cluster/submit.sh l1|l2|l3    # one level (l2/l3 need the L1 results)
 #   bash cluster/submit.sh l4 [variants]   # train representation variants (default: all five);
 #                                          # each one submits its own L5 evaluation when done
 #   bash cluster/submit.sh l5 <variant>    # (normally automatic) probes + planning for one variant
 #   bash cluster/submit.sh report          # L6: collect every result into results/cube/RESULTS.md
+#   bash cluster/submit.sh status          # what is done, what is queued
+#   bash cluster/submit.sh results         # commit + push the small result files and recent job logs
 #
-# Extra sbatch options for every GPU job go through SBATCH_EXTRA, e.g.
-#   SBATCH_EXTRA="--gpus=a100-80:1" bash cluster/submit.sh planning
+# Every phase can be submitted again at any time: finished runs are left out.
+# GPU jobs go to partition $LEWM_GPU_PARTITION (default gpu, 3 h) without the
+# older `nv` cards (LEWM_ALLOW_NV=1 allows them). Extra sbatch options for every
+# GPU job go through SBATCH_EXTRA, e.g.  SBATCH_EXTRA="--gpus=h100-47:1"
 set -euo pipefail
 cd "$(dirname "$0")/.."
-mkdir -p logs
+mkdir -p logs/tasks
 # shellcheck disable=SC1091
-source cluster/seeds.sh
+source cluster/runs.sh   # done_* checks (and cluster/seeds.sh)
 read -r -a EXTRA <<< "${SBATCH_EXTRA:-}"
+STABLEWM_HOME="${STABLEWM_HOME:-$HOME/lewm_data}"
+PART="${LEWM_GPU_PARTITION:-gpu}"
+ME="$(id -un)"
+# at most this many jobs per group of runs: GPU jobs beyond the per-user limit of
+# 8 GPUs only wait in the queue, and every queued job uses one of 32 slots
+MAXJ_L1=4 MAXJ_TRAIN=3 MAXJ_L2=6 MAXJ_L3=2 MAXJ_L5=2
 
-n_of() { local -a s; read -r -a s <<< "$(seed_group "$1")"; echo "${#s[@]}"; }
-sb() { sbatch --parsable ${EXTRA[@]+"${EXTRA[@]}"} "$@"; }
-dep() { [[ -n "${1:-}" ]] && echo "--dependency=afterok:$1" || true; }
+# ---------------------------------------------------------------------- #
+# sbatch helpers
+# ---------------------------------------------------------------------- #
+GPU_FLAGS=(--partition="$PART")
+if [[ "${LEWM_ALLOW_NV:-0}" != 1 ]] && command -v sinfo >/dev/null; then
+  NV_NODES=$(sinfo -h -N -p "$PART" -o "%N %G" 2>/dev/null | awk '$2 ~ /gpu:nv/ {print $1}' | sort -u | paste -sd, - || true)
+  [[ -n "${NV_NODES:-}" ]] && GPU_FLAGS+=(--exclude="$NV_NODES")
+fi
+sbg() { sbatch --parsable "${GPU_FLAGS[@]}" ${EXTRA[@]+"${EXTRA[@]}"} "$@"; }  # GPU job
+sbc() { sbatch --parsable "$@"; }                                             # CPU job (default partition)
+dep() { [[ -n "${2:-}" ]] && echo "--dependency=$1:$2" || true; }              # dep afterok "1:2" -> flag
+idjoin() { local IFS=:; echo "$*" | sed -E 's/:+/:/g; s/^://; s/:$//'; }      # idjoin 1 "" 2:3 -> 1:2:3
 
-submit_l1() {  # -> prints "<analysis job id> <train-data job id>"
-  local n_l1 n_tr j_rec j_tr j_ens j_sc j_an
-  n_l1=$(n_of l1); n_tr=$(n_of train)
-  j_rec=$(sb --array=0-$((n_l1 - 1)) cluster/jobs/10_record_oracle.sbatch l1)
-  j_tr=$(sb --array=0-$((n_tr - 1)) cluster/jobs/10_record_oracle.sbatch train)
-  j_ens=$(sb cluster/jobs/12_ensemble.sbatch)
-  j_sc=$(sb --dependency=afterok:"$j_rec":"$j_tr":"$j_ens" cluster/jobs/13_score_ensemble.sbatch)
-  # the analysis needs the records; it uses the ensemble scores if that branch succeeded
-  j_an=$(sbatch --parsable --dependency=afterok:"$j_rec",afterany:"$j_sc" cluster/jobs/11_l1_analyze.sbatch)
-  echo "L1: record/oracle $j_rec ($n_l1 seeds), risk-head data $j_tr ($n_tr seeds), ensemble $j_ens -> scoring $j_sc, analysis $j_an" >&2
-  echo "$j_an $j_tr"
+QUEUE_LIMIT=$(sacctmgr -nP list associations user="$ME" format=maxsubmit 2>/dev/null | awk '$1 ~ /^[0-9]+$/ {print $1; exit}' || true)
+QUEUE_LIMIT=${QUEUE_LIMIT:-32}
+queued() { squeue -h -r -u "$ME" 2>/dev/null | wc -l; }
+check_capacity() {  # check_capacity N WHAT
+  local cur
+  cur=$(queued)
+  if (( cur + $1 > QUEUE_LIMIT )); then
+    echo "$2 needs $1 job(s), but $cur of your $QUEUE_LIMIT queued-job slots are taken." >&2
+    echo "Submit it again when some jobs have finished (finished runs are skipped)." >&2
+    exit 3
+  fi
 }
 
-submit_l2() {  # $1 = dependency job id (optional)
-  local j_cal j_pan j_sum n
-  n=$(( 5 * $(n_of test) ))
-  j_cal=$(sb $(dep "${1:-}") cluster/jobs/20_l2_calibrate.sbatch)
-  j_pan=$(sb --dependency=afterok:"$j_cal" --array=0-$((n - 1)) cluster/jobs/21_l2_panel.sbatch)
-  j_sum=$(sbatch --parsable --dependency=afterany:"$j_pan" cluster/jobs/90_summarize.sbatch \
-          l2_panel baseline mc5 gated goal_cvar penalty ens_penalty)
-  echo "L2: calibration $j_cal -> panel $j_pan ($n runs) -> summary $j_sum" >&2
-  echo "$j_sum"
+# todo LINE... -> TODO = the task lines whose outputs do not exist yet
+todo() {
+  local line words
+  TODO=()
+  for line in "$@"; do
+    read -r -a words <<< "$line"
+    "done_${words[0]#run_}" "${words[@]:1}" || TODO+=("$line")
+  done
 }
 
-submit_l3() {  # $1 = dependency job ids "a:b" (optional)
-  local j_tr j_pan j_sum n
-  n=$(n_of test)
-  j_tr=$(sb $(dep "${1:-}") cluster/jobs/30_l3_train_risk.sbatch)
-  j_pan=$(sb --dependency=afterok:"$j_tr" --array=0-$((n - 1)) cluster/jobs/31_l3_panel.sbatch)
-  j_sum=$(sbatch --parsable --dependency=afterany:"$j_pan" cluster/jobs/90_summarize.sbatch \
-          planning_panel baseline mc5 gated goal_cvar penalty ens_penalty risk)
-  echo "L3: risk head $j_tr -> panel $j_pan ($n runs) -> summary $j_sum" >&2
+# chunk KIND MAX_JOBS -> PER (runs per job) and NJOBS for TODO. The run time
+# estimate comes from the smoke-test timings (scripts/cube/runs_per_job.py:
+# TARGET runs fill ~100 min, MAX ~150 min of the 3 h limit). Beyond MAX_JOBS
+# jobs, runs are packed more densely, up to MAX per job.
+chunk() {
+  local n=${#TODO[@]} target most
+  read -r target most < <(python3 scripts/cube/runs_per_job.py "$1" 2>/dev/null || echo "3 4")
+  PER=$target
+  NJOBS=0
+  (( n > 0 )) || return 0
+  NJOBS=$(( (n + PER - 1) / PER ))
+  if (( NJOBS > $2 )); then
+    PER=$(( (n + $2 - 1) / $2 ))
+    (( PER > most )) && PER=$most
+    NJOBS=$(( (n + PER - 1) / PER ))
+  fi
+  return 0
 }
 
+# submit_tasks NAME PER DEP_FLAG -> submits TODO in jobs of PER runs, prints "id:id:..." ("" if nothing to do)
+submit_tasks() {
+  local name="$1" per="$2" depflag="$3" ids=() f k=0 s stamp
+  stamp=$(date +%Y%m%d-%H%M%S)
+  for (( s = 0; s < ${#TODO[@]}; s += per )); do
+    f="logs/tasks/${name}_${stamp}_${k}.txt"
+    printf '%s\n' "${TODO[@]:s:per}" > "$f"
+    ids+=("$(sbg --job-name="lewm_$name" ${depflag:+"$depflag"} cluster/jobs/run_tasks.sbatch "$f")")
+    k=$(( k + 1 ))
+  done
+  idjoin "${ids[@]}"
+}
+
+# ---------------------------------------------------------------------- #
+# task lists
+# ---------------------------------------------------------------------- #
+record_lines() { local s; for s in $(seed_group "$1"); do echo "run_record $s"; done; }
+l2_lines() { local s m; for s in "${TEST_SEEDS[@]}"; do for m in "${L2_METHODS[@]}"; do echo "run_l2 $m $s"; done; done; }
+l3_lines() { local s; for s in "${TEST_SEEDS[@]}"; do echo "run_l3 $s"; done; }
+l5_select_lines() { local w s; for w in "${L5_W_PROP[@]}"; do for s in "${CAL_SEEDS[@]}"; do echo "run_l5 $1 select $w $s"; done; done; }
+l5_test_lines() { local s; for s in "${TEST_SEEDS[@]}"; do echo "run_l5 $1 test $s"; done; }
+
+# ---------------------------------------------------------------------- #
+# phases: prep_* decides what to run and how many jobs that takes (N_*),
+# submit_* submits it
+# ---------------------------------------------------------------------- #
+J_AN=""; J_TR=""
+
+prep_l1() {
+  local lines
+  mapfile -t lines < <(record_lines l1); todo "${lines[@]}"
+  L1_TODO=("${TODO[@]}"); chunk record "$MAXJ_L1"; L1_PER=$PER; N_L1=$NJOBS
+  mapfile -t lines < <(record_lines train); todo "${lines[@]}"
+  TR_TODO=("${TODO[@]}"); chunk record "$MAXJ_TRAIN"; TR_PER=$PER; N_L1=$(( N_L1 + NJOBS ))
+  NEED_ENS=1
+  [[ -f "$STABLEWM_HOME/checkpoints/cube/ens_lewm/ensemble.pt" ]] && NEED_ENS=0
+  N_L1=$(( N_L1 + NEED_ENS + 2 ))  # + scoring + analysis
+}
+submit_l1() {
+  local j_rec j_tr j_ens="" j_sc d
+  TODO=("${L1_TODO[@]}"); j_rec=$(submit_tasks l1_record "$L1_PER" "")
+  TODO=("${TR_TODO[@]}"); j_tr=$(submit_tasks l1_train "$TR_PER" "")
+  (( NEED_ENS )) && j_ens=$(sbg cluster/jobs/12_ensemble.sbatch)
+  j_sc=$(sbg $(dep afterok "$(idjoin "$j_rec" "$j_tr" "$j_ens")") cluster/jobs/13_score_ensemble.sbatch)
+  # the analysis needs the L1 records; it uses the ensemble scores if that branch succeeded
+  d="afterany:$j_sc"
+  [[ -n "$j_rec" ]] && d="afterok:$j_rec,$d"
+  J_AN=$(sbc --dependency="$d" cluster/jobs/11_l1_analyze.sbatch)
+  J_TR="$j_tr"
+  echo "L1: ${#L1_TODO[@]} cal/test runs + ${#TR_TODO[@]} risk-head runs to do, ensemble ${j_ens:-already trained}, scoring $j_sc, analysis $J_AN" >&2
+}
+
+prep_l2() {
+  local lines
+  mapfile -t lines < <(l2_lines); todo "${lines[@]}"
+  L2_TODO=("${TODO[@]}"); chunk plan "$MAXJ_L2"; L2_PER=$PER; N_L2=$(( NJOBS + 2 ))
+}
+submit_l2() {  # $1 = job to wait for (optional)
+  local j_cal j_pan j_sum
+  j_cal=$(sbg $(dep afterok "${1:-}") cluster/jobs/20_l2_calibrate.sbatch)
+  TODO=("${L2_TODO[@]}"); j_pan=$(submit_tasks l2 "$L2_PER" "--dependency=afterok:$j_cal")
+  j_sum=$(sbc --dependency="afterany:$(idjoin "$j_cal" "$j_pan")" cluster/jobs/90_summarize.sbatch \
+          l2_panel baseline "${L2_METHODS[@]}")
+  echo "L2: calibration $j_cal -> ${#L2_TODO[@]} runs ($L2_PER per job) -> summary $j_sum" >&2
+}
+
+prep_l3() {
+  local lines
+  mapfile -t lines < <(l3_lines); todo "${lines[@]}"
+  L3_TODO=("${TODO[@]}"); chunk plan "$MAXJ_L3"; L3_PER=$PER; N_L3=$(( NJOBS + 2 ))
+}
+submit_l3() {  # $1 = jobs to wait for "a:b" (optional)
+  local j_tr j_pan j_sum
+  j_tr=$(sbg $(dep afterok "${1:-}") cluster/jobs/30_l3_train_risk.sbatch)
+  TODO=("${L3_TODO[@]}"); j_pan=$(submit_tasks l3 "$L3_PER" "--dependency=afterok:$j_tr")
+  j_sum=$(sbc --dependency="afterany:$(idjoin "$j_tr" "$j_pan")" cluster/jobs/90_summarize.sbatch \
+          planning_panel baseline "${L2_METHODS[@]}" risk)
+  echo "L3: risk head $j_tr -> ${#L3_TODO[@]} runs ($L3_PER per job) -> summary $j_sum" >&2
+}
+
+prep_l4() {  # variants...
+  local v
+  L4_TODO=()
+  for v in "$@"; do
+    if [[ -f "$STABLEWM_HOME/checkpoints/cube/l4_$v/DONE" ]]; then
+      echo "L4: $v already trained (its evaluation: bash cluster/submit.sh l5 $v)" >&2
+    else
+      L4_TODO+=("$v")
+    fi
+  done
+  NEED_REF=1
+  [[ -f results/cube/l5/repr_cube__lewm.json ]] && NEED_REF=0
+  N_L4=$(( ${#L4_TODO[@]} + NEED_REF ))
+}
 submit_l4() {
   local v
-  for v in "$@"; do
-    sb cluster/jobs/40_l4_train.sbatch "$v" > /dev/null
+  for v in ${L4_TODO[@]+"${L4_TODO[@]}"}; do
+    sbg cluster/jobs/40_l4_train.sbatch "$v" > /dev/null
     echo "L4: training $v submitted" >&2
   done
   # the pretrained checkpoint is the reference for every L5 table
-  [[ -f results/cube/l5/repr_cube__lewm.json ]] || sb cluster/jobs/41_l5_repr.sbatch cube/lewm > /dev/null
+  (( NEED_REF )) && sbg cluster/jobs/41_l5_repr.sbatch cube/lewm > /dev/null
+  return 0
 }
 
-submit_l5() {  # $1 = variant
-  local v="$1" j_sel j_test
-  sb cluster/jobs/41_l5_repr.sbatch "cube/l4_$v" > /dev/null
-  case "$v" in
-    prop*)
-      j_sel=$(sb --array=0-8 cluster/jobs/42_l5_plan.sbatch "$v" select)
-      j_test=$(sb --dependency=afterok:"$j_sel" --array=0-8 cluster/jobs/42_l5_plan.sbatch "$v" test)
-      echo "L5 $v: representation eval, w_prop selection $j_sel -> test panel $j_test" >&2 ;;
-    *)
-      j_test=$(sb --array=0-8 cluster/jobs/42_l5_plan.sbatch "$v" test)
-      echo "L5 $v: representation eval, test panel $j_test" >&2 ;;
+prep_l5() {  # variant
+  local lines
+  SEL_TODO=()
+  case "$1" in
+    prop*) mapfile -t lines < <(l5_select_lines "$1"); todo "${lines[@]}"; SEL_TODO=(${TODO[@]+"${TODO[@]}"}) ;;
   esac
+  TODO=(${SEL_TODO[@]+"${SEL_TODO[@]}"}); chunk l5 "$MAXJ_L5"; SEL_PER=$PER; N_L5=$(( NJOBS + 1 ))
+  mapfile -t lines < <(l5_test_lines "$1"); todo "${lines[@]}"
+  TEST_TODO=(${TODO[@]+"${TODO[@]}"}); chunk l5 "$MAXJ_L5"; TEST_PER=$PER; N_L5=$(( N_L5 + NJOBS ))
+}
+submit_l5() {  # variant
+  local v="$1" j_repr j_sel="" j_test
+  j_repr=$(sbg cluster/jobs/41_l5_repr.sbatch "cube/l4_$v")
+  TODO=(${SEL_TODO[@]+"${SEL_TODO[@]}"}); j_sel=$(submit_tasks "l5_${v}_select" "$SEL_PER" "")
+  # with a selection step pending, the test runs wait for it (they read its result)
+  TODO=(${TEST_TODO[@]+"${TEST_TODO[@]}"}); j_test=$(submit_tasks "l5_${v}_test" "$TEST_PER" "$(dep afterok "$j_sel")")
+  echo "L5 $v: representation $j_repr, w_prop selection ${j_sel:-not needed} -> test runs ${j_test:-already done}" >&2
+}
+
+status() {
+  local lines v f
+  echo "== runs done"
+  mapfile -t lines < <(record_lines l1); todo "${lines[@]}"; echo "L1 cal/test runs     $(( ${#lines[@]} - ${#TODO[@]} ))/${#lines[@]}"
+  mapfile -t lines < <(record_lines train); todo "${lines[@]}"; echo "L1 risk-head runs    $(( ${#lines[@]} - ${#TODO[@]} ))/${#lines[@]}"
+  echo "latent ensemble      $([[ -f "$STABLEWM_HOME/checkpoints/cube/ens_lewm/ensemble.pt" ]] && echo trained || echo 'not trained')"
+  mapfile -t lines < <(l2_lines); todo "${lines[@]}"; echo "L2 panel runs        $(( ${#lines[@]} - ${#TODO[@]} ))/${#lines[@]}"
+  mapfile -t lines < <(l3_lines); todo "${lines[@]}"; echo "L3 panel runs        $(( ${#lines[@]} - ${#TODO[@]} ))/${#lines[@]}"
+  for v in lewm ms prop prop_aux prop_ms; do
+    mapfile -t lines < <(l5_test_lines "$v"); todo "${lines[@]}"
+    printf 'L4/L5 %-9s trained: %-3s  test runs %s/%s\n' "$v" \
+      "$([[ -f "$STABLEWM_HOME/checkpoints/cube/l4_$v/DONE" ]] && echo yes || echo no)" \
+      "$(( ${#lines[@]} - ${#TODO[@]} ))" "${#lines[@]}"
+  done
+  for f in results/cube/smoke/timing.json results/cube/l1/signal_report.md results/cube/summary/l2_panel.md \
+           results/cube/l3/risk_report.md results/cube/summary/planning_panel.md results/cube/l5/representation.md \
+           results/cube/RESULTS.md; do
+    [[ -f "$f" ]] && echo "written: $f"
+  done
+  echo "== queue: $(queued) of $QUEUE_LIMIT job slots in use"
 }
 
 case "${1:-}" in
   bootstrap)
-    J0=$(sbatch --parsable cluster/jobs/00_setup_env.sbatch)
-    J1=$(sbatch --parsable --dependency=afterok:"$J0" cluster/jobs/01_download_cube.sbatch)
-    J2=$(sb --dependency=afterok:"$J1" cluster/jobs/02_smoke_test.sbatch)
-    echo "bootstrap: setup $J0 -> download $J1 -> smoke test $J2 (logs/lewm_smoke_$J2.out)" >&2
+    J0=""; J1=""
+    [[ -x "${CONDA_ROOT:-$HOME/miniforge3}/envs/${CONDA_ENV_NAME:-lewm}/bin/python" ]] || J0=$(sbc cluster/jobs/00_setup_env.sbatch)
+    if [[ ! -f "$STABLEWM_HOME/datasets/ogbench/cube_single_expert.h5" || ! -f "$STABLEWM_HOME/checkpoints/cube/lewm/weights.pt" ]]; then
+      J1=$(sbc $(dep afterok "$J0") cluster/jobs/01_download_cube.sbatch)
+    fi
+    J2=$(sbg $(dep afterok "$(idjoin "$J0" "$J1")") cluster/jobs/02_smoke_test.sbatch)
+    echo "bootstrap: setup ${J0:-done} -> download ${J1:-done} -> smoke test $J2 (log: logs/lewm_smoke_$J2.out)" >&2
     ;;
-  l1) submit_l1 > /dev/null ;;
-  l2) submit_l2 > /dev/null ;;
-  l3) submit_l3 ;;
+  smoke)
+    J2=$(sbg cluster/jobs/02_smoke_test.sbatch)
+    echo "smoke test $J2 (log: logs/lewm_smoke_$J2.out)" >&2
+    ;;
+  l1) prep_l1; check_capacity "$N_L1" L1; submit_l1 ;;
+  l2) prep_l2; check_capacity "$N_L2" L2; submit_l2 ;;
+  l3) prep_l3; check_capacity "$N_L3" L3; submit_l3 ;;
   planning)
-    read -r J_AN J_TR < <(submit_l1)
-    submit_l2 "$J_AN" > /dev/null
-    submit_l3 "$J_AN:$J_TR"
+    prep_l1; prep_l2; prep_l3
+    check_capacity $(( N_L1 + N_L2 + N_L3 )) "planning (L1-L3)"
+    submit_l1
+    submit_l2 "$J_AN"
+    submit_l3 "$(idjoin "$J_AN" "$J_TR")"
     ;;
   l4)
     shift
     if [[ $# -eq 0 ]]; then set -- lewm ms prop prop_aux prop_ms; fi
-    submit_l4 "$@"
+    prep_l4 "$@"; check_capacity "$N_L4" L4; submit_l4
     ;;
-  l5) submit_l5 "${2:?variant}" ;;
-  report) sbatch --parsable cluster/jobs/50_report.sbatch > /dev/null; echo "L6 report job submitted" >&2 ;;
+  l4-continue)  # used by cluster/jobs/40_l4_train.sbatch to resubmit itself
+    sbg cluster/jobs/40_l4_train.sbatch "${2:?variant}" "${3:-}" > /dev/null
+    echo "L4: $2 continues in a new job" >&2
+    exit 0
+    ;;
+  l5) prep_l5 "${2:?variant}"; check_capacity "$N_L5" "L5 $2"; submit_l5 "$2" ;;
+  report) sbc cluster/jobs/50_report.sbatch > /dev/null; echo "L6 report job submitted" >&2 ;;
+  status) status ;;
+  results)  # small result files + the tail of every job log of the last week -> git
+    mkdir -p results/cube/logs
+    while IFS= read -r f; do
+      tr '\r' '\n' < "$f" | tail -n 400 > "results/cube/logs/$(basename "$f")"
+    done < <(find logs -maxdepth 1 -name 'lewm_*.out' -mtime -7 2>/dev/null)
+    git add -A results/cube results/calibration
+    git diff --cached --quiet || git commit -qm "Cube results ($(date '+%F %H:%M'))"
+    git pull --rebase -q && git push -q && echo "results pushed ($(git log -1 --format='%h %s'))" >&2
+    exit 0
+    ;;
   *)
-    sed -n '2,15p' "$0" >&2
+    sed -n '2,20p' "$0" >&2
     exit 2
     ;;
 esac
-squeue -u "${USER:-$(whoami)}" -o "%.14i %.20j %.9T %.10M %.20R" | head -50
+squeue -u "$ME" -o "%.12i %.22j %.9T %.10M %.10P %.28R" 2>/dev/null | head -40 || true

@@ -1,135 +1,134 @@
 # Running the Cube experiments on the SoC compute cluster (Slurm)
 
-Everything below is run from the repository root on the cluster. Jobs write
+Everything below is run from the repository root on the login node. Jobs write
 their logs to `logs/` and their results to `results/cube/...`; large artifacts
-(dataset, checkpoints, HF cache) live in `$STABLEWM_HOME` (default
-`~/lewm_data`, see `cluster/env.sh`).
+(dataset, checkpoints) live in `$STABLEWM_HOME` (default `~/lewm_data`, see
+`cluster/env.sh`). Nothing heavy runs on the login node: every step is a Slurm
+job submitted by `cluster/submit.sh`.
 
-Do not run heavy work on the login node: everything goes through `sbatch`
-(or an interactive `srun --pty bash`).
+## The cluster (NUS SoC, checked with `sinfo` / `sacctmgr`, Oct 2026)
+
+| | |
+|---|---|
+| partitions | `normal` (default, **CPU only**, 3 h), `long` (CPU, 3 days), `gpu` (3 h), `gpu-long` (3 days, fewer nodes) |
+| GPU types | `a100-40`, `a100-80`, `h100-47`, `h100-96`, `h200-141` (only in `gpu`), `nv` (older cards) |
+| per user | 16 running and 32 queued jobs (every array task counts); 8 GPUs at once, at most a100-40 4, a100-80 2, h100-47 2, h100-96 1, h200-141 1 |
+| storage | home: shared all-flash NFS; `/mnt/scratch`: shared HDD NFS; `/tmp`: node-local |
+| network | HTTPS works from login and compute nodes; SSH to GitHub (ports 22 and 443) is blocked |
+
+`cluster/submit.sh` follows these rules: GPU jobs go to the `gpu` partition
+(a job submitted without a partition lands on a CPU node), the older `nv` cards
+are left out, and each phase is split into a few jobs that run several
+evaluation runs one after another, so that a whole phase stays far below 32
+queued jobs. Every GPU job checks first that it really has a usable GPU and
+stops at once otherwise.
 
 ## 0. One-time setup
 
-The repository is private, so the cluster needs its own credential. A
-repository-scoped SSH deploy key is the simplest (no token to store; tick
-"Allow write access" if results will be pushed from the cluster). SSH runs
-over port 443 (`ssh.github.com`), which the cluster can reach:
+The repository is private and the cluster cannot reach GitHub over SSH, so
+clone over HTTPS with a fine-grained personal access token limited to this
+repository (GitHub -> Settings -> Developer settings -> Fine-grained tokens;
+repository access: only `uncertainty-aware-lewm`; permission Contents: Read and
+write, so that results can be pushed from the cluster):
 
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/lewm_deploy -N "" -C "soc-cluster-lewm"
-cat >> ~/.ssh/config <<'CFG'
-Host github-lewm
-  HostName ssh.github.com
-  Port 443
-  User git
-  IdentityFile ~/.ssh/lewm_deploy
-  IdentitiesOnly yes
-CFG
-chmod 600 ~/.ssh/config
-cat ~/.ssh/lewm_deploy.pub    # GitHub: repo Settings -> Deploy keys -> Add deploy key
-ssh -T github-lewm            # answer "yes" once; expect "Hi JaspinXu/uncertainty-aware-lewm! ..."
-```
-
-Then (the submodules are public and come over HTTPS):
-
-```bash
-git clone --recursive git@github-lewm:JaspinXu/uncertainty-aware-lewm.git
+git -c credential.helper= -c credential.helper="store --file $HOME/.git-credentials-lewm" \
+    clone --recursive https://JaspinXu@github.com/JaspinXu/uncertainty-aware-lewm.git
 cd uncertainty-aware-lewm
-bash cluster/submit.sh bootstrap     # = steps 0-2 below, chained: setup -> download -> smoke test
+git config credential.helper ""
+git config --add credential.helper "store --file $HOME/.git-credentials-lewm"
 ```
 
-(A `403 ... Write access to repository not granted` on an HTTPS clone means git
-sent a stored GitHub credential that has no access to this repository. The
-HTTPS alternative is `git -c credential.helper= clone --recursive
-https://github.com/JaspinXu/uncertainty-aware-lewm.git` with a fine-grained
-token for this repository as the password.)
+Git asks once for the password: paste the token. `-c credential.helper=` skips
+any older GitHub credential stored on the cluster, and the last two lines make
+`git pull` / `git push` in this repository use the token without asking again
+(the file is readable only by you). The submodules are public.
 
-or step by step:
+Then:
 
 ```bash
-sbatch cluster/jobs/00_setup_env.sbatch          # Miniforge + conda env "lewm" (~15 min)
+bash cluster/submit.sh bootstrap   # setup env -> download data + checkpoint -> smoke test
 ```
 
-Check `logs/lewm_setup_<jobid>.out`; it should end with `torch 2.8.0 ...` and
-`[setup] done`. (A CPU node prints `cuda available: False`; that is fine.)
+Steps that are already done are skipped. Setup takes ~20 min (conda env
+`lewm`), the download ~45 min (46 GB archive -> 50 GB `.h5` + LeWM-Cube weights;
+resumable, needs ~100 GB free in `$STABLEWM_HOME` while extracting).
 
-## 1. Data and checkpoint (L0)
+## 1. Smoke test
 
 ```bash
-sbatch cluster/jobs/01_download_cube.sbatch      # 46 GB archive -> ~50 GB .h5 + LeWM-Cube weights
+bash cluster/submit.sh smoke       # ~15 min on one GPU
 ```
 
-Resumable: if it hits the time limit, submit it again. Needs ~100 GB free in
-`$STABLEWM_HOME` during extraction (the archive is deleted afterwards).
+`logs/lewm_smoke_<id>.out` must end with `smoke test finished OK`. Check:
 
-## 2. Smoke test
+* `[env] GPU ...` near the top (a GPU was allocated; `no GPU in this job` means
+  it ran on a CPU node);
+* `render OK: ... render X ms` -- a few ms with GPU rendering (~200 ms means
+  software rendering);
+* `[oracle] fidelity: {...}` -- `max_abs_qpos_diff` ~0 for both `first`
+  (plans at an episode start) and `last` (plans in the middle of an episode);
+* `timing: {...}` -- also written to `results/cube/smoke/timing.json`, which
+  `submit.sh` reads to decide how many runs go into one job.
 
-```bash
-sbatch cluster/jobs/02_smoke_test.sbatch         # ~15-30 min on one GPU
-```
+Then `bash cluster/submit.sh results` pushes the smoke-test outputs and logs.
 
-It checks headless rendering, prints the dataset columns, plans 10 episodes
-with the pretrained model (recording on) and replays the recorded candidates in
-the simulator. The log must end with `smoke test finished OK`, and the oracle
-line `fidelity: {... 'max_abs_qpos_diff': ...}` should be tiny (< 1e-3).
+## 2. Experiments
 
-Choosing a GPU type: any `#SBATCH` option can be overridden on the command
-line, e.g. `sbatch --gpus=h100-96:1 cluster/jobs/02_smoke_test.sbatch`, or for
-all GPU jobs of a phase `SBATCH_EXTRA="--gpus=h100-96:1" bash cluster/submit.sh ...`.
-Types on the SoC cluster: `a100-40`, `a100-80`, `h100-47`, `h100-96`, `h200-141`
-(the login banner shows how busy each one is). `sinfo -o "%P %G"` lists them.
+| phase | command | main output |
+|---|---|---|
+| L1-L3 planning study | `bash cluster/submit.sh planning` | see below |
+| L1 signal test | (part of `planning`) | `results/cube/l1/signal_report.md` |
+| L2 sigma^2 planners | (part of `planning`) | `results/cube/summary/l2_panel.md` |
+| L3 risk head | (part of `planning`) | `results/cube/l3/risk_report.md`, `results/cube/summary/planning_panel.md` |
+| L4 representation training | `bash cluster/submit.sh l4` | `$STABLEWM_HOME/checkpoints/cube/l4_*` |
+| L5 variant evaluation | automatic when each L4 run finishes | `results/cube/l5/representation.md`, `results/cube/runs/l4_*` |
+| L6 collected results | `bash cluster/submit.sh report` | `results/cube/RESULTS.md` |
 
-## 3. Experiments
+`planning` (at most 22 jobs) and `l4` (6 jobs) can be submitted together right after
+a clean smoke test. `planning` also trains the latent dynamics ensemble
+(`cluster/jobs/12_ensemble.sbatch`), the second uncertainty signal for L1 and
+the `ens_penalty` planner in L2. Every L4 variant is warm-started from the
+pretrained LeWM-Cube and trained for 20k steps (`L4_MAX_STEPS=...` to change);
+a training job saves its state ~12 min before the 3 h limit and resubmits itself.
+If training is limited by reading the dataset (the smoke test prints the
+training samples/s), give the L4 jobs node-local disk with ~100 GB free:
+`L4_STAGE_DIR=/tmp bash cluster/submit.sh l4`.
 
-Every phase is one command; jobs are chained with Slurm dependencies, finished
-runs are skipped on resubmission, and all outputs go to `results/cube/`.
+Progress: `bash cluster/submit.sh status` (runs done per phase, queue usage),
+`squeue -u $USER`, `tail -f logs/<job>.out`.
 
-| phase | command | GPU time (rough) | main output |
-|---|---|---|---|
-| L1-L3 planning study | `bash cluster/submit.sh planning` | ~28 + 36 + 9 runs | see below |
-| L1 signal test | (part of `planning`) | 28 runs x ~15 min + ensemble ~1-2 h | `results/cube/l1/signal_report.md` |
-| L2 sigma^2 planners | (part of `planning`) | 45 runs x ~30 min | `results/cube/summary/l2_panel.md` |
-| L3 risk head | (part of `planning`) | 1 + 9 runs | `results/cube/l3/risk_report.md`, `results/cube/summary/planning_panel.md` |
-| L4 representation training | `bash cluster/submit.sh l4` | 5 runs x several hours (self-resubmitting) | `$STABLEWM_HOME/checkpoints/cube/l4_*` |
-| L5 variant evaluation | automatic when each L4 run finishes | ~20 runs per variant | `results/cube/l5/representation.md`, `results/cube/runs/l4_*` |
-| L6 collected results | `bash cluster/submit.sh report` | CPU, minutes | `results/cube/RESULTS.md` |
+**Reruns.** Every phase command can be run again at any time: finished runs are
+left out and only the missing ones are submitted. A job that runs out of time
+stops before starting a run that would not fit (exit code 4), and its dependent
+jobs are not started; submit the phase again. If a phase needs more queue
+slots than are free, `submit.sh` says so and submits nothing.
 
-`planning` and `l4` are independent and can be submitted together right after
-the smoke test. Every L4 variant is warm-started from the pretrained LeWM-Cube
-and trained for 20k steps by default (`L4_MAX_STEPS=... bash cluster/submit.sh l4`
-to change it; the smoke test prints the training throughput to size it). If training is limited by reading
-the dataset from the shared file system, give the jobs a node-local scratch
-directory with ~100 GB free: `L4_STAGE_DIR=/path/to/local/disk bash cluster/submit.sh l4`
-(each job copies the .h5 there first when it fits).
-
-`planning` also trains the latent dynamics ensemble (`cluster/jobs/12_ensemble.sbatch`:
-encode all frames with the frozen encoder, train 5 predictor heads), which gives
-the second uncertainty signal for L1 and the `ens_penalty` planner in L2.
-
-Watching progress: `squeue -u $USER`, `tail -f logs/<job>.out`. A failed array
-task can be rerun alone, e.g. `sbatch --array=7 cluster/jobs/21_l2_panel.sbatch`;
-dependent jobs that were cancelled because of it can be resubmitted with the
-phase command (completed runs are skipped).
+**Overrides.** `SBATCH_EXTRA="--gpus=h100-47:1" bash cluster/submit.sh ...`
+pins a GPU type (any sbatch option works); `LEWM_GPU_PARTITION=gpu-long` uses the
+3-day partition; `LEWM_ALLOW_NV=1` allows the `nv` cards.
 
 ### What to send back
 
-The small result files are meant to be committed (records, oracle replays and
-checkpoints are git-ignored and stay on the cluster):
-
 ```bash
-git add results/cube results/calibration && git commit -m "Cube results" && git push
+bash cluster/submit.sh results
 ```
+
+commits the small result files (records, oracle replays and checkpoints are
+git-ignored and stay on the cluster) together with the last 400 lines of every
+job log of the past week (`results/cube/logs/`), and pushes them.
 
 ## Troubleshooting
 
-* **`RENDER CHECK FAILED` / EGL errors**: make sure the job runs on a GPU node.
-  As a fallback use software rendering:
-  `conda activate lewm && conda install -y -c conda-forge mesalib` and
+* **`[env] no GPU in this job`**: the job was not on a GPU partition. Submit
+  through `cluster/submit.sh`, or add `--partition=gpu` to a manual `sbatch`.
+* **`RENDER CHECK FAILED` / EGL errors**: as a fallback use software rendering
+  (slow): `conda activate lewm && conda install -y -c conda-forge mesalib` and
   `export MUJOCO_GL=osmesa` before submitting.
-* **`Requested time limit is invalid`**: lower `--time` on the command line,
-  e.g. `sbatch --time=02:00:00 ...` (all jobs are restartable).
-* **CUDA not available inside a GPU job**: `nvidia-smi` must work in the job;
-  the PyPI torch 2.8 wheels need an NVIDIA driver >= 525.
-* **Out of memory**: `--mem=64G` on the command line.
-* Reruns are skipped when results exist; delete the corresponding files in
+* **`... needs N job(s), but M of your 32 queued-job slots are taken`**: wait
+  for running jobs to finish, then submit the phase again.
+* **`Requested time limit is invalid`**: the `gpu` partition allows 3 h; with
+  `LEWM_GPU_PARTITION=gpu-long` up to 3 days.
+* **Out of memory**: `SBATCH_EXTRA="--mem=96G"`.
+* Results are skipped when they exist; delete the corresponding files in
   `results/cube/` to recompute.

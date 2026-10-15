@@ -15,8 +15,9 @@ each record's ``subset``:
   true_cost   (K,)      ||z_true_H - z_goal||^2 (cost the planner should have seen)
   start_dist            cube-target distance at planning time
 
-plus a fidelity check: replaying the executed first plan must land on the
-state the evaluation itself recorded 25 steps later.
+plus a fidelity check: replaying an executed plan must land on the state the
+evaluation itself reached 25 steps later (start-of-episode and mid-episode
+plans are reported separately; both should be ~0).
 """
 
 from __future__ import annotations
@@ -36,6 +37,7 @@ import numpy as np  # noqa: E402
 import torch  # noqa: E402
 
 from cube.oracle import normalized_to_env_actions, run_jobs  # noqa: E402
+from cube.simstate import SIM_KEYS  # noqa: E402
 
 
 def goal_keys(state: dict) -> tuple[str, str | None]:
@@ -57,6 +59,8 @@ def build_jobs(payload: dict, plans_filter: str):
             "key": i,
             "qpos": rec["state"]["qpos"],
             "qvel": rec["state"]["qvel"],
+            "sim": {k: rec["state"][k] for k in SIM_KEYS if k in rec["state"]},
+            "mid_episode": int(rec["t"]) > 0,
             "goal_pos": rec["state"][pos_k],
             "goal_quat": None if quat_k is None else rec["state"][quat_k],
             "env_actions": normalized_to_env_actions(
@@ -133,30 +137,67 @@ def replay_file(path: Path, out_dir: Path, workers: int, device: str, plans_filt
         if n_done % 10 == 0 or n_done == len(jobs):
             print(f"[oracle]   {n_done}/{len(jobs)} plans ({time.time() - t0:.0f}s)", flush=True)
 
-    fidelity = fidelity_check(plans, results)
+    fidelity = fidelity_check(plans, results, payload.get("final_state"), meta)
     print(f"[oracle] fidelity: {fidelity}")
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / path.name
-    torch.save({"meta": {**meta, "fidelity": fidelity, "plans_filter": plans_filter}, "results": results}, out)
+    tmp = out.with_suffix(".tmp")
+    torch.save({"meta": {**meta, "fidelity": fidelity, "plans_filter": plans_filter}, "results": results}, tmp)
+    os.replace(tmp, out)  # a killed job never leaves a truncated file that looks finished
     print(f"[oracle] wrote {out} ({time.time() - t0:.0f}s)")
     return out
 
 
-def fidelity_check(plans: list, results: dict) -> dict:
-    """Executed plan of segment p replayed vs. the state recorded at segment p+1."""
+def fidelity_check(plans: list, results: dict, final_state: dict | None = None, meta: dict | None = None) -> dict:
+    """Replayed executed plans vs. the states the evaluation itself reached.
+
+    * ``first``: executed plan of segment p replayed vs. the state recorded at
+      segment p+1 (plans made at the start of an episode);
+    * ``last``: last executed plan of an episode replayed vs. the state after the
+      final evaluation step (plans made mid-episode), when the plan covers the
+      remaining budget exactly.
+    Episodes in which the executed plan solved the task are skipped (the env
+    stops). Overall keys keep the old layout (``n``, ``max_abs_qpos_diff``,
+    ``median``).
+    """
     by_env = {(r["env"], r["plan_idx"]): i for i, r in enumerate(plans)}
-    diffs = []
+    last_idx: dict[int, int] = {}
+    for r in plans:
+        last_idx[r["env"]] = max(last_idx.get(r["env"], -1), r["plan_idx"])
+    succ = (meta or {}).get("episode_successes")
+    budget = (meta or {}).get("eval_budget")
+    groups: dict[str, list] = {"first": [], "last": []}
     for key, res in results.items():
-        nxt = by_env.get((res["env"], res["plan_idx"] + 1))
-        if nxt is None:
-            continue
         if int(res["success_step"][0]) > 0:  # executed plan solved the task -> env stopped
             continue
-        diffs.append(np.abs(res["final_qpos"][0] - plans[nxt]["state"]["qpos"]).max())
-    if not diffs:
-        return {"n": 0}
-    diffs = np.asarray(diffs)
-    return {"n": int(len(diffs)), "max_abs_qpos_diff": float(diffs.max()), "median": float(np.median(diffs))}
+        nxt = by_env.get((res["env"], res["plan_idx"] + 1))
+        if nxt is not None:
+            groups["first" if int(res["t"]) == 0 else "last"].append(
+                np.abs(res["final_qpos"][0] - plans[nxt]["state"]["qpos"]).max()
+            )
+            continue
+        if final_state is None or "qpos" not in final_state or res["plan_idx"] != last_idx[res["env"]]:
+            continue
+        if succ is not None and int(succ[res["env"]]):
+            continue
+        steps = res["cube_dist"].shape[-1]
+        if budget is None or int(res["t"]) + steps != int(budget):
+            continue
+        groups["first" if int(res["t"]) == 0 else "last"].append(
+            np.abs(res["final_qpos"][0] - np.asarray(final_state["qpos"])[res["env"]]).max()
+        )
+    out: dict = {}
+    every = groups["first"] + groups["last"]
+    for name, diffs in (("all", every), *groups.items()):
+        d = np.asarray(diffs, dtype=float)
+        stats = {"n": int(d.size)}
+        if d.size:
+            stats.update(max_abs_qpos_diff=float(d.max()), median=float(np.median(d)))
+        if name == "all":
+            out.update(stats)
+        else:
+            out[name] = stats
+    return out
 
 
 def main() -> None:

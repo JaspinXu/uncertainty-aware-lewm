@@ -44,11 +44,20 @@ def main() -> None:
     ds = swm.data.HDF5Dataset(args.dataset, keys_to_cache=["action"], cache_dir=swm.data.utils.get_cache_dir())
     info: dict = {"dataset": args.dataset, "path": str(ds.h5_path)}
     with ds._open_h5() as f:
-        cols = {k: {"shape": list(f[k].shape), "dtype": str(f[k].dtype)} for k in f.keys() if hasattr(f[k], "shape")}
+        cols = {
+            k: {
+                "shape": list(f[k].shape),
+                "dtype": str(f[k].dtype),
+                "chunks": list(f[k].chunks) if f[k].chunks else None,
+                "compression": f[k].compression,
+            }
+            for k in f.keys()
+            if hasattr(f[k], "shape")
+        }
     info["columns"] = cols
     print(f"dataset: {ds.h5_path}")
     for k, v in sorted(cols.items()):
-        print(f"  {k:34s} {tuple(v['shape'])} {v['dtype']}")
+        print(f"  {k:34s} {tuple(v['shape'])} {v['dtype']}  chunks={v['chunks']} {v['compression'] or ''}")
 
     missing = [c for c in REQUIRED if c not in cols]
     ep_col = cube_data.episode_column(ds)

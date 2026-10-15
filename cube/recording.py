@@ -5,8 +5,9 @@ only *observe* the final CEM population and re-score it afterwards.
 
 For each planning call and each re-planning env the recorder stores
 
-* the simulator state at planning time (qpos/qvel) and the goal target, so the
-  oracle can replay any candidate from exactly that state;
+* the simulator state at planning time (qpos/qvel, solver warm start and
+  end-effector pose -- cube/simstate.py) and the goal target, so the oracle
+  can replay any candidate from exactly that state;
 * the executed plan (final CEM mean) and the final CEM population with the
   solver's own costs;
 * for the executed plan + the whole population (``pool``): deterministic cost,
@@ -30,6 +31,7 @@ from stable_worldmodel.policy import WorldModelPolicy
 from stable_worldmodel.solver import CEMSolver
 from stable_worldmodel.solver.callbacks import Callback
 
+from .simstate import SIM_KEYS
 from .rollout import (
     deterministic_rollout,
     encode_pixels,
@@ -38,7 +40,7 @@ from .rollout import (
     per_step_variance,
 )
 
-STATE_KEYS = ("qpos", "qvel")
+STATE_KEYS = ("qpos", "qvel", *SIM_KEYS)
 GOAL_PREFIX = "goal_privileged"
 
 
@@ -128,6 +130,7 @@ class PlanRecorder:
         self.n_random = int(n_random)
         self.rng = np.random.default_rng(seed)
         self.plans: list[dict] = []
+        self.final_state: dict | None = None
         self._pending: dict | None = None
         self._plan_count: dict[int, int] = {}
         self.max_cost_mismatch = 0.0
@@ -209,6 +212,15 @@ class PlanRecorder:
             }
             self.plans.append(rec)
 
+    def record_final(self, infos: dict, t: int) -> None:
+        """State of every env after the last evaluation step (fidelity check of
+        the last plan of each episode)."""
+        self.final_state = {"t": int(t)}
+        for key in ("qpos", "qvel"):
+            if key in infos:
+                arr = np.asarray(infos[key])
+                self.final_state[key] = arr.reshape(arr.shape[0], -1, arr.shape[-1])[:, -1].copy()
+
     # ------------------------------------------------------------------ #
     def save(self, path: str | Path, meta: dict) -> Path:
         path = Path(path)
@@ -218,5 +230,5 @@ class PlanRecorder:
         meta["n_mc"] = self.n_mc
         meta["n_elite"] = self.n_elite
         meta["n_random"] = self.n_random
-        torch.save({"meta": meta, "plans": self.plans}, path)
+        torch.save({"meta": meta, "plans": self.plans, "final_state": self.final_state}, path)
         return path

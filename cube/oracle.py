@@ -1,7 +1,8 @@
 """Ground-truth replay of planned action sequences in the Cube simulator.
 
-For a recorded planning call we restore the exact simulator state (qpos/qvel +
-goal target) and execute each candidate action sequence open loop, exactly as
+For a recorded planning call we restore the exact simulator state (qpos/qvel,
+solver warm start and end-effector pose -- see cube/simstate.py -- plus the goal
+target) and execute each candidate action sequence open loop, exactly as
 the evaluation would have executed it (normalised CEM actions -> per-step env
 actions through the dataset action scaler). We log the cube-to-target distance
 after every env step, the first step at which the task is solved, and render
@@ -99,8 +100,16 @@ def replay(
     render_every: int = 5,
     image_shape=(224, 224),
     stop_at_success: bool = False,
+    sim: dict | None = None,
+    mid_episode: bool = False,
 ) -> ReplayResult:
-    """Execute every candidate (open loop) from the same start state."""
+    """Execute every candidate (open loop) from the same start state.
+
+    ``sim`` holds the extra state recorded with qpos/qvel (cube/simstate.py);
+    ``mid_episode`` says whether the plan was made after the first env step.
+    """
+    from .simstate import restore_sim_state
+
     K, T, _ = env_actions.shape
     sl = cube_qpos_slice(env)
     goal_pos = np.asarray(goal_pos, dtype=np.float64).reshape(3)
@@ -115,6 +124,8 @@ def replay(
         env.set_target_pos(0, goal_pos, None if goal_quat is None else np.asarray(goal_quat, np.float64))
         env.pre_step()
         env.post_step()
+        if sim:
+            restore_sim_state(env, sim, mid_episode)
         for t in range(T):
             env.step(env_actions[k, t])
             cube = env._data.qpos[sl]
@@ -150,6 +161,8 @@ def _work(job: dict) -> dict:
         job["env_actions"],
         render_every=job.get("render_every", 5),
         image_shape=tuple(job.get("image_shape", (224, 224))),
+        sim=job.get("sim"),
+        mid_episode=bool(job.get("mid_episode", False)),
     )
     sl = cube_qpos_slice(_ENV)
     return {

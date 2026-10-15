@@ -20,9 +20,16 @@ What it established about the pipeline:
   state.
 - **Recording does not change the planner.** Recorded costs equal the
   solver's costs exactly (mismatch 0).
-- **Replay is faithful.** Replaying the executed plan reaches the state the
-  evaluation reached to within max |Δqpos| ≈ 3e-7. The oracle agrees with
-  the closed-loop outcome on 16/16 episodes.
+- **Replay of start-of-episode plans is faithful.** Replaying the executed
+  first plan reaches the state the evaluation reached to within
+  max |Δqpos| ≈ 3e-7. The oracle agrees with the closed-loop outcome on
+  16/16 episodes. This pilot only checked plans made at an episode start.
+  Plans made in the middle of an episode were later found to replay
+  inexactly when only qpos/qvel are restored (median error 0.15 on expert-like
+  trajectories): the solver warm start and the end-effector pose that the next
+  action is computed from are part of the state. Recording now stores both and
+  the replay restores them, which makes every replay bit-exact
+  (`cube/simstate.py`, `tests/test_cube_core.py::test_mid_episode_replay_is_exact`).
 - **The ensemble branch runs end to end.** Encoding, training, post-hoc
   scoring and analysis all ran, but with a 30-step ensemble. Its numbers
   carry no information and are not reported here.

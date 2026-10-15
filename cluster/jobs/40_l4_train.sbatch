@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=lewm_l4
 #SBATCH --time=03:00:00
+#SBATCH --partition=gpu
 #SBATCH --gpus=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
@@ -14,6 +15,7 @@ set -uo pipefail
 cd "${SLURM_SUBMIT_DIR:-.}"
 source cluster/env.sh
 job_banner
+require_gpu || exit 1
 V="$1"
 STEPS="${2:-${L4_MAX_STEPS:-20000}}"
 DATA_ARGS=()
@@ -37,12 +39,11 @@ python train_cube.py --variant "$V" --max-steps "$STEPS" --time-limit-min $(( LE
 status=$?
 if [[ $status -eq 3 ]]; then
   echo "[l4] $V not finished -> resubmitting"
-  read -r -a EXTRA <<< "${SBATCH_EXTRA:-}"
-  sbatch ${EXTRA[@]+"${EXTRA[@]}"} cluster/jobs/40_l4_train.sbatch "$V" "$STEPS"
+  bash cluster/submit.sh l4-continue "$V" "$STEPS"
 elif [[ $status -eq 0 ]]; then
   if [[ "${L4_SKIP_EVAL:-0}" != "1" ]]; then
     echo "[l4] $V finished -> submitting its L5 evaluation"
-    bash cluster/submit.sh l5 "$V"
+    bash cluster/submit.sh l5 "$V" || echo "[l4] could not submit the L5 evaluation now; later run: bash cluster/submit.sh l5 $V"
   fi
 else
   echo "[l4] training failed with exit code $status"
