@@ -7,45 +7,76 @@
     2010000,
     5
    ],
-   "dtype": "float32"
+   "dtype": "float32",
+   "chunks": [
+    1000,
+    5
+   ],
+   "compression": null
   },
   "control": {
    "shape": [
     2010000,
     7
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    7
+   ],
+   "compression": null
   },
   "ep_idx": {
    "shape": [
     2010000
    ],
-   "dtype": "int32"
+   "dtype": "int32",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   },
   "ep_len": {
    "shape": [
     10000
    ],
-   "dtype": "int32"
+   "dtype": "int32",
+   "chunks": [
+    1024
+   ],
+   "compression": null
   },
   "ep_offset": {
    "shape": [
     10000
    ],
-   "dtype": "int64"
+   "dtype": "int64",
+   "chunks": [
+    1024
+   ],
+   "compression": null
   },
   "id": {
    "shape": [
     2010000
    ],
-   "dtype": "int64"
+   "dtype": "int64",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   },
   "observation": {
    "shape": [
     2010000,
     28
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    28
+   ],
+   "compression": null
   },
   "pixels": {
    "shape": [
@@ -54,181 +85,310 @@
     224,
     3
    ],
-   "dtype": "uint8"
+   "dtype": "uint8",
+   "chunks": [
+    100,
+    224,
+    224,
+    3
+   ],
+   "compression": "unknown"
   },
   "prev_qpos": {
    "shape": [
     2010000,
     21
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    21
+   ],
+   "compression": null
   },
   "prev_qvel": {
    "shape": [
     2010000,
     20
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    20
+   ],
+   "compression": null
   },
   "privileged_block_0_pos": {
    "shape": [
     2010000,
     3
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    3
+   ],
+   "compression": null
   },
   "privileged_block_0_quat": {
    "shape": [
     2010000,
     4
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    4
+   ],
+   "compression": null
   },
   "privileged_block_0_yaw": {
    "shape": [
     2010000,
     1
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    1
+   ],
+   "compression": null
   },
   "privileged_target_block": {
    "shape": [
     2010000
    ],
-   "dtype": "int64"
+   "dtype": "int64",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   },
   "privileged_target_block_pos": {
    "shape": [
     2010000,
     3
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    3
+   ],
+   "compression": null
   },
   "privileged_target_block_yaw": {
    "shape": [
     2010000,
     1
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    1
+   ],
+   "compression": null
   },
   "privileged_target_task": {
    "shape": [
     2010000
    ],
-   "dtype": "object"
+   "dtype": "object",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   },
   "proprio_effector_pos": {
    "shape": [
     2010000,
     3
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    3
+   ],
+   "compression": null
   },
   "proprio_effector_yaw": {
    "shape": [
     2010000,
     1
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    1
+   ],
+   "compression": null
   },
   "proprio_gripper_contact": {
    "shape": [
     2010000,
     1
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    1
+   ],
+   "compression": null
   },
   "proprio_gripper_opening": {
    "shape": [
     2010000,
     1
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    1
+   ],
+   "compression": null
   },
   "proprio_gripper_vel": {
    "shape": [
     2010000,
     1
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    1
+   ],
+   "compression": null
   },
   "proprio_joint_pos": {
    "shape": [
     2010000,
     6
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    6
+   ],
+   "compression": null
   },
   "proprio_joint_vel": {
    "shape": [
     2010000,
     6
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    6
+   ],
+   "compression": null
   },
   "qpos": {
    "shape": [
     2010000,
     21
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    21
+   ],
+   "compression": null
   },
   "qvel": {
    "shape": [
     2010000,
     20
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    20
+   ],
+   "compression": null
   },
   "render_time": {
    "shape": [
     2010000
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   },
   "reward": {
    "shape": [
     2010000
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   },
   "step_idx": {
    "shape": [
     2010000
    ],
-   "dtype": "int64"
+   "dtype": "int64",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   },
   "success": {
    "shape": [
     2010000
    ],
-   "dtype": "bool"
+   "dtype": "bool",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   },
   "target": {
    "shape": [
     2010000,
     28
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    28
+   ],
+   "compression": null
   },
   "terminated": {
    "shape": [
     2010000
    ],
-   "dtype": "bool"
+   "dtype": "bool",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   },
   "time": {
    "shape": [
     2010000,
     1
    ],
-   "dtype": "float64"
+   "dtype": "float64",
+   "chunks": [
+    1000,
+    1
+   ],
+   "compression": null
   },
   "truncated": {
    "shape": [
     2010000
    ],
-   "dtype": "bool"
+   "dtype": "bool",
+   "chunks": [
+    1000
+   ],
+   "compression": null
   }
  },
  "episode_column": "ep_idx",

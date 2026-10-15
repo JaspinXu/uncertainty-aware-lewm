@@ -5,7 +5,7 @@
  "seed": 0,
  "policy": "cube/lewm",
  "num_eval": 10,
- "success_rate": 50.0,
+ "success_rate": 70.0,
  "episode_successes": [
   0,
   1,
@@ -15,8 +15,8 @@
   1,
   1,
   0,
-  0,
-  0
+  1,
+  1
  ],
  "episodes": [
   165,
@@ -42,7 +42,7 @@
   122,
   34
  ],
- "evaluation_time": 485.51414918899536,
- "device": "cpu",
+ "evaluation_time": 17.93274188041687,
+ "device": "cuda",
  "model_overrides": {}
 }

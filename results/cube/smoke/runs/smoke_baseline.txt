@@ -8,7 +8,7 @@ solver:
   var_scale: 1.0
   n_steps: 30
   topk: 30
-  device: cpu
+  device: cuda
   seed: 0
 method:
   name: baseline
@@ -71,7 +71,7 @@ output:
   video: false
 
 ==== RESULTS ====
-device: cpu
-metrics: {'success_rate': 50.0, 'episode_successes': array([False,  True,  True, False,  True,  True,  True, False, False,
-       False]), 'seeds': None}
-evaluation_time: 485.51414918899536 seconds
+device: cuda
+metrics: {'success_rate': 70.0, 'episode_successes': array([False,  True,  True, False,  True,  True,  True, False,  True,
+        True]), 'seeds': None}
+evaluation_time: 17.93274188041687 seconds
