@@ -1,0 +1,52 @@
+=== 2026-10-15 22:33:38 | job 951851 on xcnc23 ===
+PROJECT_ROOT=/home/z/zhaobin/uncertainty-aware-lewm
+STABLEWM_HOME=/home/z/zhaobin/lewm_data
+NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.
+
+torch 2.8.0+cu128 cuda False
+cfs.comp.nus.edu.sg:/mnt/storpool/home  157T  148T  8.9T  95% /home
+[assets] STABLEWM_HOME=/home/z/zhaobin/lewm_data
+[model] /home/z/zhaobin/lewm_data/checkpoints/cube/lewm/config.json (0.0 MB)
+[model] /home/z/zhaobin/lewm_data/checkpoints/cube/lewm/weights.pt (72.3 MB)
+[data] archive /home/z/zhaobin/lewm_data/raw/cube_single_expert.tar.zst (46.18 GB, 847s)
+[data] extracted cube_single_expert.h5 (101.94 GB, 1833s)
+[data] dataset at /home/z/zhaobin/lewm_data/datasets/ogbench/cube_single_expert.h5 (101.94 GB)
+[data] removed archive /home/z/zhaobin/lewm_data/raw/cube_single_expert.tar.zst
+[data] cube_single_expert.h5: 10000 episodes, 2010000 rows
+         action                           (2010000, 5) float32
+         control                          (2010000, 7) float64
+         ep_idx                           (2010000,) int32
+         ep_len                           (10000,) int32
+         ep_offset                        (10000,) int64
+         id                               (2010000,) int64
+         observation                      (2010000, 28) float64
+         pixels                           (2010000, 224, 224, 3) uint8
+         prev_qpos                        (2010000, 21) float64
+         prev_qvel                        (2010000, 20) float64
+         privileged_block_0_pos           (2010000, 3) float64
+         privileged_block_0_quat          (2010000, 4) float64
+         privileged_block_0_yaw           (2010000, 1) float64
+         privileged_target_block          (2010000,) int64
+         privileged_target_block_pos      (2010000, 3) float64
+         privileged_target_block_yaw      (2010000, 1) float64
+         privileged_target_task           (2010000,) object
+         proprio_effector_pos             (2010000, 3) float64
+         proprio_effector_yaw             (2010000, 1) float64
+         proprio_gripper_contact          (2010000, 1) float64
+         proprio_gripper_opening          (2010000, 1) float64
+         proprio_gripper_vel              (2010000, 1) float64
+         proprio_joint_pos                (2010000, 6) float64
+         proprio_joint_vel                (2010000, 6) float64
+         qpos                             (2010000, 21) float64
+         qvel                             (2010000, 20) float64
+         render_time                      (2010000,) float64
+         reward                           (2010000,) float64
+         step_idx                         (2010000,) int64
+         success                          (2010000,) bool
+         target                           (2010000, 28) float64
+         terminated                       (2010000,) bool
+         time                             (2010000, 1) float64
+         truncated                        (2010000,) bool
+[assets] done
+85G	/home/z/zhaobin/lewm_data/datasets
+69M	/home/z/zhaobin/lewm_data/checkpoints
