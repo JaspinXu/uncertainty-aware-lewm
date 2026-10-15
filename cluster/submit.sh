@@ -20,6 +20,7 @@
 # training-type jobs over $LEWM_TRAIN_GPU_TYPES (defaults below).
 # Extra sbatch options for every GPU job go through SBATCH_EXTRA.
 set -euo pipefail
+ARGS=("$@")
 cd "$(dirname "$0")/.."
 mkdir -p logs/tasks
 # shellcheck disable=SC1091
@@ -73,6 +74,12 @@ check_capacity() {  # check_capacity N WHAT
   cur=$(queued)
   if (( cur + $1 > QUEUE_LIMIT )); then
     echo "$2 needs $1 job(s), but $cur of your $QUEUE_LIMIT queued-job slots are taken." >&2
+    if [[ "${LEWM_RETRY:-0}" == 1 ]] && (( cur < QUEUE_LIMIT )); then
+      # called from a job (nobody to retry by hand): try again in 30 minutes
+      sbatch --parsable --begin=now+30minutes cluster/jobs/91_retry_submit.sbatch "${ARGS[@]}" >&2
+      echo "Will try again in 30 minutes (job lewm_retry)." >&2
+      exit 0
+    fi
     echo "Submit it again when some jobs have finished (finished runs are skipped)." >&2
     exit 3
   fi
@@ -285,7 +292,8 @@ case "${1:-}" in
     prep_l4 "$@"; check_capacity "$N_L4" L4; submit_l4
     ;;
   l4-continue)  # used by cluster/jobs/40_l4_train.sbatch to resubmit itself
-    sbt J4 cluster/jobs/40_l4_train.sbatch "${2:?variant}" "${3:-}"
+    check_capacity 1 "L4 continuation of ${2:?variant}"
+    sbt J4 cluster/jobs/40_l4_train.sbatch "$2" "${3:-}"
     echo "L4: $2 continues in job $J4" >&2
     exit 0
     ;;

@@ -5,8 +5,8 @@ a clip starting at row ``r`` of an episode holds frames ``r, r+fs, ...,
 r+(T-1)*fs`` and, for frame ``k``, the ``fs`` raw actions ``r+k*fs ...
 r+k*fs+fs-1`` concatenated (``T x fs*A``). Differences, all for speed:
 
-* pixels are read with a strided HDF5 hyperslab (only the T frames used,
-  instead of all T*fs rows of the span);
+* only the T frames used are read (row by row: an h5py strided selection is
+  much slower on the chunked, compressed file), not all T*fs rows of the span;
 * small columns are cached in RAM once and indexed directly;
 * train/validation splits are made by *episode* (no clip of a held-out
   episode is ever trained on).
@@ -95,12 +95,16 @@ class CubeClips(torch.utils.data.Dataset):
 
     def _file(self):
         if self._h5 is None:
-            self._h5 = h5py.File(self.path, "r", swmr=True, rdcc_nbytes=64 * 1024 * 1024)
+            # room for a few decompressed pixel chunks (100 frames = 15 MB each)
+            self._h5 = h5py.File(self.path, "r", swmr=True, rdcc_nbytes=128 * 1024 * 1024, rdcc_nslots=10007)
         return self._h5
 
     def __getitem__(self, i: int) -> dict:
         r = int(self.starts[i])
-        pixels = self._file()["pixels"][r : r + self.span : self.fs]  # (T, H, W, 3) uint8
+        px = self._file()["pixels"]
+        # one row at a time: an h5py strided selection (r : r + span : fs) is
+        # ~9x slower on the chunked, compressed pixels (13 s vs 1.5 s for 128 clips)
+        pixels = np.stack([px[r + k * self.fs] for k in range(self.T)])  # (T, H, W, 3) uint8
         act = self.action[r : r + self.span]
         act = np.nan_to_num((act - self.action_mean) / self.action_std, nan=0.0)
         out = {

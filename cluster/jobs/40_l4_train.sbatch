@@ -39,11 +39,11 @@ python train_cube.py --variant "$V" --max-steps "$STEPS" --time-limit-min $(( LE
 status=$?
 if [[ $status -eq 3 ]]; then
   echo "[l4] $V not finished -> resubmitting"
-  bash cluster/submit.sh l4-continue "$V" "$STEPS"
+  LEWM_RETRY=1 bash cluster/submit.sh l4-continue "$V" "$STEPS"
 elif [[ $status -eq 0 ]]; then
   if [[ "${L4_SKIP_EVAL:-0}" != "1" ]]; then
     echo "[l4] $V finished -> submitting its L5 evaluation"
-    bash cluster/submit.sh l5 "$V" || echo "[l4] could not submit the L5 evaluation now; later run: bash cluster/submit.sh l5 $V"
+    LEWM_RETRY=1 bash cluster/submit.sh l5 "$V" || echo "[l4] could not submit the L5 evaluation; later run: bash cluster/submit.sh l5 $V"
   fi
 else
   echo "[l4] training failed with exit code $status"
