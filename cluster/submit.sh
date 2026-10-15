@@ -109,4 +109,4 @@ case "${1:-}" in
     exit 2
     ;;
 esac
-squeue -u "$USER" -o "%.14i %.20j %.9T %.10M %.20R" | head -50
+squeue -u "${USER:-$(whoami)}" -o "%.14i %.20j %.9T %.10M %.20R" | head -50
