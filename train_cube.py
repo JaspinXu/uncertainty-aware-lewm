@@ -143,12 +143,16 @@ def warm_start(model: torch.nn.Module, policy: str, factorized: bool) -> dict:
 
 
 def r2_redundancy(z_vis: torch.Tensor, z_prop: torch.Tensor, eps: float = 1e-3) -> torch.Tensor:
-    """Fraction of z_vis variance linearly explained by (stop-grad) z_prop over the batch."""
-    v = z_vis.float() - z_vis.float().mean(0, keepdim=True)
-    p = z_prop.detach().float() - z_prop.detach().float().mean(0, keepdim=True)
-    gram = p.T @ p + eps * len(p) * torch.eye(p.shape[1], device=p.device)
-    beta = torch.linalg.solve(gram, p.T @ v)
-    return (p @ beta).pow(2).sum() / v.pow(2).sum().clamp_min(1e-8)
+    """Fraction of z_vis variance linearly explained by (stop-grad) z_prop over the batch.
+
+    Computed in float32 with autocast off (under bf16 autocast the matmuls would
+    come back in bf16 and linalg.solve rejects mixed dtypes)."""
+    with torch.autocast(device_type=z_vis.device.type, enabled=False):
+        v = z_vis.float() - z_vis.float().mean(0, keepdim=True)
+        p = z_prop.detach().float() - z_prop.detach().float().mean(0, keepdim=True)
+        gram = p.T @ p + eps * len(p) * torch.eye(p.shape[1], device=p.device)
+        beta = torch.linalg.solve(gram, p.T @ v)
+        return (p @ beta).pow(2).sum() / v.pow(2).sum().clamp_min(1e-8)
 
 
 def aux_targets(batch: dict, pos_mean: torch.Tensor, pos_std: torch.Tensor) -> torch.Tensor:

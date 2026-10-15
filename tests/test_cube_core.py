@@ -182,8 +182,13 @@ def test_r2_redundancy_extremes():
 
     torch.manual_seed(0)
     p = torch.randn(2048, 8)
-    assert r2_redundancy(p @ torch.randn(8, 16), p).item() > 0.99
+    v = p @ torch.randn(8, 16)
+    assert r2_redundancy(v, p).item() > 0.99
     assert r2_redundancy(torch.randn(2048, 16), p).item() < 0.05
+    # training runs under bf16 autocast (linalg.solve rejects mixed dtypes)
+    with torch.autocast("cpu", dtype=torch.bfloat16):
+        r = r2_redundancy(v.bfloat16(), p.bfloat16())
+    assert r.dtype == torch.float32 and r.item() > 0.99
 
 
 def test_lr_schedule():
