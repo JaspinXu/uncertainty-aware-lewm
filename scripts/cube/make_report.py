@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 TEST_SEEDS = [42, 43, 44, 45, 1011, 2022, 3033, 4044, 5055]
-PLANNERS = ["baseline", "mc5", "gated", "goal_cvar", "penalty", "risk"]
+PLANNERS = ["baseline", "mc5", "gated", "goal_cvar", "penalty", "ens_penalty", "risk"]
 VARIANTS = ["lewm", "ms", "prop", "prop_aux", "prop_ms"]
 R = Path(os.environ.get("CUBE_RESULTS", ROOT / "results/cube"))  # override for tests
 
@@ -112,12 +112,35 @@ def main() -> None:
     l1 = R / "l1/signal_summary.json"
     if l1.exists():
         s = json.loads(l1.read_text())
-        q3 = s["q3_false_positives"]["sig2_H"]
         out.append("## L1 sigma^2 signal test\n")
-        out.append(f"Verdict **{s['verdict']}** (details: [l1/signal_report.md](l1/signal_report.md)). "
-                   f"Elite-failure AUROC of sigma^2_H = {q3['auroc']} (95% CI {q3['ci']}).\n")
+        out.append("Details: [l1/signal_report.md](l1/signal_report.md)\n")
+        names = {"mc": "MC-dropout", "ens": "latent ensemble"}
+        for sig, v in s.get("verdicts", {"mc": s.get("verdict")}).items():
+            col = {"mc": "sig2_H", "ens": "sig2ens_H"}[sig]
+            q3 = s["q3_false_positives"]["scores"].get(col, {})
+            ci = q3.get("ci", [None, None])
+            ci_s = f"[{ci[0]:.3f}, {ci[1]:.3f}]" if ci and ci[0] is not None else "n/a"
+            au = q3.get("auroc")
+            out.append(f"- {names[sig]}: verdict **{v}**; elite-failure AUROC "
+                       f"{'n/a' if au is None else f'{au:.3f}'} (95% CI {ci_s})")
+        out.append("")
     else:
         pending.append("L1 signal test (bash cluster/submit.sh l1)")
+
+    ens = R / "ensemble/train_report.json"
+    if ens.exists():
+        e = json.loads(ens.read_text())
+        v = e["val_rollout_sq_err_per_step"]
+        out.append("### Latent dynamics ensemble (second uncertainty signal)\n")
+        out.append("Open-loop squared latent error on held-out episodes, blocks k = 1..5:\n")
+        out.append("| model | " + " | ".join(f"k={k + 1}" for k in range(len(v["pretrained"]))) + " |")
+        out.append("|---|" + "---:|" * len(v["pretrained"]))
+        for name in ["pretrained", "ensemble_mean"] + sorted(k for k in v if k.startswith("member_")):
+            out.append(f"| {name} | " + " | ".join(f"{x:.2f}" for x in v[name]) + " |")
+        sp = e.get("val_spearman_sigma2_vs_err_per_step")
+        if sp:
+            out.append("\nSpearman(sigma^2_ens, ensemble-mean error) per block: " + ", ".join(
+                "n/a" if x is None or x != x else f"{x:.3f}" for x in sp) + "\n")
 
     panel = summarize("planning_panel", PLANNERS, "Planning on Cube: uncertainty-aware planners (L2) and learned risk (L3)")
     if panel:

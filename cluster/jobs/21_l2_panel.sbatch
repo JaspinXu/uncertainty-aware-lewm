@@ -7,19 +7,20 @@
 #SBATCH --output=logs/%x_%A_%a.out
 # L2 locked panel on Cube: uncertainty-aware planners x 9 test seeds.
 # One array task = (method, seed); the baseline comes from the L1 runs.
-#     sbatch --array=0-35 cluster/jobs/21_l2_panel.sbatch
+#     sbatch --array=0-44 cluster/jobs/21_l2_panel.sbatch
 #
 #   mc5        mean of 5 MC-dropout rollouts
 #   gated      sigma^2 gate, threshold/omega calibrated for Cube (20_l2_calibrate)
 #   goal_cvar  CVaR soft penalty (self-calibrating per planning call)
-#   penalty    MC-5 + lambda * sigma^2_H, lambda selected in L1 (signal_summary.json)
+#   penalty      MC-5 + lambda * sigma^2_H, lambda selected in L1 (signal_summary.json)
+#   ens_penalty  LeWM cost + lambda * latent-ensemble sigma^2_H, lambda selected in L1
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:-.}"
 source cluster/env.sh
 source cluster/seeds.sh
 job_banner
 
-METHODS=(mc5 gated goal_cvar penalty)
+METHODS=(mc5 gated goal_cvar penalty ens_penalty)
 IDX="${SLURM_ARRAY_TASK_ID:-0}"
 NS=${#TEST_SEEDS[@]}
 if (( IDX >= ${#METHODS[@]} * NS )); then echo "index $IDX out of range"; exit 0; fi
@@ -37,6 +38,10 @@ case "$METHOD" in
   penalty)
     LAM=$(python scripts/cube/l2_params.py penalty)
     EXTRA=(method.truncation.penalty_weight="$LAM")
+    ;;
+  ens_penalty)
+    LAM=$(python scripts/cube/l2_params.py ens_penalty)
+    EXTRA=(method.lam="$LAM")
     ;;
 esac
 echo "method=$METHOD seed=$SEED extra=${EXTRA[*]:-none}"

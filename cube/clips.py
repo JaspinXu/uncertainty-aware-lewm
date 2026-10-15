@@ -32,6 +32,14 @@ def dataset_path(name: str = "ogbench/cube_single_expert", root: str | Path | No
     return root / "datasets" / f"{name}.h5"
 
 
+def latents_path(policy: str, root: str | Path | None = None) -> Path:
+    """Where scripts/cube/encode_dataset.py stores the frozen-encoder latents."""
+    import os
+
+    root = Path(root or os.environ.get("STABLEWM_HOME", Path.home() / ".stable-wm"))
+    return root / "latents" / f"{policy.replace('/', '__')}.npy"
+
+
 def proprio_columns(path: Path) -> list[str]:
     with h5py.File(path, "r") as f:
         return sorted(k for k in f.keys() if k.startswith("proprio_"))

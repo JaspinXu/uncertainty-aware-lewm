@@ -57,8 +57,8 @@ runs are skipped on resubmission, and all outputs go to `results/cube/`.
 | phase | command | GPU time (rough) | main output |
 |---|---|---|---|
 | L1-L3 planning study | `bash cluster/submit.sh planning` | ~28 + 36 + 9 runs | see below |
-| L1 signal test | (part of `planning`) | 28 runs x ~15 min | `results/cube/l1/signal_report.md` |
-| L2 sigma^2 planners | (part of `planning`) | 36 runs x ~30 min | `results/cube/summary/l2_panel.md` |
+| L1 signal test | (part of `planning`) | 28 runs x ~15 min + ensemble ~1-2 h | `results/cube/l1/signal_report.md` |
+| L2 sigma^2 planners | (part of `planning`) | 45 runs x ~30 min | `results/cube/summary/l2_panel.md` |
 | L3 risk head | (part of `planning`) | 1 + 9 runs | `results/cube/l3/risk_report.md`, `results/cube/summary/planning_panel.md` |
 | L4 representation training | `bash cluster/submit.sh l4` | 5 runs x several hours (self-resubmitting) | `$STABLEWM_HOME/checkpoints/cube/l4_*` |
 | L5 variant evaluation | automatic when each L4 run finishes | ~20 runs per variant | `results/cube/l5/representation.md`, `results/cube/runs/l4_*` |
@@ -67,7 +67,14 @@ runs are skipped on resubmission, and all outputs go to `results/cube/`.
 `planning` and `l4` are independent and can be submitted together right after
 the smoke test. The L4 step budget defaults to 60k steps per variant
 (`L4_MAX_STEPS=... bash cluster/submit.sh l4` to change it; the smoke test
-prints the training throughput to size it).
+prints the training throughput to size it). If training is limited by reading
+the dataset from the shared file system, give the jobs a node-local scratch
+directory with ~100 GB free: `L4_STAGE_DIR=/path/to/local/disk bash cluster/submit.sh l4`
+(each job copies the .h5 there first when it fits).
+
+`planning` also trains the latent dynamics ensemble (`cluster/jobs/12_ensemble.sbatch`:
+encode all frames with the frozen encoder, train 5 predictor heads), which gives
+the second uncertainty signal for L1 and the `ens_penalty` planner in L2.
 
 Watching progress: `squeue -u $USER`, `tail -f logs/<job>.out`. A failed array
 task can be rerun alone, e.g. `sbatch --array=7 cluster/jobs/21_l2_panel.sbatch`;

@@ -1,7 +1,8 @@
 """Print Cube-specific planner parameters for the L2 panel (used by job scripts).
 
     python scripts/cube/l2_params.py gated     -> "<threshold> <omega>"
-    python scripts/cube/l2_params.py penalty   -> "<penalty_weight>"
+    python scripts/cube/l2_params.py penalty   -> "<penalty_weight>"   (MC-dropout sigma^2)
+    python scripts/cube/l2_params.py ens_penalty -> "<lambda>"        (latent-ensemble sigma^2)
 
 gated:   threshold = median planning-time sigma^2_0 on Cube calibration episodes
          (results/calibration/gated_cube.json); omega is rescaled so that
@@ -30,16 +31,17 @@ def main() -> None:
         cal = json.loads((ROOT / "results/calibration/gated_cube.json").read_text())
         thr = float(cal["recommended_threshold"])
         print(f"{thr:.6g} {PUSHT_OMEGA_TIMES_THRESHOLD / thr:.6g}")
-    elif what == "penalty":
-        s = json.loads((ROOT / "results/cube/l1/signal_summary.json").read_text())["q5_rerank"]
+    elif what in ("penalty", "ens_penalty"):
+        q5 = json.loads((ROOT / "results/cube/l1/signal_summary.json").read_text())["q5_rerank"]
+        s = q5["mc" if what == "penalty" else "ens"]
         if s["lambda_star_multiplier"] > 0:
             lam, why = s["lambda_star"], f"L1 selection (multiplier {s['lambda_star_multiplier']})"
         else:
             lam, why = s["ratio_cost_over_sigma2"], "L1 selected lambda=0 -> equal-scale default"
-        print(f"[l2_params] penalty_weight={lam:.6g} ({why})", file=sys.stderr)
+        print(f"[l2_params] {what} weight={lam:.6g} ({why})", file=sys.stderr)
         print(f"{lam:.6g}")
     else:
-        sys.exit("usage: l2_params.py gated|penalty")
+        sys.exit("usage: l2_params.py gated|penalty|ens_penalty")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,9 @@
+# LeWM cost + lambda * sigma^2_ens(H), the disagreement of the 5-member latent
+# dynamics ensemble trained on the frozen encoder (ua/ensemble.py, train_ensemble.py).
+# lam is selected on the calibration seeds by the L1 re-ranking analysis
+# (results/cube/l1/signal_summary.json, q5_rerank.ens); the L2 job passes it.
+name: ens_penalty
+planner: ens
+ensemble_path: checkpoints/cube/ens_lewm/ensemble.pt   # relative to $STABLEWM_HOME
+lam: 0.0
+history_size: 3

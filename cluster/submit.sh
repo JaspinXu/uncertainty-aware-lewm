@@ -3,8 +3,8 @@
 #
 #   bash cluster/submit.sh bootstrap  # env setup -> data/checkpoint download -> smoke test (chained)
 #   bash cluster/submit.sh planning   # L1 -> L2 -> L3 chained (recommended after the smoke test)
-#   bash cluster/submit.sh l1         # record + oracle (cal/test/train seeds) -> L1 analysis
-#   bash cluster/submit.sh l2         # needs L1 results: calibrate gate -> 4 planners x 9 seeds -> panel
+#   bash cluster/submit.sh l1         # record + oracle (cal/test/train seeds) + latent ensemble -> L1 analysis
+#   bash cluster/submit.sh l2         # needs L1 results: calibrate gate -> 5 planners x 9 seeds -> panel
 #   bash cluster/submit.sh l3         # needs L1 results: train risk head -> closed loop x 9 seeds -> panel
 #   bash cluster/submit.sh l4 [variants]   # train representation variants (default: all five);
 #                                          # each one submits its own L5 evaluation when done
@@ -25,22 +25,25 @@ sb() { sbatch --parsable ${EXTRA[@]+"${EXTRA[@]}"} "$@"; }
 dep() { [[ -n "${1:-}" ]] && echo "--dependency=afterok:$1" || true; }
 
 submit_l1() {  # -> prints "<analysis job id> <train-data job id>"
-  local n_l1 n_tr j_rec j_tr j_an
+  local n_l1 n_tr j_rec j_tr j_ens j_sc j_an
   n_l1=$(n_of l1); n_tr=$(n_of train)
   j_rec=$(sb --array=0-$((n_l1 - 1)) cluster/jobs/10_record_oracle.sbatch l1)
   j_tr=$(sb --array=0-$((n_tr - 1)) cluster/jobs/10_record_oracle.sbatch train)
-  j_an=$(sbatch --parsable --dependency=afterok:"$j_rec" cluster/jobs/11_l1_analyze.sbatch)
-  echo "L1: record/oracle $j_rec ($n_l1 seeds), risk-head data $j_tr ($n_tr seeds), analysis $j_an" >&2
+  j_ens=$(sb cluster/jobs/12_ensemble.sbatch)
+  j_sc=$(sb --dependency=afterok:"$j_rec":"$j_tr":"$j_ens" cluster/jobs/13_score_ensemble.sbatch)
+  # the analysis needs the records; it uses the ensemble scores if that branch succeeded
+  j_an=$(sbatch --parsable --dependency=afterok:"$j_rec",afterany:"$j_sc" cluster/jobs/11_l1_analyze.sbatch)
+  echo "L1: record/oracle $j_rec ($n_l1 seeds), risk-head data $j_tr ($n_tr seeds), ensemble $j_ens -> scoring $j_sc, analysis $j_an" >&2
   echo "$j_an $j_tr"
 }
 
 submit_l2() {  # $1 = dependency job id (optional)
   local j_cal j_pan j_sum n
-  n=$(( 4 * $(n_of test) ))
+  n=$(( 5 * $(n_of test) ))
   j_cal=$(sb $(dep "${1:-}") cluster/jobs/20_l2_calibrate.sbatch)
   j_pan=$(sb --dependency=afterok:"$j_cal" --array=0-$((n - 1)) cluster/jobs/21_l2_panel.sbatch)
   j_sum=$(sbatch --parsable --dependency=afterany:"$j_pan" cluster/jobs/90_summarize.sbatch \
-          l2_panel baseline mc5 gated goal_cvar penalty)
+          l2_panel baseline mc5 gated goal_cvar penalty ens_penalty)
   echo "L2: calibration $j_cal -> panel $j_pan ($n runs) -> summary $j_sum" >&2
   echo "$j_sum"
 }
@@ -51,7 +54,7 @@ submit_l3() {  # $1 = dependency job ids "a:b" (optional)
   j_tr=$(sb $(dep "${1:-}") cluster/jobs/30_l3_train_risk.sbatch)
   j_pan=$(sb --dependency=afterok:"$j_tr" --array=0-$((n - 1)) cluster/jobs/31_l3_panel.sbatch)
   j_sum=$(sbatch --parsable --dependency=afterany:"$j_pan" cluster/jobs/90_summarize.sbatch \
-          planning_panel baseline mc5 gated goal_cvar penalty risk)
+          planning_panel baseline mc5 gated goal_cvar penalty ens_penalty risk)
   echo "L3: risk head $j_tr -> panel $j_pan ($n runs) -> summary $j_sum" >&2
 }
 

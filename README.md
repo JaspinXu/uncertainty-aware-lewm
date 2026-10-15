@@ -26,14 +26,15 @@ MC-dropout σ² is a usable risk signal at all before building on it:
 | Level | Question | Code | Output |
 |---|---|---|---|
 | L0 | data, checkpoint, protocol on the cluster | `cluster/`, `config/eval/cube.yaml`, `scripts/cube/download_assets.py` | `results/cube/smoke/` |
-| L1 | does σ² flag the plans that fail in the real simulator? | `cube/recording.py` (logs every CEM call), `cube/oracle.py` + `scripts/cube/oracle_replay.py` (replays candidates from the exact simulator state), `scripts/cube/analyze_signal.py` | `results/cube/l1/signal_report.md` |
-| L2 | σ²-based planners on Cube | `config/eval/method/{mc5,gated,goal_cvar,penalty}.yaml` | `results/cube/summary/l2_panel.md` |
+| L1 | does σ² flag the plans that fail in the real simulator? (MC-dropout and a latent dynamics ensemble) | `cube/recording.py` (logs every CEM call), `cube/oracle.py` + `scripts/cube/oracle_replay.py` (replays candidates from the exact simulator state), `ua/ensemble.py` + `train_ensemble.py` (5 predictor heads on the frozen encoder), `scripts/cube/analyze_signal.py` | `results/cube/l1/signal_report.md` |
+| L2 | σ²-based planners on Cube | `config/eval/method/{mc5,gated,goal_cvar,penalty,ens_penalty}.yaml` | `results/cube/summary/l2_panel.md` |
 | L3 | learned risk head vs. raw σ² | `ua/risk.py`, `scripts/cube/train_risk_head.py`, `method=risk` | `results/cube/l3/`, `results/cube/summary/planning_panel.md` |
 | L4 | representation variants: 5-step rollout loss, proprio block + de-redundancy, cube-pose aux head | `train_cube.py`, `cube/variants.py`, `cube/clips.py` | `$STABLEWM_HOME/checkpoints/cube/l4_*` |
 | L5 | probes, open-loop error, planning with each variant (block-weighted cost) | `scripts/cube/eval_representation.py`, `policy=cube/l4_<variant>` | `results/cube/l5/`, `results/cube/summary/variants_panel.md` |
 | L6 | everything in one place | `scripts/cube/make_report.py` | `results/cube/RESULTS.md` |
 
 How to run everything on the SoC cluster: [`cluster/README.md`](cluster/README.md).
+Report draft: [`report/final_report.md`](report/final_report.md).
 Unit tests: `PYTHONPATH=.:stable-worldmodel:stable-pretraining pytest -q tests/`.
 
 ## Project layout

@@ -8,6 +8,7 @@ candidate action sequence is scored:
                  horizon truncation or sigma^2 penalty)
     goal_cvar -> GoalCVaRJEPA (MC-dropout aggregation + CVaR soft penalty)
     risk      -> RiskAwareJEPA (LeWM cost corrected by a learned risk head, ua/risk.py)
+    ens       -> EnsemblePenaltyJEPA (LeWM cost + lambda * latent-ensemble sigma^2, ua/ensemble.py)
 """
 
 from __future__ import annotations
@@ -64,6 +65,21 @@ def build_planner(cfg: DictConfig, device: str) -> torch.nn.Module:
     if planner == "baseline":
         return base
 
+    if planner == "ens":
+        from pathlib import Path
+
+        from ua.ensemble import EnsemblePenaltyJEPA, load_ensemble
+
+        ens_path = Path(str(method.ensemble_path)).expanduser()
+        if not ens_path.is_absolute():
+            import os
+
+            ens_path = Path(os.environ.get("STABLEWM_HOME", Path.home() / ".stable-wm")) / ens_path
+        ensemble, _ = load_ensemble(ens_path, device)
+        return EnsemblePenaltyJEPA(
+            base=base, ensemble=ensemble, lam=float(method.lam), history_size=int(method.get("history_size", 3))
+        ).to(device)
+
     if planner == "risk":
         from pathlib import Path
 
@@ -109,5 +125,5 @@ def build_planner(cfg: DictConfig, device: str) -> torch.nn.Module:
             history_size=history_size,
         )
     else:
-        raise ValueError(f"Unknown method.planner {planner!r}; use baseline | ua | goal_cvar | risk")
+        raise ValueError(f"Unknown method.planner {planner!r}; use baseline | ua | goal_cvar | risk | ens")
     return model.to(device)

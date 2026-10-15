@@ -200,3 +200,55 @@ def test_variant_block_cost():
     pred = torch.tensor([[1.0, 0, 0, 2.0, 0]])
     goal = torch.zeros(1, 5)
     assert m.block_cost(pred, goal).item() == pytest.approx(1.0 + 0.5 * 4.0)
+
+
+# --------------------------------------------------------------------------- #
+# latent ensemble
+# --------------------------------------------------------------------------- #
+def _tiny_member_cfg():
+    from ua.ensemble import member_config
+
+    cfg = member_config(dim=16, depth=1)
+    cfg["predictor"].update(heads=2, dim_head=8, mlp_dim=32)
+    cfg["pred_proj"].update(hidden_dim=32)
+    return cfg
+
+
+def test_ensemble_roundtrip_and_disagreement(tmp_path):
+    from ua.ensemble import LatentEnsemble, build_member, load_ensemble, save_ensemble
+
+    cfg = _tiny_member_cfg()
+    members = []
+    for s in range(3):
+        torch.manual_seed(s)
+        m = build_member(cfg)
+        with torch.no_grad():
+            for p in m.parameters():
+                p.add_(0.1 * torch.randn_like(p))
+        members.append(m.eval())
+    ens = LatentEnsemble(members)
+    z = torch.randn(2, 1, 16)
+    acts = torch.randn(2, 4, 5, 25)
+    out = ens.rollouts(z, acts)
+    assert out.shape == (3, 2, 4, 5, 16)
+    save_ensemble(ens, cfg, tmp_path / "e.pt", {"policy": "x"})
+    ens2, meta = load_ensemble(tmp_path / "e.pt")
+    torch.testing.assert_close(ens2.rollouts(z, acts), out)
+    assert meta["policy"] == "x"
+    from cube.rollout import per_step_variance
+
+    assert torch.all(per_step_variance(out) > 0)
+
+
+def test_train_ensemble_batch_layout():
+    from train_ensemble import FS, T, batch, clip_starts
+
+    lengths, offsets = np.array([40, 31, 20]), np.array([0, 40, 71])
+    starts = clip_starts(lengths, offsets, np.array([0, 1, 2]))
+    assert starts.max() + T * FS <= 71  # episode 1 clips never cross into episode 2
+    assert 71 not in set(starts)  # episode 2 (20 rows) is too short for a 30-row clip
+    lat = torch.arange(91, dtype=torch.float32)[:, None].repeat(1, 4)
+    act = torch.arange(91, dtype=torch.float32)[:, None].repeat(1, 5)
+    z, a = batch(lat, act, torch.tensor([3]))
+    assert z[0, :, 0].tolist() == [3, 8, 13, 18, 23, 28]
+    assert a.shape == (1, T, FS * 5) and a[0, 1, 0].item() == 8  # block 1 starts at row 3 + 5

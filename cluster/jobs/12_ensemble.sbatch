@@ -1,0 +1,18 @@
+#!/bin/bash
+#SBATCH --job-name=lewm_ens
+#SBATCH --time=03:00:00
+#SBATCH --gpus=1
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
+#SBATCH --output=logs/%x_%j.out
+# Latent dynamics ensemble on the frozen pretrained encoder (second uncertainty
+# signal for L1/L2): encode every dataset frame once, then train 5 members.
+#     sbatch cluster/jobs/12_ensemble.sbatch
+set -euo pipefail
+cd "${SLURM_SUBMIT_DIR:-.}"
+source cluster/env.sh
+job_banner
+python scripts/cube/encode_dataset.py --policy cube/lewm
+python train_ensemble.py --policy cube/lewm --members "${ENS_MEMBERS:-5}" --steps "${ENS_STEPS:-20000}"
+mkdir -p results/cube/ensemble
+cp "$STABLEWM_HOME/checkpoints/cube/ens_lewm/report.json" results/cube/ensemble/train_report.json

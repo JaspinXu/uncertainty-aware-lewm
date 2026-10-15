@@ -16,8 +16,24 @@ source cluster/env.sh
 job_banner
 V="$1"
 STEPS="${2:-${L4_MAX_STEPS:-60000}}"
-LEFT=$(python scripts/cube/slurm_time_left.py)
-python train_cube.py --variant "$V" --max-steps "$STEPS" --time-limit-min $(( LEFT > 30 ? LEFT - 12 : 18 ))
+DATA_ARGS=()
+# Optional: copy the dataset to node-local disk first when the shared file
+# system is the bottleneck (the smoke test prints training samples/s).
+#   L4_STAGE_DIR=/path/on/node/local/disk bash cluster/submit.sh l4
+if [[ -n "${L4_STAGE_DIR:-}" ]]; then
+  SRC="$STABLEWM_HOME/datasets/ogbench/cube_single_expert.h5"
+  DST="$L4_STAGE_DIR/cube_single_expert.h5"
+  NEED=$(stat -c %s "$SRC"); FREE=$(df --output=avail -B1 "$L4_STAGE_DIR" | tail -1)
+  if (( FREE > NEED + 10000000000 )); then
+    [[ -f "$DST" && $(stat -c %s "$DST") -eq $NEED ]] || cp "$SRC" "$DST"
+    DATA_ARGS=(--data-file "$DST")
+    echo "[l4] training from local copy $DST"
+  else
+    echo "[l4] not enough space in $L4_STAGE_DIR for a local copy; reading from $SRC"
+  fi
+fi
+LEFT=$(python scripts/cube/slurm_time_left.py)   # after staging, which can take a while
+python train_cube.py --variant "$V" --max-steps "$STEPS" --time-limit-min $(( LEFT > 30 ? LEFT - 12 : 18 )) ${DATA_ARGS[@]+"${DATA_ARGS[@]}"}
 status=$?
 if [[ $status -eq 3 ]]; then
   echo "[l4] $V not finished -> resubmitting"

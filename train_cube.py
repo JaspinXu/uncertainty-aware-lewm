@@ -187,6 +187,7 @@ def main() -> None:
     ap.add_argument("--variant", choices=sorted(VARIANTS), required=True)
     ap.add_argument("--run-name", default=None, help="checkpoint folder under checkpoints/cube/ (default: variant)")
     ap.add_argument("--dataset", default="ogbench/cube_single_expert")
+    ap.add_argument("--data-file", default=None, help="explicit .h5 path (e.g. a node-local copy)")
     ap.add_argument("--max-steps", type=int, default=60000)
     ap.add_argument("--batch-size", type=int, default=128)
     ap.add_argument("--lr", type=float, default=5e-5)
@@ -207,6 +208,9 @@ def main() -> None:
     args = ap.parse_args()
     spec = VARIANTS[args.variant]
     t_start = time.time()
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+    torch.backends.cudnn.benchmark = True
 
     import stable_worldmodel as swm
     from hydra.utils import instantiate
@@ -219,7 +223,8 @@ def main() -> None:
         return
     (run_dir / "state").mkdir(parents=True, exist_ok=True)
 
-    path = dataset_path(args.dataset)
+    # optional fast local copy of the dataset (see cluster/jobs/40_l4_train.sbatch)
+    path = Path(args.data_file) if args.data_file else dataset_path(args.dataset)
     prop_keys = proprio_columns(path)
     columns = (prop_keys if spec["prop"] else []) + ([POS_COL, YAW_COL] if spec["aux"] else [])
     T = max(3 + 1, 1 + spec["ar_steps"])  # history 3 + 1-step target; 1 + K frames for the K-step rollout
@@ -260,7 +265,7 @@ def main() -> None:
     loader = torch.utils.data.DataLoader(
         train_ds, batch_size=args.batch_size, shuffle=True, drop_last=True, generator=g,
         num_workers=args.workers, pin_memory=True, persistent_workers=args.workers > 0,
-        prefetch_factor=4 if args.workers > 0 else None,
+        prefetch_factor=2 if args.workers > 0 else None,
     )
     val_loader = torch.utils.data.DataLoader(
         val_ds, batch_size=args.batch_size, shuffle=False, num_workers=min(4, args.workers), pin_memory=True

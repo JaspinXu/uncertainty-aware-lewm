@@ -13,6 +13,8 @@ Column glossary (candidates):
   sig2_k        MC-dropout variance (summed over latent dims) at predicted block k
   pred_err_k    ||z_hat_k - z_true_k||^2 against the encoded simulator frame
   true_cost     ||z_true_H - z_goal||^2
+  sig2ens_k     latent-ensemble disagreement at block k (scripts/cube/score_ensemble.py)
+  ens_cost      ensemble-mean terminal cost; ens_pred_err_H its true prediction error
   success       the candidate, executed open loop, solves the task in its segment
   final_dist    cube-target distance [m] at the end of the segment
 """
@@ -32,10 +34,11 @@ def _load(path: Path) -> dict:
     return torch.load(path, map_location="cpu", weights_only=False)
 
 
-def load_run(record_path: Path, oracle_path: Path | None = None) -> dict[str, pd.DataFrame]:
+def load_run(record_path: Path, oracle_path: Path | None = None, ensemble_path: Path | None = None) -> dict[str, pd.DataFrame]:
     rec = _load(record_path)
     meta, plans = rec["meta"], rec["plans"]
     oracle = _load(oracle_path)["results"] if oracle_path is not None and Path(oracle_path).exists() else {}
+    ens = _load(ensemble_path)["results"] if ensemble_path is not None and Path(ensemble_path).exists() else {}
     run = meta["run_id"]
     seed = int(meta["seed"])
     n_elite = int(meta.get("n_elite", 30))
@@ -49,6 +52,7 @@ def load_run(record_path: Path, oracle_path: Path | None = None) -> dict[str, pd
         P = sig.shape[1]
         sub = p["subset"]
         o = oracle.get(i)
+        en = ens.get(i)
         elite_costs = p["det_cost"][1:][p["solver_rank"][1:] < n_elite]
         plan_rows.append(
             {
@@ -70,6 +74,7 @@ def load_run(record_path: Path, oracle_path: Path | None = None) -> dict[str, pd
                 "elite_sig2_H_mean": float(sig[1:, -1][p["solver_rank"][1:] < n_elite].mean()),
                 "start_dist": float(o["start_dist"]) if o is not None else np.nan,
                 "has_oracle": o is not None,
+                "exec_sig2ens_H": float(en["sig2"][0, -1]) if en is not None else np.nan,
             }
         )
         for k, pool_idx in enumerate(sub):
@@ -102,6 +107,13 @@ def load_run(record_path: Path, oracle_path: Path | None = None) -> dict[str, pd
                 for s in range(o["pred_err"].shape[1]):
                     row[f"pred_err_{s + 1}"] = float(o["pred_err"][k, s])
                 row["pred_err_H"] = float(o["pred_err"][k, -1])
+            if en is not None:
+                for s_ in range(en["sig2"].shape[1]):
+                    row[f"sig2ens_{s_ + 1}"] = float(en["sig2"][k, s_])
+                row["sig2ens_H"] = float(en["sig2"][k, -1])
+                row["ens_cost"] = float(en["cost"][k])
+                if "pred_err" in en:
+                    row["ens_pred_err_H"] = float(en["pred_err"][k, -1])
             cand_rows.append(row)
 
     episodes = pd.DataFrame(
@@ -116,12 +128,12 @@ def load_run(record_path: Path, oracle_path: Path | None = None) -> dict[str, pd
     )
     plans_df = pd.DataFrame(plan_rows)
     first = plans_df[plans_df.plan_idx == 0].set_index("env")
-    for col in ("exec_sig2_H", "exec_det_cost", "exec_mc_cost", "exec_mc_cost_std", "elite_cost_std", "start_dist"):
+    for col in ("exec_sig2_H", "exec_sig2ens_H", "exec_det_cost", "exec_mc_cost", "exec_mc_cost_std", "elite_cost_std", "start_dist"):
         episodes[f"first_{col}"] = episodes["env"].map(first[col]) if len(first) else np.nan
     return {"candidates": pd.DataFrame(cand_rows), "plans": plans_df, "episodes": episodes, "meta": meta}
 
 
-def load_runs(record_dir: Path, oracle_dir: Path, runs: list[str] | None = None) -> dict[str, pd.DataFrame]:
+def load_runs(record_dir: Path, oracle_dir: Path, runs: list[str] | None = None, ensemble_dir: Path | None = None) -> dict[str, pd.DataFrame]:
     record_dir, oracle_dir = Path(record_dir), Path(oracle_dir)
     paths = sorted(record_dir.glob("*.pt"))
     if runs is not None:
@@ -130,7 +142,7 @@ def load_runs(record_dir: Path, oracle_dir: Path, runs: list[str] | None = None)
     out = {"candidates": [], "plans": [], "episodes": []}
     metas = []
     for p in paths:
-        r = load_run(p, oracle_dir / p.name)
+        r = load_run(p, oracle_dir / p.name, (Path(ensemble_dir) / p.name) if ensemble_dir else None)
         for k in out:
             out[k].append(r[k])
         metas.append(r["meta"])
