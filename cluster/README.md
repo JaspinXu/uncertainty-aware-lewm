@@ -10,11 +10,39 @@ Do not run heavy work on the login node: everything goes through `sbatch`
 
 ## 0. One-time setup
 
+The repository is private, so the cluster needs its own credential. A
+repository-scoped SSH deploy key is the simplest (no token to store; tick
+"Allow write access" if results will be pushed from the cluster). SSH runs
+over port 443 (`ssh.github.com`), which the cluster can reach:
+
 ```bash
-git clone --recursive https://github.com/JaspinXu/uncertainty-aware-lewm.git
+ssh-keygen -t ed25519 -f ~/.ssh/lewm_deploy -N "" -C "soc-cluster-lewm"
+cat >> ~/.ssh/config <<'CFG'
+Host github-lewm
+  HostName ssh.github.com
+  Port 443
+  User git
+  IdentityFile ~/.ssh/lewm_deploy
+  IdentitiesOnly yes
+CFG
+chmod 600 ~/.ssh/config
+cat ~/.ssh/lewm_deploy.pub    # GitHub: repo Settings -> Deploy keys -> Add deploy key
+ssh -T github-lewm            # answer "yes" once; expect "Hi JaspinXu/uncertainty-aware-lewm! ..."
+```
+
+Then (the submodules are public and come over HTTPS):
+
+```bash
+git clone --recursive git@github-lewm:JaspinXu/uncertainty-aware-lewm.git
 cd uncertainty-aware-lewm
 bash cluster/submit.sh bootstrap     # = steps 0-2 below, chained: setup -> download -> smoke test
 ```
+
+(A `403 ... Write access to repository not granted` on an HTTPS clone means git
+sent a stored GitHub credential that has no access to this repository. The
+HTTPS alternative is `git -c credential.helper= clone --recursive
+https://github.com/JaspinXu/uncertainty-aware-lewm.git` with a fine-grained
+token for this repository as the password.)
 
 or step by step:
 
@@ -46,8 +74,10 @@ the simulator. The log must end with `smoke test finished OK`, and the oracle
 line `fidelity: {... 'max_abs_qpos_diff': ...}` should be tiny (< 1e-3).
 
 Choosing a GPU type: any `#SBATCH` option can be overridden on the command
-line, e.g. `sbatch --gpus=h100-96:1 cluster/jobs/02_smoke_test.sbatch`.
-`sinfo -o "%P %G"` lists the partitions and GPU types you can request.
+line, e.g. `sbatch --gpus=h100-96:1 cluster/jobs/02_smoke_test.sbatch`, or for
+all GPU jobs of a phase `SBATCH_EXTRA="--gpus=h100-96:1" bash cluster/submit.sh ...`.
+Types on the SoC cluster: `a100-40`, `a100-80`, `h100-47`, `h100-96`, `h200-141`
+(the login banner shows how busy each one is). `sinfo -o "%P %G"` lists them.
 
 ## 3. Experiments
 
