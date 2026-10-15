@@ -159,7 +159,11 @@ submit_l1() {
   TODO=("${L1_TODO[@]}"); submit_tasks l1_record "$L1_PER" ""; j_rec=$IDS
   TODO=("${TR_TODO[@]}"); submit_tasks l1_train "$TR_PER" ""; j_tr=$IDS
   (( NEED_ENS )) && sbt j_ens cluster/jobs/12_ensemble.sbatch
-  sbt j_sc $(dep afterok "$(idjoin "$j_rec" "$j_tr" "$j_ens")") cluster/jobs/13_score_ensemble.sbatch
+  # scoring needs the records; it runs even if the ensemble job failed (then it
+  # fails quickly, and the analysis goes ahead with MC-dropout only)
+  d=$(idjoin "$j_rec" "$j_tr"); d=${d:+afterok:$d}
+  [[ -n "$j_ens" ]] && d="${d:+$d,}afterany:$j_ens"
+  sbt j_sc ${d:+--dependency=$d} cluster/jobs/13_score_ensemble.sbatch
   # the analysis needs the L1 records; it uses the ensemble scores if that branch succeeded
   d="afterany:$j_sc"
   [[ -n "$j_rec" ]] && d="afterok:$j_rec,$d"

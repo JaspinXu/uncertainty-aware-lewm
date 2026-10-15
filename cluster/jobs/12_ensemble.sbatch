@@ -15,6 +15,8 @@ source cluster/env.sh
 job_banner
 require_gpu || exit 1
 python scripts/cube/encode_dataset.py --policy cube/lewm
-python train_ensemble.py --policy cube/lewm --members "${ENS_MEMBERS:-5}" --steps "${ENS_STEPS:-20000}"
+# 12k steps per member: 5 members take ~100 min on an h100-47 slice (encoding the
+# 2M frames once takes ~11 min more), well inside the 3 h limit
+python train_ensemble.py --policy cube/lewm --members "${ENS_MEMBERS:-5}" --steps "${ENS_STEPS:-12000}"
 mkdir -p results/cube/ensemble
 cp "$STABLEWM_HOME/checkpoints/cube/ens_lewm/report.json" results/cube/ensemble/train_report.json
