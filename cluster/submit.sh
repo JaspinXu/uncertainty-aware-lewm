@@ -15,8 +15,9 @@
 #
 # Every phase can be submitted again at any time: finished runs are left out.
 # GPU jobs go to partition $LEWM_GPU_PARTITION (default gpu, 3 h). Each job asks
-# for one GPU of an explicit type, taken in turn from $LEWM_GPU_TYPES: on the SoC
-# cluster an untyped request (--gpus=1) is only served by the old `nv` cards.
+# for one GPU of an explicit type (an untyped --gpus=1 only gets the old `nv`
+# cards on the SoC cluster): rendering jobs take turns over $LEWM_GPU_TYPES,
+# training-type jobs over $LEWM_TRAIN_GPU_TYPES (defaults below).
 # Extra sbatch options for every GPU job go through SBATCH_EXTRA.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -34,17 +35,31 @@ MAXJ_L1=4 MAXJ_TRAIN=3 MAXJ_L2=6 MAXJ_L3=2 MAXJ_L5=2
 # ---------------------------------------------------------------------- #
 # sbatch helpers
 # ---------------------------------------------------------------------- #
-# One GPU type per job, in turn. The list matches the per-user limits (a100-40 4,
-# h100-47 2, a100-80 2, h100-96 1, h200-141 1; 8 GPUs at once in total).
-read -r -a GPU_TYPES <<< "${LEWM_GPU_TYPES:-h100-47 a100-40 a100-80 h100-47 a100-40 h100-96 a100-40 a100-80 a100-40 h200-141}"
-GPU_I=0
-sbg() {  # sbg VAR sbatch-args...  -> GPU job, VAR = its job id
-  local __var="$1" __t __id
-  shift
-  __t=${GPU_TYPES[$(( GPU_I % ${#GPU_TYPES[@]} ))]}
-  GPU_I=$(( GPU_I + 1 ))
+# One GPU type per job, in turn, from two lists. Jobs that render the simulator
+# (planning runs, oracle replays) use whole GPUs: the h100-47 cards are MIG
+# slices of an H100, which cannot render (MuJoCo falls back to slow software
+# rendering). Training-type jobs start with the h100-47 slices. Together the
+# lists match the per-user limits (a100-40 4, a100-80 2, h100-47 2, h100-96 1,
+# h200-141 1; 8 GPUs at once in total).
+read -r -a RENDER_TYPES <<< "${LEWM_GPU_TYPES:-a100-40 a100-80 a100-40 a100-80 a100-40 a100-40 h100-96 h200-141}"
+read -r -a TRAIN_TYPES <<< "${LEWM_TRAIN_GPU_TYPES:-h100-47 h100-47 a100-40 h100-96 a100-80}"
+RENDER_I=0
+TRAIN_I=0
+_sb_gpu() {  # _sb_gpu TYPE VAR sbatch-args...
+  local __t="$1" __var="$2" __id
+  shift 2
   __id=$(sbatch --parsable --partition="$PART" --gres="gpu:$__t:1" ${EXTRA[@]+"${EXTRA[@]}"} "$@") || return 1
   printf -v "$__var" '%s' "$__id"
+}
+sbg() {  # sbg VAR sbatch-args...  -> GPU job that renders; VAR = its job id
+  local t=${RENDER_TYPES[$(( RENDER_I % ${#RENDER_TYPES[@]} ))]}
+  RENDER_I=$(( RENDER_I + 1 ))
+  _sb_gpu "$t" "$@"
+}
+sbt() {  # sbt VAR sbatch-args...  -> GPU job without rendering (training, encoding, probes)
+  local t=${TRAIN_TYPES[$(( TRAIN_I % ${#TRAIN_TYPES[@]} ))]}
+  TRAIN_I=$(( TRAIN_I + 1 ))
+  _sb_gpu "$t" "$@"
 }
 sbc() { sbatch --parsable "$@"; }                                             # CPU job (default partition)
 dep() { [[ -n "${2:-}" ]] && echo "--dependency=$1:$2" || true; }              # dep afterok "1:2" -> flag
@@ -89,6 +104,7 @@ chunk() {
     (( PER > most )) && PER=$most
     NJOBS=$(( (n + PER - 1) / PER ))
   fi
+  PER=$(( (n + NJOBS - 1) / NJOBS ))  # same number of runs in every job
   return 0
 }
 
@@ -135,8 +151,8 @@ submit_l1() {
   local j_rec j_tr j_ens="" j_sc d
   TODO=("${L1_TODO[@]}"); submit_tasks l1_record "$L1_PER" ""; j_rec=$IDS
   TODO=("${TR_TODO[@]}"); submit_tasks l1_train "$TR_PER" ""; j_tr=$IDS
-  (( NEED_ENS )) && sbg j_ens cluster/jobs/12_ensemble.sbatch
-  sbg j_sc $(dep afterok "$(idjoin "$j_rec" "$j_tr" "$j_ens")") cluster/jobs/13_score_ensemble.sbatch
+  (( NEED_ENS )) && sbt j_ens cluster/jobs/12_ensemble.sbatch
+  sbt j_sc $(dep afterok "$(idjoin "$j_rec" "$j_tr" "$j_ens")") cluster/jobs/13_score_ensemble.sbatch
   # the analysis needs the L1 records; it uses the ensemble scores if that branch succeeded
   d="afterany:$j_sc"
   [[ -n "$j_rec" ]] && d="afterok:$j_rec,$d"
@@ -166,7 +182,7 @@ prep_l3() {
 }
 submit_l3() {  # $1 = jobs to wait for "a:b" (optional)
   local j_tr j_pan j_sum
-  sbg j_tr $(dep afterok "${1:-}") cluster/jobs/30_l3_train_risk.sbatch
+  sbt j_tr $(dep afterok "${1:-}") cluster/jobs/30_l3_train_risk.sbatch
   TODO=("${L3_TODO[@]}"); submit_tasks l3 "$L3_PER" "--dependency=afterok:$j_tr"; j_pan=$IDS
   j_sum=$(sbc --dependency="afterany:$(idjoin "$j_tr" "$j_pan")" cluster/jobs/90_summarize.sbatch \
           planning_panel baseline "${L2_METHODS[@]}" risk)
@@ -190,11 +206,11 @@ prep_l4() {  # variants...
 submit_l4() {
   local v id
   for v in ${L4_TODO[@]+"${L4_TODO[@]}"}; do
-    sbg id cluster/jobs/40_l4_train.sbatch "$v"
+    sbt id cluster/jobs/40_l4_train.sbatch "$v"
     echo "L4: training $v submitted ($id)" >&2
   done
   # the pretrained checkpoint is the reference for every L5 table
-  (( NEED_REF )) && sbg id cluster/jobs/41_l5_repr.sbatch cube/lewm
+  (( NEED_REF )) && sbt id cluster/jobs/41_l5_repr.sbatch cube/lewm
   return 0
 }
 
@@ -210,7 +226,7 @@ prep_l5() {  # variant
 }
 submit_l5() {  # variant
   local v="$1" j_repr j_sel="" j_test
-  sbg j_repr cluster/jobs/41_l5_repr.sbatch "cube/l4_$v"
+  sbt j_repr cluster/jobs/41_l5_repr.sbatch "cube/l4_$v"
   TODO=(${SEL_TODO[@]+"${SEL_TODO[@]}"}); submit_tasks "l5_${v}_select" "$SEL_PER" ""; j_sel=$IDS
   # with a selection step pending, the test runs wait for it (they read its result)
   TODO=(${TEST_TODO[@]+"${TEST_TODO[@]}"}); submit_tasks "l5_${v}_test" "$TEST_PER" "$(dep afterok "$j_sel")"; j_test=$IDS
@@ -269,7 +285,7 @@ case "${1:-}" in
     prep_l4 "$@"; check_capacity "$N_L4" L4; submit_l4
     ;;
   l4-continue)  # used by cluster/jobs/40_l4_train.sbatch to resubmit itself
-    sbg J4 cluster/jobs/40_l4_train.sbatch "${2:?variant}" "${3:-}"
+    sbt J4 cluster/jobs/40_l4_train.sbatch "${2:?variant}" "${3:-}"
     echo "L4: $2 continues in job $J4" >&2
     exit 0
     ;;

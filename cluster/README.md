@@ -18,10 +18,13 @@ job submitted by `cluster/submit.sh`.
 
 `cluster/submit.sh` follows these rules: GPU jobs go to the `gpu` partition
 (a job submitted without a partition lands on a CPU node) and each asks for one
-GPU of an explicit type, taken in turn from `h100-47 a100-40 a100-80 h100-47
-a100-40 h100-96 a100-40 a100-80 a100-40 h200-141` (the per-type limits); each
-phase is split into a few jobs that run several evaluation runs one after
-another, so that a whole phase stays far below 32 queued jobs. Every GPU job checks first that it really has a usable GPU and
+GPU of an explicit type. Jobs that render the simulator (planning, oracle
+replays) take turns over whole GPUs (`a100-40 a100-80 a100-40 a100-80 a100-40
+a100-40 h100-96 h200-141`): the `h100-47` cards are MIG slices of an H100, which
+cannot render (software rendering, ~160 ms per frame instead of ~25 ms on an
+A100). Training-type jobs take turns over `h100-47 h100-47 a100-40 h100-96
+a100-80`. Each phase is split into a few jobs that run several evaluation runs
+one after another, so that a whole phase stays far below 32 queued jobs. Every GPU job checks first that it really has a usable GPU and
 stops at once otherwise.
 
 ## 0. One-time setup
@@ -105,8 +108,9 @@ stops before starting a run that would not fit (exit code 4), and its dependent
 jobs are not started; submit the phase again. If a phase needs more queue
 slots than are free, `submit.sh` says so and submits nothing.
 
-**Overrides.** `LEWM_GPU_TYPES="h100-47 h100-96" bash cluster/submit.sh ...`
-changes the GPU types the jobs rotate through; `LEWM_GPU_PARTITION=gpu-long`
+**Overrides.** `LEWM_GPU_TYPES="a100-40 a100-80"` (rendering jobs) and
+`LEWM_TRAIN_GPU_TYPES="h100-47"` (training jobs) change the GPU types the jobs
+rotate through; `LEWM_GPU_PARTITION=gpu-long`
 uses the 3-day partition; any other sbatch option goes through `SBATCH_EXTRA`.
 `sbatch --test-only -p gpu --gres=gpu:h100-47:1 --wrap=hostname` shows when a
 GPU type would start.

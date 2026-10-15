@@ -2,7 +2,7 @@
 #SBATCH --job-name=lewm_smoke
 #SBATCH --time=01:00:00
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:h100-47:1
+#SBATCH --gres=gpu:a100-40:1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --output=logs/%x_%j.out

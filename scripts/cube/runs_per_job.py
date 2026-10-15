@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TARGET_MIN, MAX_MIN = 80, 120
+TARGET_MIN, MAX_MIN = 45, 120
 DEFAULT = {"record": (3, 4), "plan": (4, 6), "l5": (6, 8)}
 PLAN_FACTOR = {"record": 1.0, "plan": 8.0, "l5": 1.5}
 
