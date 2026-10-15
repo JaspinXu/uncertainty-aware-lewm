@@ -71,14 +71,24 @@ def render_like_world(env, image_shape=(224, 224)) -> np.ndarray:
 def normalized_to_env_actions(actions: np.ndarray, action_block: int, mean, scale) -> np.ndarray:
     """(K, H, block*A) normalised CEM actions -> (K, H*block, A) env actions.
 
-    Mirrors WorldModelPolicy: reshape the plan to per-step actions, then
-    ``StandardScaler.inverse_transform``.
+    Bit-identical to WorldModelPolicy, which hands the env float32 actions from
+    ``StandardScaler.inverse_transform`` of the float32 plan: a float64
+    re-implementation differs by ~1e-7, which the contact dynamics can amplify
+    over 25 steps.
     """
-    actions = np.asarray(actions, dtype=np.float64)
+    from sklearn.preprocessing import StandardScaler
+
+    actions = np.asarray(actions, dtype=np.float32)
     K, H, BA = actions.shape
     A = BA // int(action_block)
-    per_step = actions.reshape(K, H * int(action_block), A)
-    return per_step * np.asarray(scale, dtype=np.float64) + np.asarray(mean, dtype=np.float64)
+    scaler = StandardScaler()
+    scaler.mean_ = np.asarray(mean, dtype=np.float64)
+    scaler.scale_ = np.asarray(scale, dtype=np.float64)
+    scaler.var_ = scaler.scale_**2
+    scaler.n_features_in_ = A
+    scaler.n_samples_seen_ = 1
+    per_step = scaler.inverse_transform(actions.reshape(K * H * int(action_block), A))
+    return per_step.reshape(K, H * int(action_block), A)
 
 
 @dataclass

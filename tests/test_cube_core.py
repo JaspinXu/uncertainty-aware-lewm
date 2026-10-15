@@ -160,15 +160,18 @@ def test_mc_rollouts_vary_and_restore_mode(tiny_lewm):
 # action conversion == WorldModelPolicy
 # --------------------------------------------------------------------------- #
 def test_normalized_to_env_actions_matches_policy():
+    """Same float32 env actions as WorldModelPolicy, bit for bit."""
+    from sklearn.preprocessing import StandardScaler
+
     rng = np.random.default_rng(0)
-    mean, scale = rng.normal(size=5), rng.uniform(0.5, 2, size=5)
-    plan = rng.normal(size=(1, 5, 25)).astype(np.float32)  # (n_envs, horizon, block*A)
-    # policy: plan.reshape(n, receding*block, -1) then inverse_transform per step
-    scaler = types.SimpleNamespace(inverse_transform=lambda a: a * scale + mean)
-    per_step = torch.from_numpy(plan).reshape(1, 25, -1)
-    expected = np.stack([scaler.inverse_transform(per_step[:, t].numpy()) for t in range(25)], axis=1)
-    ours = normalized_to_env_actions(plan, 5, mean, scale)
-    np.testing.assert_allclose(ours, expected, rtol=1e-6)
+    scaler = StandardScaler().fit(rng.normal(size=(500, 5)) * rng.uniform(0.5, 2, size=5) + rng.normal(size=5))
+    plan = torch.from_numpy(rng.normal(size=(3, 5, 25)).astype(np.float32))  # (n_envs, horizon, block*A)
+    # policy: plan.reshape(n, receding*block, -1); per step: .float().numpy() -> inverse_transform
+    per_step = plan.reshape(3, 25, -1)
+    expected = np.stack([scaler.inverse_transform(per_step[:, t].float().numpy()) for t in range(25)], axis=1)
+    ours = normalized_to_env_actions(plan.numpy(), 5, scaler.mean_.tolist(), scaler.scale_.tolist())
+    assert ours.dtype == expected.dtype == np.float32
+    np.testing.assert_array_equal(ours, expected)
 
 
 # --------------------------------------------------------------------------- #
