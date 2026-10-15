@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=lewm_tasks
 #SBATCH --partition=gpu
-#SBATCH --gpus=1
+#SBATCH --gres=gpu:h100-47:1
 #SBATCH --time=03:00:00
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G

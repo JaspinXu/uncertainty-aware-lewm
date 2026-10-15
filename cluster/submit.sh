@@ -14,9 +14,10 @@
 #   bash cluster/submit.sh results         # commit + push the small result files and recent job logs
 #
 # Every phase can be submitted again at any time: finished runs are left out.
-# GPU jobs go to partition $LEWM_GPU_PARTITION (default gpu, 3 h) without the
-# older `nv` cards (LEWM_ALLOW_NV=1 allows them). Extra sbatch options for every
-# GPU job go through SBATCH_EXTRA, e.g.  SBATCH_EXTRA="--gpus=h100-47:1"
+# GPU jobs go to partition $LEWM_GPU_PARTITION (default gpu, 3 h). Each job asks
+# for one GPU of an explicit type, taken in turn from $LEWM_GPU_TYPES: on the SoC
+# cluster an untyped request (--gpus=1) is only served by the old `nv` cards.
+# Extra sbatch options for every GPU job go through SBATCH_EXTRA.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p logs/tasks
@@ -33,12 +34,18 @@ MAXJ_L1=4 MAXJ_TRAIN=3 MAXJ_L2=6 MAXJ_L3=2 MAXJ_L5=2
 # ---------------------------------------------------------------------- #
 # sbatch helpers
 # ---------------------------------------------------------------------- #
-GPU_FLAGS=(--partition="$PART")
-if [[ "${LEWM_ALLOW_NV:-0}" != 1 ]] && command -v sinfo >/dev/null; then
-  NV_NODES=$(sinfo -h -N -p "$PART" -o "%N %G" 2>/dev/null | awk '$2 ~ /gpu:nv/ {print $1}' | sort -u | paste -sd, - || true)
-  [[ -n "${NV_NODES:-}" ]] && GPU_FLAGS+=(--exclude="$NV_NODES")
-fi
-sbg() { sbatch --parsable "${GPU_FLAGS[@]}" ${EXTRA[@]+"${EXTRA[@]}"} "$@"; }  # GPU job
+# One GPU type per job, in turn. The list matches the per-user limits (a100-40 4,
+# h100-47 2, a100-80 2, h100-96 1, h200-141 1; 8 GPUs at once in total).
+read -r -a GPU_TYPES <<< "${LEWM_GPU_TYPES:-h100-47 a100-40 a100-80 h100-47 a100-40 h100-96 a100-40 a100-80 a100-40 h200-141}"
+GPU_I=0
+sbg() {  # sbg VAR sbatch-args...  -> GPU job, VAR = its job id
+  local __var="$1" __t __id
+  shift
+  __t=${GPU_TYPES[$(( GPU_I % ${#GPU_TYPES[@]} ))]}
+  GPU_I=$(( GPU_I + 1 ))
+  __id=$(sbatch --parsable --partition="$PART" --gres="gpu:$__t:1" ${EXTRA[@]+"${EXTRA[@]}"} "$@") || return 1
+  printf -v "$__var" '%s' "$__id"
+}
 sbc() { sbatch --parsable "$@"; }                                             # CPU job (default partition)
 dep() { [[ -n "${2:-}" ]] && echo "--dependency=$1:$2" || true; }              # dep afterok "1:2" -> flag
 idjoin() { local IFS=:; echo "$*" | sed -E 's/:+/:/g; s/^://; s/:$//'; }      # idjoin 1 "" 2:3 -> 1:2:3
@@ -85,17 +92,18 @@ chunk() {
   return 0
 }
 
-# submit_tasks NAME PER DEP_FLAG -> submits TODO in jobs of PER runs, prints "id:id:..." ("" if nothing to do)
+# submit_tasks NAME PER DEP_FLAG -> submits TODO in jobs of PER runs; IDS = "id:id:..." ("" if nothing to do)
 submit_tasks() {
-  local name="$1" per="$2" depflag="$3" ids=() f k=0 s stamp
+  local name="$1" per="$2" depflag="$3" ids=() f k=0 s stamp id
   stamp=$(date +%Y%m%d-%H%M%S)
   for (( s = 0; s < ${#TODO[@]}; s += per )); do
     f="logs/tasks/${name}_${stamp}_${k}.txt"
     printf '%s\n' "${TODO[@]:s:per}" > "$f"
-    ids+=("$(sbg --job-name="lewm_$name" ${depflag:+"$depflag"} cluster/jobs/run_tasks.sbatch "$f")")
+    sbg id --job-name="lewm_$name" ${depflag:+"$depflag"} cluster/jobs/run_tasks.sbatch "$f"
+    ids+=("$id")
     k=$(( k + 1 ))
   done
-  idjoin "${ids[@]}"
+  IDS=$(idjoin ${ids[@]+"${ids[@]}"})
 }
 
 # ---------------------------------------------------------------------- #
@@ -125,10 +133,10 @@ prep_l1() {
 }
 submit_l1() {
   local j_rec j_tr j_ens="" j_sc d
-  TODO=("${L1_TODO[@]}"); j_rec=$(submit_tasks l1_record "$L1_PER" "")
-  TODO=("${TR_TODO[@]}"); j_tr=$(submit_tasks l1_train "$TR_PER" "")
-  (( NEED_ENS )) && j_ens=$(sbg cluster/jobs/12_ensemble.sbatch)
-  j_sc=$(sbg $(dep afterok "$(idjoin "$j_rec" "$j_tr" "$j_ens")") cluster/jobs/13_score_ensemble.sbatch)
+  TODO=("${L1_TODO[@]}"); submit_tasks l1_record "$L1_PER" ""; j_rec=$IDS
+  TODO=("${TR_TODO[@]}"); submit_tasks l1_train "$TR_PER" ""; j_tr=$IDS
+  (( NEED_ENS )) && sbg j_ens cluster/jobs/12_ensemble.sbatch
+  sbg j_sc $(dep afterok "$(idjoin "$j_rec" "$j_tr" "$j_ens")") cluster/jobs/13_score_ensemble.sbatch
   # the analysis needs the L1 records; it uses the ensemble scores if that branch succeeded
   d="afterany:$j_sc"
   [[ -n "$j_rec" ]] && d="afterok:$j_rec,$d"
@@ -144,8 +152,8 @@ prep_l2() {
 }
 submit_l2() {  # $1 = job to wait for (optional)
   local j_cal j_pan j_sum
-  j_cal=$(sbg $(dep afterok "${1:-}") cluster/jobs/20_l2_calibrate.sbatch)
-  TODO=("${L2_TODO[@]}"); j_pan=$(submit_tasks l2 "$L2_PER" "--dependency=afterok:$j_cal")
+  sbg j_cal $(dep afterok "${1:-}") cluster/jobs/20_l2_calibrate.sbatch
+  TODO=("${L2_TODO[@]}"); submit_tasks l2 "$L2_PER" "--dependency=afterok:$j_cal"; j_pan=$IDS
   j_sum=$(sbc --dependency="afterany:$(idjoin "$j_cal" "$j_pan")" cluster/jobs/90_summarize.sbatch \
           l2_panel baseline "${L2_METHODS[@]}")
   echo "L2: calibration $j_cal -> ${#L2_TODO[@]} runs ($L2_PER per job) -> summary $j_sum" >&2
@@ -158,8 +166,8 @@ prep_l3() {
 }
 submit_l3() {  # $1 = jobs to wait for "a:b" (optional)
   local j_tr j_pan j_sum
-  j_tr=$(sbg $(dep afterok "${1:-}") cluster/jobs/30_l3_train_risk.sbatch)
-  TODO=("${L3_TODO[@]}"); j_pan=$(submit_tasks l3 "$L3_PER" "--dependency=afterok:$j_tr")
+  sbg j_tr $(dep afterok "${1:-}") cluster/jobs/30_l3_train_risk.sbatch
+  TODO=("${L3_TODO[@]}"); submit_tasks l3 "$L3_PER" "--dependency=afterok:$j_tr"; j_pan=$IDS
   j_sum=$(sbc --dependency="afterany:$(idjoin "$j_tr" "$j_pan")" cluster/jobs/90_summarize.sbatch \
           planning_panel baseline "${L2_METHODS[@]}" risk)
   echo "L3: risk head $j_tr -> ${#L3_TODO[@]} runs ($L3_PER per job) -> summary $j_sum" >&2
@@ -180,13 +188,13 @@ prep_l4() {  # variants...
   N_L4=$(( ${#L4_TODO[@]} + NEED_REF ))
 }
 submit_l4() {
-  local v
+  local v id
   for v in ${L4_TODO[@]+"${L4_TODO[@]}"}; do
-    sbg cluster/jobs/40_l4_train.sbatch "$v" > /dev/null
-    echo "L4: training $v submitted" >&2
+    sbg id cluster/jobs/40_l4_train.sbatch "$v"
+    echo "L4: training $v submitted ($id)" >&2
   done
   # the pretrained checkpoint is the reference for every L5 table
-  (( NEED_REF )) && sbg cluster/jobs/41_l5_repr.sbatch cube/lewm > /dev/null
+  (( NEED_REF )) && sbg id cluster/jobs/41_l5_repr.sbatch cube/lewm
   return 0
 }
 
@@ -202,10 +210,10 @@ prep_l5() {  # variant
 }
 submit_l5() {  # variant
   local v="$1" j_repr j_sel="" j_test
-  j_repr=$(sbg cluster/jobs/41_l5_repr.sbatch "cube/l4_$v")
-  TODO=(${SEL_TODO[@]+"${SEL_TODO[@]}"}); j_sel=$(submit_tasks "l5_${v}_select" "$SEL_PER" "")
+  sbg j_repr cluster/jobs/41_l5_repr.sbatch "cube/l4_$v"
+  TODO=(${SEL_TODO[@]+"${SEL_TODO[@]}"}); submit_tasks "l5_${v}_select" "$SEL_PER" ""; j_sel=$IDS
   # with a selection step pending, the test runs wait for it (they read its result)
-  TODO=(${TEST_TODO[@]+"${TEST_TODO[@]}"}); j_test=$(submit_tasks "l5_${v}_test" "$TEST_PER" "$(dep afterok "$j_sel")")
+  TODO=(${TEST_TODO[@]+"${TEST_TODO[@]}"}); submit_tasks "l5_${v}_test" "$TEST_PER" "$(dep afterok "$j_sel")"; j_test=$IDS
   echo "L5 $v: representation $j_repr, w_prop selection ${j_sel:-not needed} -> test runs ${j_test:-already done}" >&2
 }
 
@@ -238,11 +246,11 @@ case "${1:-}" in
     if [[ ! -f "$STABLEWM_HOME/datasets/ogbench/cube_single_expert.h5" || ! -f "$STABLEWM_HOME/checkpoints/cube/lewm/weights.pt" ]]; then
       J1=$(sbc $(dep afterok "$J0") cluster/jobs/01_download_cube.sbatch)
     fi
-    J2=$(sbg $(dep afterok "$(idjoin "$J0" "$J1")") cluster/jobs/02_smoke_test.sbatch)
+    sbg J2 $(dep afterok "$(idjoin "$J0" "$J1")") cluster/jobs/02_smoke_test.sbatch
     echo "bootstrap: setup ${J0:-done} -> download ${J1:-done} -> smoke test $J2 (log: logs/lewm_smoke_$J2.out)" >&2
     ;;
   smoke)
-    J2=$(sbg cluster/jobs/02_smoke_test.sbatch)
+    sbg J2 cluster/jobs/02_smoke_test.sbatch
     echo "smoke test $J2 (log: logs/lewm_smoke_$J2.out)" >&2
     ;;
   l1) prep_l1; check_capacity "$N_L1" L1; submit_l1 ;;
@@ -261,8 +269,8 @@ case "${1:-}" in
     prep_l4 "$@"; check_capacity "$N_L4" L4; submit_l4
     ;;
   l4-continue)  # used by cluster/jobs/40_l4_train.sbatch to resubmit itself
-    sbg cluster/jobs/40_l4_train.sbatch "${2:?variant}" "${3:-}" > /dev/null
-    echo "L4: $2 continues in a new job" >&2
+    sbg J4 cluster/jobs/40_l4_train.sbatch "${2:?variant}" "${3:-}"
+    echo "L4: $2 continues in job $J4" >&2
     exit 0
     ;;
   l5) prep_l5 "${2:?variant}"; check_capacity "$N_L5" "L5 $2"; submit_l5 "$2" ;;

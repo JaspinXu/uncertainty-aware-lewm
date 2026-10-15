@@ -3,8 +3,9 @@
     python3 scripts/cube/runs_per_job.py record|plan|l5   ->  "TARGET MAX"
 
 TARGET runs fill about TARGET_MIN minutes, MAX runs about MAX_MIN (jobs on the
-`gpu` partition may run 180 min; the job runner stops early rather than start
-a run that would not fit). The estimate comes from the GPU timings of the smoke
+`gpu` partition may run 180 min, and a job may get a slower GPU type than the
+smoke test; the job runner stops early rather than start a run that would not
+fit). The estimate comes from the GPU timings of the smoke
 test (results/cube/smoke/timing.json, 10 episodes):
 
     planning_s   wall time of the recorded baseline run (incl. start-up)
@@ -25,7 +26,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-TARGET_MIN, MAX_MIN = 100, 150
+TARGET_MIN, MAX_MIN = 80, 120
 DEFAULT = {"record": (3, 4), "plan": (4, 6), "l5": (6, 8)}
 PLAN_FACTOR = {"record": 1.0, "plan": 8.0, "l5": 1.5}
 

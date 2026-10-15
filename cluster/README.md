@@ -11,16 +11,17 @@ job submitted by `cluster/submit.sh`.
 | | |
 |---|---|
 | partitions | `normal` (default, **CPU only**, 3 h), `long` (CPU, 3 days), `gpu` (3 h), `gpu-long` (3 days, fewer nodes) |
-| GPU types | `a100-40`, `a100-80`, `h100-47`, `h100-96`, `h200-141` (only in `gpu`), `nv` (older cards) |
+| GPU types | `a100-40`, `a100-80`, `h100-47`, `h100-96`, `h200-141` (only in `gpu`), `nv` (older cards: Titan V, Titan RTX, T4). A request without a type (`--gpus=1`) only gets `nv` cards |
 | per user | 16 running and 32 queued jobs (every array task counts); 8 GPUs at once, at most a100-40 4, a100-80 2, h100-47 2, h100-96 1, h200-141 1 |
 | storage | home: shared all-flash NFS; `/mnt/scratch`: shared HDD NFS; `/tmp`: node-local |
 | network | HTTPS works from login and compute nodes; SSH to GitHub (ports 22 and 443) is blocked |
 
 `cluster/submit.sh` follows these rules: GPU jobs go to the `gpu` partition
-(a job submitted without a partition lands on a CPU node), the older `nv` cards
-are left out, and each phase is split into a few jobs that run several
-evaluation runs one after another, so that a whole phase stays far below 32
-queued jobs. Every GPU job checks first that it really has a usable GPU and
+(a job submitted without a partition lands on a CPU node) and each asks for one
+GPU of an explicit type, taken in turn from `h100-47 a100-40 a100-80 h100-47
+a100-40 h100-96 a100-40 a100-80 a100-40 h200-141` (the per-type limits); each
+phase is split into a few jobs that run several evaluation runs one after
+another, so that a whole phase stays far below 32 queued jobs. Every GPU job checks first that it really has a usable GPU and
 stops at once otherwise.
 
 ## 0. One-time setup
@@ -104,9 +105,11 @@ stops before starting a run that would not fit (exit code 4), and its dependent
 jobs are not started; submit the phase again. If a phase needs more queue
 slots than are free, `submit.sh` says so and submits nothing.
 
-**Overrides.** `SBATCH_EXTRA="--gpus=h100-47:1" bash cluster/submit.sh ...`
-pins a GPU type (any sbatch option works); `LEWM_GPU_PARTITION=gpu-long` uses the
-3-day partition; `LEWM_ALLOW_NV=1` allows the `nv` cards.
+**Overrides.** `LEWM_GPU_TYPES="h100-47 h100-96" bash cluster/submit.sh ...`
+changes the GPU types the jobs rotate through; `LEWM_GPU_PARTITION=gpu-long`
+uses the 3-day partition; any other sbatch option goes through `SBATCH_EXTRA`.
+`sbatch --test-only -p gpu --gres=gpu:h100-47:1 --wrap=hostname` shows when a
+GPU type would start.
 
 ### What to send back
 
@@ -122,6 +125,9 @@ job log of the past week (`results/cube/logs/`), and pushes them.
 
 * **`[env] no GPU in this job`**: the job was not on a GPU partition. Submit
   through `cluster/submit.sh`, or add `--partition=gpu` to a manual `sbatch`.
+* **`Requested node configuration is not available`**: the request cannot be met
+  by any node, e.g. an untyped `--gpus=1` together with excluding the `nv` nodes.
+  Ask for a type: `--gres=gpu:h100-47:1`.
 * **`RENDER CHECK FAILED` / EGL errors**: as a fallback use software rendering
   (slow): `conda activate lewm && conda install -y -c conda-forge mesalib` and
   `export MUJOCO_GL=osmesa` before submitting.

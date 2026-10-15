@@ -9,11 +9,13 @@ export PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &&
 # NUS SoC compute cluster (sinfo / sacctmgr, Oct 2026):
 #   partitions  normal (default, CPU only, 3 h), long (CPU, 3 days),
 #               gpu (3 h), gpu-long (3 days, fewer nodes)
-#   GPU types   a100-40, a100-80, h100-47, h100-96, h200-141 (gpu only), nv (older cards)
+#   GPU types   a100-40, a100-80, h100-47, h100-96, h200-141 (gpu only), nv (older cards:
+#               Titan V, Titan RTX, T4); an untyped request (--gpus=1) only gets nv cards
 #   per user    16 running / 32 queued jobs (array tasks count one by one),
 #               8 GPUs: a100-40 4, a100-80 2, h100-47 2, h100-96 1, h200-141 1
 #   storage     home: shared all-flash NFS; /mnt/scratch: shared HDD NFS; /tmp: node-local
-# cluster/submit.sh puts GPU jobs on $LEWM_GPU_PARTITION and keeps job counts low.
+# cluster/submit.sh puts GPU jobs on $LEWM_GPU_PARTITION, asks for a GPU type
+# per job (rotating over $LEWM_GPU_TYPES) and keeps job counts low.
 export LEWM_GPU_PARTITION="${LEWM_GPU_PARTITION:-gpu}"
 
 # Large artifacts: dataset (~50 GB after extraction), checkpoints, HF cache.

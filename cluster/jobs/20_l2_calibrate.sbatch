@@ -2,7 +2,7 @@
 #SBATCH --job-name=lewm_l2_cal
 #SBATCH --time=01:00:00
 #SBATCH --partition=gpu
-#SBATCH --gpus=1
+#SBATCH --gres=gpu:h100-47:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --output=logs/%x_%j.out
