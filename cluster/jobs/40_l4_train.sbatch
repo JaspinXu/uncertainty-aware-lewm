@@ -15,7 +15,7 @@ cd "${SLURM_SUBMIT_DIR:-.}"
 source cluster/env.sh
 job_banner
 V="$1"
-STEPS="${2:-${L4_MAX_STEPS:-60000}}"
+STEPS="${2:-${L4_MAX_STEPS:-20000}}"
 DATA_ARGS=()
 # Optional: copy the dataset to node-local disk first when the shared file
 # system is the bottleneck (the smoke test prints training samples/s).

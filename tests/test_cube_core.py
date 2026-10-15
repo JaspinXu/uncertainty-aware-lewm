@@ -252,3 +252,31 @@ def test_train_ensemble_batch_layout():
     z, a = batch(lat, act, torch.tensor([3]))
     assert z[0, :, 0].tolist() == [3, 8, 13, 18, 23, 28]
     assert a.shape == (1, T, FS * 5) and a[0, 1, 0].item() == 8  # block 1 starts at row 3 + 5
+
+
+def test_warm_start_reproduces_pretrained(tmp_path, monkeypatch):
+    """A factorised variant warm-started from a LeWM checkpoint predicts its visual
+    block exactly like the checkpoint (identity-initialised projections)."""
+    import train_cube as tc
+    from hydra.utils import instantiate
+
+    from cube.rollout import rollout_from_latents
+    from planners import load_base
+    from tests.make_random_checkpoint import make_checkpoint
+
+    monkeypatch.setenv("STABLEWM_HOME", str(tmp_path))
+    make_checkpoint(tmp_path, "cube/lewm")
+    base = load_base("cube/lewm", "cpu")
+    args = types.SimpleNamespace(prop_latent=8)
+    spec = tc.VARIANTS["prop_ms"]
+    model = instantiate(copy.deepcopy(tc.model_config(["proprio_a"], 3, args, spec)))
+    rep = tc.warm_start(model, "cube/lewm", factorized=True)
+    assert not rep["skipped"] and rep["block_copied"] == 3
+    model.eval()
+    torch.manual_seed(0)
+    px, acts = torch.randn(1, 1, 3, 224, 224), torch.randn(1, 3, 5, 25)
+    with torch.no_grad():
+        ref = rollout_from_latents(base, base.encode({"pixels": px})["emb"], acts)
+        z = model.encode({"pixels": px, "proprio": torch.randn(1, 1, 3)})["emb"]
+        out = rollout_from_latents(model, z, acts)
+    torch.testing.assert_close(out[..., :192], ref, rtol=1e-4, atol=1e-4)

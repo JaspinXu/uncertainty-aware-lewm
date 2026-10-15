@@ -169,9 +169,15 @@ mode and β are selected on the calibration seeds.
 
 ### 3.6 Representation variants (L4)
 
-All variants use the LeWM recipe (batch 128, AdamW 5e-5, bf16, SIGReg 0.09,
-frameskip 5) and the same step budget. Train/validation episodes are split at
-the episode level.
+All variants are warm-started from the pretrained LeWM-Cube and trained for
+the same number of steps with the LeWM recipe (batch 128, AdamW 5e-5, bf16,
+SIGReg 0.09, frameskip 5). The `lewm` control is the pretrained model trained
+further with its original loss, so each comparison isolates one change.
+Factorised models keep the pretrained predictor as their core, behind linear
+maps from and to [z_vis ; z_prop]. These maps start at [I | 0] and [I ; 0], so
+at step 0 every variant predicts the visual latent exactly like the pretrained
+model (checked numerically). Train/validation episodes are split at the
+episode level.
 
 | variant | change |
 |---|---|

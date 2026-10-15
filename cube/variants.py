@@ -4,7 +4,8 @@
 AdaLN predictor, action embedder) with three optional additions:
 
 * proprio block -- z = [z_vis ; z_prop], z_prop = MLP(normalised proprio).
-  The predictor then models both blocks jointly (input/output dim D_vis+D_prop).
+  The predictor models both blocks jointly (``FactorizedPredictor``: the LeWM
+  predictor core plus linear maps from/to the factorised latent).
 * aux head -- training-only MLP from z_vis to the cube pose
   (position, cos 4yaw, sin 4yaw); unused at planning time.
 * block-weighted planning cost -- ||z_vis - g_vis||^2 + w_prop ||z_prop - g_prop||^2.
@@ -21,6 +22,33 @@ import torch
 from torch import nn
 
 from cube.rollout import rollout_from_latents
+
+
+class FactorizedPredictor(nn.Module):
+    """LeWM predictor core at the visual width, with linear maps from/to z = [z_vis; z_prop].
+
+    ``core`` is the standard predictor (input = hidden = output = 192), so it
+    loads the pretrained LeWM weights unchanged. ``in_proj`` / ``out_proj``
+    start as [I | 0] and [I ; 0]: a warm-started model initially predicts the
+    visual block exactly like the pretrained predictor and learns how to use
+    and predict the proprio block.
+    """
+
+    def __init__(self, core: nn.Module, lat_dim: int, vis_dim: int = 192):
+        super().__init__()
+        self.core = core
+        self.num_frames = core.num_frames
+        self.in_proj = nn.Linear(lat_dim, vis_dim)
+        self.out_proj = nn.Linear(vis_dim, lat_dim)
+        with torch.no_grad():
+            for lin in (self.in_proj, self.out_proj):
+                lin.weight.zero_()
+                lin.bias.zero_()
+            self.in_proj.weight[:, :vis_dim] = torch.eye(vis_dim)
+            self.out_proj.weight[:vis_dim] = torch.eye(vis_dim)
+
+    def forward(self, x: torch.Tensor, c: torch.Tensor) -> torch.Tensor:
+        return self.out_proj(self.core(self.in_proj(x), c))
 
 
 class LeWMVariant(nn.Module):

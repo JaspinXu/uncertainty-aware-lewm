@@ -65,9 +65,9 @@ runs are skipped on resubmission, and all outputs go to `results/cube/`.
 | L6 collected results | `bash cluster/submit.sh report` | CPU, minutes | `results/cube/RESULTS.md` |
 
 `planning` and `l4` are independent and can be submitted together right after
-the smoke test. The L4 step budget defaults to 60k steps per variant
-(`L4_MAX_STEPS=... bash cluster/submit.sh l4` to change it; the smoke test
-prints the training throughput to size it). If training is limited by reading
+the smoke test. Every L4 variant is warm-started from the pretrained LeWM-Cube
+and trained for 20k steps by default (`L4_MAX_STEPS=... bash cluster/submit.sh l4`
+to change it; the smoke test prints the training throughput to size it). If training is limited by reading
 the dataset from the shared file system, give the jobs a node-local scratch
 directory with ~100 GB free: `L4_STAGE_DIR=/path/to/local/disk bash cluster/submit.sh l4`
 (each job copies the .h5 there first when it fits).

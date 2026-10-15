@@ -1,11 +1,16 @@
 """Train LeWM and the L4 representation variants on OGBench-Cube.
 
-    python train_cube.py --variant lewm --max-steps 60000
-    python train_cube.py --variant prop_ms --max-steps 60000 --time-limit-min 170   # resumable
+    python train_cube.py --variant lewm                       # 20k steps from the pretrained LeWM-Cube
+    python train_cube.py --variant prop_ms --time-limit-min 170   # resumable
+    python train_cube.py --variant ms --init-from none --max-steps 100000   # from scratch
 
-Variants (all share the LeWM recipe: ViT-tiny/14 encoder, 6-layer AdaLN
-predictor with history 3, batch 128, AdamW lr 5e-5 / wd 1e-3, bf16,
-grad-clip 1, SIGReg weight 0.09, frameskip 5):
+By default every variant is warm-started from the pretrained LeWM-Cube
+(``--init-from cube/lewm``) and trained for the same number of steps, so the
+comparison isolates the change each variant makes; the ``lewm`` control is
+the pretrained model trained further with its original loss. All variants
+share the LeWM recipe (ViT-tiny/14 encoder, 6-layer AdaLN predictor with
+history 3, batch 128, AdamW lr 5e-5 / wd 1e-3, bf16, grad-clip 1, SIGReg
+weight 0.09, frameskip 5):
 
   lewm        control: LeWM retrained with our budget (1-step teacher forcing)
               (saved as cube/l4_lewm; the pretrained model stays cube/lewm)
@@ -61,6 +66,20 @@ _MLP = {
 def model_config(prop_keys: list[str], prop_dim: int, args, spec: dict) -> dict:
     vis = 192
     lat = vis + (args.prop_latent if spec["prop"] else 0)
+    core = {  # identical to the pretrained LeWM-Cube predictor
+        "_target_": "stable_worldmodel.wm.lewm.module.Predictor",
+        "num_frames": 3,
+        "input_dim": vis,
+        "hidden_dim": 192,
+        "output_dim": vis,
+        "depth": 6,
+        "heads": 16,
+        "mlp_dim": 2048,
+        "dim_head": 64,
+        "dropout": 0.1,
+        "emb_dropout": 0.0,
+    }
+    factor_predictor = {"_target_": "cube.variants.FactorizedPredictor", "core": core, "lat_dim": lat, "vis_dim": vis}
     return {
         "_target_": "cube.variants.LeWMVariant",
         "encoder": {
@@ -71,21 +90,8 @@ def model_config(prop_keys: list[str], prop_dim: int, args, spec: dict) -> dict:
             "pretrained": False,
             "use_mask_token": False,
         },
-        "predictor": {
-            "_target_": "stable_worldmodel.wm.lewm.module.Predictor",
-            "num_frames": 3,
-            "input_dim": lat,
-            "hidden_dim": 192,
-            "output_dim": lat,
-            "depth": 6,
-            "heads": 16,
-            "mlp_dim": 2048,
-            "dim_head": 64,
-            "dropout": 0.1,
-            "emb_dropout": 0.0,
-        },
-        # the predictor's AdaLN conditioning must have the predictor input width
-        "action_encoder": {"_target_": "stable_worldmodel.wm.lewm.module.Embedder", "input_dim": 25, "emb_dim": lat},
+        "predictor": factor_predictor if spec["prop"] else core,
+        "action_encoder": {"_target_": "stable_worldmodel.wm.lewm.module.Embedder", "input_dim": 25, "emb_dim": vis},
         "projector": {**copy.deepcopy(_MLP), "input_dim": 192, "output_dim": vis},
         "pred_proj": {**copy.deepcopy(_MLP), "input_dim": lat, "output_dim": lat},
         "prop_keys": prop_keys if spec["prop"] else [],
@@ -96,6 +102,39 @@ def model_config(prop_keys: list[str], prop_dim: int, args, spec: dict) -> dict:
         "w_prop": 1.0,
         "history_size": 3,
     }
+
+
+def warm_start(model: torch.nn.Module, policy: str, factorized: bool) -> dict:
+    """Initialise every matching tensor from a pretrained LeWM checkpoint.
+
+    Factorised models: the predictor core takes the pretrained predictor; the
+    prediction projector (wider by the proprio block) gets the pretrained
+    weights in its visual block and zeros elsewhere, so the visual prediction
+    starts exactly at the pretrained model's.
+    """
+    from planners import load_base
+
+    src = load_base(policy, "cpu").state_dict()
+    dst = model.state_dict()
+    report = {"loaded": 0, "block_copied": 0, "skipped": []}
+    for k, v in src.items():
+        tk = "predictor.core." + k[len("predictor."):] if factorized and k.startswith("predictor.") else k
+        if tk not in dst:
+            report["skipped"].append(k)
+            continue
+        d = dst[tk]
+        if d.shape == v.shape:
+            dst[tk] = v.clone()
+            report["loaded"] += 1
+        elif d.ndim == v.ndim and all(a >= b for a, b in zip(d.shape, v.shape)):
+            new = torch.zeros_like(d)
+            new[tuple(slice(0, n) for n in v.shape)] = v
+            dst[tk] = new
+            report["block_copied"] += 1
+        else:
+            report["skipped"].append(k)
+    model.load_state_dict(dst)
+    return report
 
 
 def r2_redundancy(z_vis: torch.Tensor, z_prop: torch.Tensor, eps: float = 1e-3) -> torch.Tensor:
@@ -188,11 +227,13 @@ def main() -> None:
     ap.add_argument("--run-name", default=None, help="checkpoint folder under checkpoints/cube/ (default: variant)")
     ap.add_argument("--dataset", default="ogbench/cube_single_expert")
     ap.add_argument("--data-file", default=None, help="explicit .h5 path (e.g. a node-local copy)")
-    ap.add_argument("--max-steps", type=int, default=60000)
+    ap.add_argument("--max-steps", type=int, default=20000)
+    ap.add_argument("--init-from", default="cube/lewm",
+                    help="pretrained checkpoint to warm-start from ('none' = train from scratch)")
     ap.add_argument("--batch-size", type=int, default=128)
     ap.add_argument("--lr", type=float, default=5e-5)
     ap.add_argument("--weight-decay", type=float, default=1e-3)
-    ap.add_argument("--warmup-steps", type=int, default=1000)
+    ap.add_argument("--warmup-steps", type=int, default=500)
     ap.add_argument("--sigreg-weight", type=float, default=0.09)
     ap.add_argument("--ar-weight", type=float, default=1.0)
     ap.add_argument("--redund-weight", type=float, default=0.5)
@@ -240,7 +281,12 @@ def main() -> None:
     prop_dim = int(sum(train_ds.cache[k].shape[1] for k in prop_keys)) if spec["prop"] else 0
     cfg = model_config(prop_keys, prop_dim, args, spec)
     torch.manual_seed(args.seed)
-    model = instantiate(copy.deepcopy(cfg)).to(args.device)
+    model = instantiate(copy.deepcopy(cfg))
+    if args.init_from.lower() != "none" and not state_path.exists():
+        rep = warm_start(model, args.init_from, spec["prop"])
+        print(f"[train] warm start from {args.init_from}: {rep['loaded']} tensors loaded, "
+              f"{rep['block_copied']} block-copied, skipped {rep['skipped']}")
+    model = model.to(args.device)
     if spec["prop"]:
         prop_all = np.concatenate([train_ds.cache[k] for k in prop_keys], axis=1)
         model.prop_mean.copy_(torch.from_numpy(prop_all.mean(0)))
