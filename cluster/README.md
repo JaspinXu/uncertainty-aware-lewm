@@ -88,6 +88,7 @@ Then `bash cluster/submit.sh results` pushes the smoke-test outputs and logs.
 | L4 representation training | `bash cluster/submit.sh l4` | `$STABLEWM_HOME/checkpoints/cube/l4_*` |
 | L5 variant evaluation | automatic when each L4 run finishes | `results/cube/l5/representation.md`, `results/cube/runs/l4_*` |
 | L6 collected results | `bash cluster/submit.sh report` | `results/cube/RESULTS.md` |
+| Check: live-rendered vs dataset frames (~10 min) | `bash cluster/submit.sh diag` | `results/cube/diag/domain_gap.md` |
 
 `planning` (at most 22 jobs) and `l4` (6 jobs) can be submitted together right after
 a clean smoke test. `planning` also trains the latent dynamics ensemble

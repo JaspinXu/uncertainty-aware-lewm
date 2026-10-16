@@ -10,6 +10,7 @@
 #                                          # each one submits its own L5 evaluation when done
 #   bash cluster/submit.sh l5 <variant>    # (normally automatic) probes + planning for one variant
 #   bash cluster/submit.sh report          # L6: results/cube/RESULTS.md, after all queued jobs
+#   bash cluster/submit.sh diag            # ~10 min check: live-rendered vs dataset frames (results/cube/diag)
 #   bash cluster/submit.sh status          # what is done, what is queued
 #   bash cluster/submit.sh results         # commit + push the small result files and recent job logs
 #
@@ -279,7 +280,7 @@ status() {
   done
   for f in results/cube/smoke/timing.json results/cube/l1/signal_report.md results/cube/summary/l2_panel.md \
            results/cube/l3/risk_report.md results/cube/summary/planning_panel.md results/cube/l5/representation.md \
-           results/cube/RESULTS.md; do
+           results/cube/diag/domain_gap.md results/cube/RESULTS.md; do
     [[ -f "$f" ]] && echo "written: $f"
   done
   echo "== queue: $(queued) of $QUEUE_LIMIT job slots in use"
@@ -325,6 +326,10 @@ case "${1:-}" in
     W=$(squeue -h -u "$ME" -o "%i %j" 2>/dev/null | awk '$2 ~ /^lewm_/ && $2 != "lewm_report" {print $1}' | paste -sd: - || true)
     J6=$(sbc $(dep afterany "$W") cluster/jobs/50_report.sbatch)
     echo "L6 report job $J6${W:+ (after jobs $W)}" >&2
+    ;;
+  diag)  # live rendering vs dataset frames, as the encoder sees them
+    sbg JD cluster/jobs/60_diag_domain_gap.sbatch
+    echo "diagnostic job $JD (log: logs/lewm_diag_$JD.out)" >&2
     ;;
   status) status ;;
   results)  # small result files + the tail of every job log of the last week -> git

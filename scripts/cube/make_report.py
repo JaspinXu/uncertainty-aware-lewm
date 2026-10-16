@@ -31,13 +31,13 @@ def demote(md: str) -> str:
     return md.replace("\n## ", "\n### ")
 
 
-def summarize(name: str, labels: list[str], title: str) -> str | None:
+def summarize(name: str, labels: list[str], title: str, reference: str = "baseline") -> str | None:
     have = [lab for lab in labels if any((R / "runs").glob(f"{lab}_s*.json"))]
-    if len(have) < 1:
+    if len(have) < 1 or reference not in have:
         return None
     cmd = [sys.executable, str(ROOT / "scripts/cube/summarize_runs.py"), "--name", name, "--title", title,
            "--runs", str(R / "runs"), "--out", str(R / "summary"),
-           "--methods", *have, "--seeds", *map(str, TEST_SEEDS), "--reference", "baseline"]
+           "--methods", *have, "--seeds", *map(str, TEST_SEEDS), "--reference", reference]
     subprocess.run(cmd, check=True, capture_output=True, text=True)
     return (R / "summary" / f"{name}.md").read_text()
 
@@ -127,6 +127,13 @@ def main() -> None:
     else:
         pending.append("L1 signal test (bash cluster/submit.sh l1)")
 
+    gap = R / "diag/domain_gap.md"
+    if gap.exists():
+        out.append("### Live rendering vs dataset frames (diagnostic)\n")
+        out.append(gap.read_text().split("\n", 2)[2])
+        if (R / "diag/fig_domain_gap.png").exists():
+            out.append("![dataset | live | 4x difference](diag/fig_domain_gap.png)\n")
+
     ens = R / "ensemble/train_report.json"
     if ens.exists():
         e = json.loads(ens.read_text())
@@ -168,6 +175,11 @@ def main() -> None:
         out.append("## L5 planning with the variants\n")
         out.append("`baseline` = pretrained LeWM-Cube; `l4_lewm` = our retrained control.\n")
         out.append(demote(vpanel.split("\n", 2)[2]))
+        ctrl = summarize("variants_vs_control", [f"l4_{v}" for v in VARIANTS] + ["baseline"],
+                         "Planning with the L4 representation variants (reference: retrained control)", "l4_lewm")
+        if ctrl and "## Paired" in ctrl:
+            out.append("Against the retrained control `l4_lewm` (same training budget):\n")
+            out.append(demote("\n" + ctrl[ctrl.index("## Paired"):]).lstrip("\n"))
         sel = sorted((R / "l5").glob("wprop_*.json"))
         if sel:
             out.append("w_prop selected on the calibration seeds: " + ", ".join(
