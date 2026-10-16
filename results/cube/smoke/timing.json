@@ -1,0 +1,25 @@
+{
+ "gpu": "NVIDIA A100-PCIE-40GB",
+ "episodes": 10,
+ "planning_s": 52,
+ "eval_s": 17.9,
+ "cem_s": 6.8,
+ "oracle_s": 57,
+ "success_rate": 70.0,
+ "train_samples_per_s": 70.92,
+ "fidelity": {
+  "n": 6,
+  "max_abs_qpos_diff": 0.0,
+  "median": 0.0,
+  "first": {
+   "n": 3,
+   "max_abs_qpos_diff": 0.0,
+   "median": 0.0
+  },
+  "last": {
+   "n": 3,
+   "max_abs_qpos_diff": 0.0,
+   "median": 0.0
+  }
+ }
+}

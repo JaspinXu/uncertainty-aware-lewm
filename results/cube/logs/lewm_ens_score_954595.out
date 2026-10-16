@@ -1,0 +1,37 @@
+=== 2026-10-16 05:43:25 | job 954595 on xgpi12 (partition gpu) ===
+PROJECT_ROOT=/home/z/zhaobin/uncertainty-aware-lewm
+STABLEWM_HOME=/home/z/zhaobin/lewm_data
+NVIDIA H100 NVL, 95830 MiB, 580.173.02
+torch 2.8.0+cu128 cuda True
+[env] GPU NVIDIA H100 NVL MIG 3g.47gb (sm_90, 46 GB)
+/home/z/zhaobin/uncertainty-aware-lewm/stable-worldmodel/stable_worldmodel/envs/__init__.py:215: UserWarning: ale-py not found; ALE/* envs are unavailable. Install with: pip install 'stable-worldmodel[env]' or pip install ale-py.
+  from stable_worldmodel.envs import ale  # noqa: F401
+[ens-score] ensemble of 5 members trained on cube/lewm latents
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s100.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s1011.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s101.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s102.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s103.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s104.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s105.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s106.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s107.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s108.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s109.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s110.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s111.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s112.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s113.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s114.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s115.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s2022.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s3033.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s4044.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s42.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s43.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s44.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s45.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s5055.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s910.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s911.pt
+[ens-score] /home/z/zhaobin/uncertainty-aware-lewm/results/cube/ensemble/baseline_s912.pt

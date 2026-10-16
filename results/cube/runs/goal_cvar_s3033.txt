@@ -1,0 +1,98 @@
+==== CONFIG ====
+cache_dir: null
+solver:
+  _target_: stable_worldmodel.solver.CEMSolver
+  model: ???
+  batch_size: 50
+  num_samples: 300
+  var_scale: 1.0
+  n_steps: 30
+  topk: 30
+  device: cuda
+  seed: 3033
+method:
+  name: goal_cvar
+  planner: goal_cvar
+  n_samples: 5
+  history_size: 3
+  alpha: 0.1
+  tail_fraction: 0.4
+  tail_count: null
+  cap: 2.0
+  eps: 1.0e-08
+  truncation:
+    mode: none
+    omega: 1.0
+    k_base: 5
+    k_min: 1
+    k_max: null
+    threshold: null
+world:
+  env_name: swm/OGBCube-v0
+  num_envs: 50
+  max_episode_steps: 100
+  env_type: single
+  ob_type: states
+  multiview: false
+  width: 224
+  height: 224
+  visualize_info: false
+  terminate_at_goal: true
+seed: 3033
+policy: cube/lewm
+map_proprio_keys: false
+model_overrides: {}
+dataset:
+  stats: ogbench/cube_single_expert
+  keys_to_cache:
+  - action
+plan_config:
+  horizon: 5
+  receding_horizon: 5
+  action_block: 5
+eval:
+  num_eval: 50
+  goal_offset_steps: 25
+  eval_budget: 50
+  img_size: 224
+  dataset_name: ogbench/cube_single_expert
+  callables:
+  - method: set_state
+    args:
+      qpos:
+        value: qpos
+      qvel:
+        value: qvel
+  - method: set_target_pos
+    args:
+      cube_id:
+        value: 0
+        in_dataset: false
+      target_pos:
+        value: goal_privileged_block_0_pos
+      target_quat:
+        value: goal_privileged_block_0_quat
+record:
+  enabled: false
+  dir: results/cube/records
+  n_mc: 8
+  n_elite: 30
+  n_random: 20
+  history_size: 3
+output:
+  dir: results/cube/runs
+  run_id: goal_cvar_s3033
+  video: false
+
+==== RESULTS ====
+device: cuda
+metrics: {'success_rate': 64.0, 'episode_successes': array([ True,  True, False,  True,  True, False,  True, False,  True,
+        True, False,  True,  True,  True, False,  True, False, False,
+        True, False, False, False,  True,  True,  True,  True,  True,
+        True,  True, False,  True,  True, False,  True, False,  True,
+        True, False, False,  True, False,  True,  True,  True,  True,
+        True, False,  True, False,  True]), 'seeds': None}
+mean_truncation_length: 5.0
+mean_sigma2: 1.3426633487145105
+risk_diagnostics: {"cost": 112.27397848765055, "delta_d": 7.187871984640757, "mean_truncation_length": 5.0, "penalized_fraction": 0.7244100148479143, "penalty": 0.5576322411497434, "penalty_to_goal": 0.010639607925744107, "risk": 7.144963951905568, "scale": 2.8387180586655933, "tau": 5.2353197693824765, "terminal_distance": 111.71634616851807, "topk_elite_overlap": 0.9794469227393469, "truncation_length": 5.0}
+evaluation_time: 192.47684478759766 seconds

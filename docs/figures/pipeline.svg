@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 360" width="980" height="360" font-family="Helvetica, Arial, sans-serif">
+  <title>Study pipeline: record planning calls, replay candidates in the simulator, use the ground truth</title>
+  <rect width="980" height="360" fill="#ffffff"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/>
+    </marker>
+  </defs>
+
+  <!-- row 1: record -> replay -> ground truth -->
+  <g font-size="13" fill="#374151">
+    <rect x="20" y="24" width="200" height="104" rx="10" fill="#F3F4F8"/>
+    <text x="36" y="52" font-size="15" font-weight="bold" fill="#14213D">1 · Plan</text>
+    <text x="36" y="76">frozen LeWM + CEM</text>
+    <text x="36" y="96">300 samples × 30 iterations</text>
+    <text x="36" y="116">up to 2 plans per episode</text>
+
+    <rect x="260" y="24" width="210" height="104" rx="10" fill="#F3F4F8"/>
+    <text x="276" y="52" font-size="15" font-weight="bold" fill="#14213D">2 · Record</text>
+    <text x="276" y="76">simulator state + goal,</text>
+    <text x="276" y="96">the 300 final candidates</text>
+    <text x="276" y="116">with their costs and σ²</text>
+
+    <rect x="510" y="24" width="210" height="104" rx="10" fill="#F3F4F8"/>
+    <text x="526" y="52" font-size="15" font-weight="bold" fill="#14213D">3 · Replay in MuJoCo</text>
+    <text x="526" y="76">51 per call, exact start state:</text>
+    <text x="526" y="96">plan, 30 elites, 20 random</text>
+    <text x="526" y="116">bit-exact: |Δqpos| = 0</text>
+
+    <rect x="760" y="24" width="200" height="104" rx="10" fill="#14213D"/>
+    <text x="776" y="52" font-size="15" font-weight="bold" fill="#ffffff">4 · Ground truth</text>
+    <text x="776" y="76" fill="#CADCFC">real outcome of every</text>
+    <text x="776" y="96" fill="#CADCFC">replayed candidate and</text>
+    <text x="776" y="116" fill="#CADCFC">the model's true error</text>
+  </g>
+  <g stroke="#9CA3AF" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <line x1="222" y1="76" x2="256" y2="76"/>
+    <line x1="472" y1="76" x2="506" y2="76"/>
+    <line x1="722" y1="76" x2="756" y2="76"/>
+  </g>
+  <text x="20" y="152" font-size="12" fill="#6B7280">807 planning calls · 41,157 replayed candidates · 12 seeds × 50 episodes</text>
+
+  <!-- row 2: what the ground truth feeds -->
+  <g stroke="#9CA3AF" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M860,130 L860,170 L130,170 L130,196"/>
+    <line x1="375" y1="170" x2="375" y2="196"/>
+    <line x1="620" y1="170" x2="620" y2="196"/>
+  </g>
+  <g font-size="13" fill="#374151">
+    <rect x="20" y="200" width="220" height="140" rx="10" fill="#EFEBFF"/>
+    <text x="36" y="228" font-size="15" font-weight="bold" fill="#14213D">L1 · Signal test</text>
+    <text x="36" y="252">does σ² track the error?</text>
+    <text x="36" y="272">does it flag failing plans?</text>
+    <text x="36" y="292">selection or search failure?</text>
+    <text x="36" y="320" font-size="12" fill="#6C4DFF">MC-dropout, latent ensemble</text>
+
+    <rect x="265" y="200" width="220" height="140" rx="10" fill="#EFEBFF"/>
+    <text x="281" y="228" font-size="15" font-weight="bold" fill="#14213D">L2 · σ² planners</text>
+    <text x="281" y="252">MC averaging, gating,</text>
+    <text x="281" y="272">CVaR, two σ² penalties</text>
+    <text x="281" y="292">9 seeds × 50 episodes</text>
+    <text x="281" y="320" font-size="12" fill="#6C4DFF">paired McNemar, Holm</text>
+
+    <rect x="510" y="200" width="220" height="140" rx="10" fill="#EFEBFF"/>
+    <text x="526" y="228" font-size="15" font-weight="bold" fill="#14213D">L3 · Risk head</text>
+    <text x="526" y="252">MLP trained on the</text>
+    <text x="526" y="272">replays' real outcomes</text>
+    <text x="526" y="292">(with and without σ²)</text>
+    <text x="526" y="320" font-size="12" fill="#6C4DFF">offline + closed loop</text>
+
+    <rect x="755" y="200" width="205" height="140" rx="10" fill="#E3F4F3"/>
+    <text x="771" y="228" font-size="15" font-weight="bold" fill="#14213D">L4–L5 · Latents</text>
+    <text x="771" y="252">multi-step loss,</text>
+    <text x="771" y="272">proprio block, cube-pose</text>
+    <text x="771" y="292">head; probes + planning</text>
+    <text x="771" y="320" font-size="12" fill="#0F9D94">evaluated on the same panel</text>
+  </g>
+</svg>

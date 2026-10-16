@@ -1,0 +1,81 @@
+{
+ "policy": "cube/lewm",
+ "n_probe_train_frames": 24000,
+ "n_probe_test_frames": 6000,
+ "latent_dim": 192,
+ "probes": {
+  "z/cube_pos": {
+   "linear_r": 0.9955098595789189,
+   "linear_r2": 0.9915574562680438,
+   "mlp_r": 0.9991175116890977,
+   "mlp_r2": 0.9989126920700073
+  },
+  "z/cube_yaw4": {
+   "linear_r": 0.18717136113213334,
+   "linear_r2": 0.029018717313795905,
+   "mlp_r": 0.362280017504003,
+   "mlp_r2": -0.2917146682739258
+  },
+  "z/joint_pos": {
+   "linear_r": 0.6611200892696335,
+   "linear_r2": -0.012904044773097922,
+   "mlp_r": 0.6830999404696875,
+   "mlp_r2": -0.7408050298690796
+  },
+  "z/joint_vel": {
+   "linear_r": 0.04391949324364685,
+   "linear_r2": -0.004753112167628082,
+   "mlp_r": 0.0810538526554429,
+   "mlp_r2": -1.2400987148284912
+  },
+  "z/effector_pos": {
+   "linear_r": 0.9886035423398294,
+   "linear_r2": 0.9727792097958132,
+   "mlp_r": 0.9986167801517767,
+   "mlp_r2": 0.9981896877288818
+  },
+  "z/gripper": {
+   "linear_r": 0.958765814254014,
+   "linear_r2": 0.919158571622932,
+   "mlp_r": 0.9880183475660566,
+   "mlp_r2": 0.9760905504226685
+  }
+ },
+ "kstep": [
+  {
+   "k": 1,
+   "rel_latent_err": 0.00540098175406456,
+   "persistence_rel_err": 0.33716368675231934,
+   "cube_pos_err_cm": 1.4628416098036903,
+   "cube_pos_err_cm_true_latent": 1.413347837931218
+  },
+  {
+   "k": 2,
+   "rel_latent_err": 0.011829971335828304,
+   "persistence_rel_err": 0.6976252198219299,
+   "cube_pos_err_cm": 1.44389096821403,
+   "cube_pos_err_cm_true_latent": 1.3514060561606374
+  },
+  {
+   "k": 3,
+   "rel_latent_err": 0.02095676027238369,
+   "persistence_rel_err": 0.9946193695068359,
+   "cube_pos_err_cm": 1.5468157031841485,
+   "cube_pos_err_cm_true_latent": 1.4317029992850534
+  },
+  {
+   "k": 4,
+   "rel_latent_err": 0.03396555408835411,
+   "persistence_rel_err": 1.2207581996917725,
+   "cube_pos_err_cm": 1.5459297838852049,
+   "cube_pos_err_cm_true_latent": 1.3923131536773736
+  },
+  {
+   "k": 5,
+   "rel_latent_err": 0.044248346239328384,
+   "persistence_rel_err": 1.334652304649353,
+   "cube_pos_err_cm": 1.5731966712427816,
+   "cube_pos_err_cm_true_latent": 1.4224853141143072
+  }
+ ]
+}

@@ -19,3 +19,23 @@ wandb/
 results/logs/
 results/videos/
 results/archive/
+
+# cluster job logs (keep the folder)
+logs/*
+!logs/.gitkeep
+
+# large Cube experiment artifacts (kept on the cluster)
+results/cube/records/
+results/cube/oracle/
+results/cube/smoke/records/
+results/cube/smoke/oracle/
+results/cube/**/*.csv.gz
+results/cube/**/*.pt
+results/cube/**/*.npz
+# executed actions for the rollout videos (small)
+!results/cube/viz_runs/rollouts/*.npz
+# rendered frames for the rollout videos (large; the composed videos/strips are kept)
+results/cube/viz/frames/
+results/cube/viz/scene_*.npz
+results/cube/viz/out/**/*.gif
+!results/cube/viz/out/**/*.mp4

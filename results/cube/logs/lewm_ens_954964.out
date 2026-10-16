@@ -1,0 +1,175 @@
+=== 2026-10-16 04:08:10 | job 954964 on xgpi14 (partition gpu) ===
+PROJECT_ROOT=/home/z/zhaobin/uncertainty-aware-lewm
+STABLEWM_HOME=/home/z/zhaobin/lewm_data
+NVIDIA H100 NVL, 95830 MiB, 580.178.04
+torch 2.8.0+cu128 cuda True
+[env] GPU NVIDIA H100 NVL MIG 3g.47gb (sm_90, 46 GB)
+/home/z/zhaobin/uncertainty-aware-lewm/stable-worldmodel/stable_worldmodel/envs/__init__.py:215: UserWarning: ale-py not found; ALE/* envs are unavailable. Install with: pip install 'stable-worldmodel[env]' or pip install ale-py.
+  from stable_worldmodel.envs import ale  # noqa: F401
+2026-10-16 04:08:19.437 | INFO     | stable_worldmodel.wm.utils:_resolve_folder:138 - Loading checkpoint from folder /home/z/zhaobin/lewm_data/checkpoints/cube/lewm...
+04:08:25 | INFO  | __init__.py | PyTorch version 2.8.0 available.
+04:08:25 | INFO  | atomic_chec~| [atomic_save] installed crash-safe checkpoint plugin (write to sibling .tmp + fsync + atomic rename)
+04:08:26 | INFO  | utils.py    | Created ViT-tiny from scratch with config: {'hidden_size': 192, 'num_hidden_layers': 12, 'num_attention_heads': 3, 'intermediate_size': 768, 'image_size': 224, 'patch_size': 14}
+[encode] /home/z/zhaobin/lewm_data/latents/cube__lewm.npy already complete
+/home/z/zhaobin/uncertainty-aware-lewm/train_ensemble.py:111: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:203.)
+  lat = torch.from_numpy(np.ascontiguousarray(lat_np)).to(dev)
+[ens] latents (2010000, 192), episodes train=9500 val=500, val clips=17200
+/home/z/zhaobin/uncertainty-aware-lewm/stable-worldmodel/stable_worldmodel/envs/__init__.py:215: UserWarning: ale-py not found; ALE/* envs are unavailable. Install with: pip install 'stable-worldmodel[env]' or pip install ale-py.
+  from stable_worldmodel.envs import ale  # noqa: F401
+[ens] member 0 step 1 tf=1.1530 ar=1.1143 (4s)
+[ens] member 0 step 1000 tf=0.0301 ar=0.0658 (97s)
+[ens] member 0 step 2000 tf=0.0194 ar=0.0433 (191s)
+[ens] member 0 step 3000 tf=0.0159 ar=0.0372 (286s)
+[ens] member 0 step 4000 tf=0.0143 ar=0.0318 (381s)
+[ens] member 0 step 5000 tf=0.0136 ar=0.0380 (476s)
+[ens] member 0 step 6000 tf=0.0116 ar=0.0315 (571s)
+[ens] member 0 step 7000 tf=0.0112 ar=0.0268 (666s)
+[ens] member 0 step 8000 tf=0.0102 ar=0.0238 (760s)
+[ens] member 0 step 9000 tf=0.0104 ar=0.0259 (854s)
+[ens] member 0 step 10000 tf=0.0090 ar=0.0216 (948s)
+[ens] member 0 step 11000 tf=0.0091 ar=0.0259 (1042s)
+[ens] member 0 step 12000 tf=0.0096 ar=0.0249 (1135s)
+[ens] member 0 done (1135s)
+[ens] member 1 step 1 tf=1.1539 ar=1.1282 (1136s)
+[ens] member 1 step 1000 tf=0.0314 ar=0.0659 (1230s)
+[ens] member 1 step 2000 tf=0.0206 ar=0.0470 (1325s)
+[ens] member 1 step 3000 tf=0.0161 ar=0.0372 (1420s)
+[ens] member 1 step 4000 tf=0.0150 ar=0.0368 (1515s)
+[ens] member 1 step 5000 tf=0.0134 ar=0.0312 (1610s)
+[ens] member 1 step 6000 tf=0.0119 ar=0.0284 (1704s)
+[ens] member 1 step 7000 tf=0.0107 ar=0.0297 (1799s)
+[ens] member 1 step 8000 tf=0.0109 ar=0.0266 (1892s)
+[ens] member 1 step 9000 tf=0.0094 ar=0.0231 (1987s)
+[ens] member 1 step 10000 tf=0.0091 ar=0.0224 (2080s)
+[ens] member 1 step 11000 tf=0.0085 ar=0.0183 (2173s)
+[ens] member 1 step 12000 tf=0.0099 ar=0.0219 (2268s)
+[ens] member 1 done (2268s)
+[ens] member 2 step 1 tf=1.1460 ar=1.1133 (2268s)
+[ens] member 2 step 1000 tf=0.0309 ar=0.0659 (2363s)
+[ens] member 2 step 2000 tf=0.0207 ar=0.0471 (2458s)
+[ens] member 2 step 3000 tf=0.0176 ar=0.0408 (2553s)
+[ens] member 2 step 4000 tf=0.0146 ar=0.0366 (2648s)
+[ens] member 2 step 5000 tf=0.0127 ar=0.0288 (2743s)
+[ens] member 2 step 6000 tf=0.0117 ar=0.0278 (2837s)
+[ens] member 2 step 7000 tf=0.0104 ar=0.0258 (2932s)
+[ens] member 2 step 8000 tf=0.0104 ar=0.0248 (3025s)
+[ens] member 2 step 9000 tf=0.0096 ar=0.0229 (3120s)
+[ens] member 2 step 10000 tf=0.0099 ar=0.0229 (3215s)
+[ens] member 2 step 11000 tf=0.0088 ar=0.0216 (3310s)
+[ens] member 2 step 12000 tf=0.0089 ar=0.0219 (3405s)
+[ens] member 2 done (3405s)
+[ens] member 3 step 1 tf=1.1494 ar=1.1243 (3405s)
+[ens] member 3 step 1000 tf=0.0307 ar=0.0677 (3500s)
+[ens] member 3 step 2000 tf=0.0195 ar=0.0441 (3595s)
+[ens] member 3 step 3000 tf=0.0179 ar=0.0434 (3689s)
+[ens] member 3 step 4000 tf=0.0158 ar=0.0387 (3783s)
+[ens] member 3 step 5000 tf=0.0142 ar=0.0353 (3877s)
+[ens] member 3 step 6000 tf=0.0123 ar=0.0299 (3970s)
+[ens] member 3 step 7000 tf=0.0111 ar=0.0265 (4064s)
+[ens] member 3 step 8000 tf=0.0103 ar=0.0232 (4159s)
+[ens] member 3 step 9000 tf=0.0096 ar=0.0246 (4254s)
+[ens] member 3 step 10000 tf=0.0087 ar=0.0210 (4349s)
+[ens] member 3 step 11000 tf=0.0085 ar=0.0198 (4444s)
+[ens] member 3 step 12000 tf=0.0092 ar=0.0233 (4539s)
+[ens] member 3 done (4539s)
+[ens] member 4 step 1 tf=1.1641 ar=1.1292 (4539s)
+[ens] member 4 step 1000 tf=0.0283 ar=0.0639 (4634s)
+[ens] member 4 step 2000 tf=0.0203 ar=0.0475 (4727s)
+[ens] member 4 step 3000 tf=0.0166 ar=0.0399 (4821s)
+[ens] member 4 step 4000 tf=0.0152 ar=0.0363 (4914s)
+[ens] member 4 step 5000 tf=0.0135 ar=0.0340 (5008s)
+[ens] member 4 step 6000 tf=0.0113 ar=0.0275 (5102s)
+[ens] member 4 step 7000 tf=0.0111 ar=0.0296 (5197s)
+[ens] member 4 step 8000 tf=0.0099 ar=0.0249 (5292s)
+[ens] member 4 step 9000 tf=0.0100 ar=0.0225 (5387s)
+[ens] member 4 step 10000 tf=0.0091 ar=0.0209 (5482s)
+[ens] member 4 step 11000 tf=0.0097 ar=0.0235 (5577s)
+[ens] member 4 step 12000 tf=0.0096 ar=0.0219 (5672s)
+[ens] member 4 done (5672s)
+2026-10-16 05:43:02.492 | INFO     | stable_worldmodel.wm.utils:_resolve_folder:138 - Loading checkpoint from folder /home/z/zhaobin/lewm_data/checkpoints/cube/lewm...
+05:43:09 | INFO  | __init__.py | PyTorch version 2.8.0 available.
+05:43:09 | INFO  | atomic_chec~| [atomic_save] installed crash-safe checkpoint plugin (write to sibling .tmp + fsync + atomic rename)
+05:43:09 | INFO  | utils.py    | Created ViT-tiny from scratch with config: {'hidden_size': 192, 'num_hidden_layers': 12, 'num_attention_heads': 3, 'intermediate_size': 768, 'image_size': 224, 'patch_size': 14}
+{
+ "members": [],
+ "val_rollout_sq_err_per_step": {
+  "member_0": [
+   1.2394909858703613,
+   2.5293128490448,
+   4.231143951416016,
+   6.274648666381836,
+   8.077239036560059
+  ],
+  "member_1": [
+   1.2234364748001099,
+   2.469590187072754,
+   4.158743858337402,
+   6.205281734466553,
+   7.994462966918945
+  ],
+  "member_2": [
+   1.2087322473526,
+   2.47593092918396,
+   4.187053203582764,
+   6.22833776473999,
+   8.009422302246094
+  ],
+  "member_3": [
+   1.2170665264129639,
+   2.474560499191284,
+   4.13187313079834,
+   6.122371196746826,
+   7.8766398429870605
+  ],
+  "member_4": [
+   1.2269312143325806,
+   2.5126593112945557,
+   4.181553840637207,
+   6.167017459869385,
+   7.910387992858887
+  ],
+  "ensemble_mean": [
+   0.9521666765213013,
+   2.1024105548858643,
+   3.672494649887085,
+   5.550538063049316,
+   7.17111873626709
+  ],
+  "pretrained": [
+   1.0460625886917114,
+   2.393913745880127,
+   4.3082499504089355,
+   6.507505416870117,
+   8.312882423400879
+  ],
+  "sigma2_ens": [
+   0.3387060761451721,
+   0.48750028014183044,
+   0.631973922252655,
+   0.8112426400184631,
+   1.003139853477478
+  ]
+ },
+ "val_spearman_sigma2_vs_err_per_step": [
+  0.3519115590127536,
+  0.36984608147631565,
+  0.41848391755143327,
+  0.4538110141514985,
+  0.45915678490812106
+ ],
+ "args": {
+  "policy": "cube/lewm",
+  "dataset": "ogbench/cube_single_expert",
+  "members": 5,
+  "steps": 12000,
+  "batch_size": 512,
+  "lr": 0.0003,
+  "weight_decay": 0.0001,
+  "ar_weight": 1.0,
+  "bootstrap": 0.8,
+  "seed": 0,
+  "out": null,
+  "device": "cuda"
+ },
+ "minutes": 94.75092495282492
+}

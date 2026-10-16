@@ -1,0 +1,13 @@
+# L3 risk-aware planner: frozen LeWM cost corrected by the learned risk head
+# (ua/risk.py, trained by scripts/cube/train_risk_head.py).
+#   mode=err:        J = d_hat + beta * predicted true prediction error
+#   mode=true_cost:  J = predicted true terminal latent cost
+# head_path / mode / beta are selected on the calibration seeds and written to
+# results/cube/l3/risk_selection.json; cluster/jobs/32_l3_panel.sbatch passes them.
+name: risk
+planner: risk
+head_path: results/cube/l3/risk_head_full.pt   # relative to the repository root
+mode: err
+beta: 1.0
+n_mc: 8
+history_size: 3

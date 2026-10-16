@@ -1,0 +1,93 @@
+==== CONFIG ====
+cache_dir: null
+solver:
+  _target_: stable_worldmodel.solver.CEMSolver
+  model: ???
+  batch_size: 50
+  num_samples: 300
+  var_scale: 1.0
+  n_steps: 30
+  topk: 30
+  device: cuda
+  seed: 2022
+method:
+  name: penalty
+  planner: ua
+  n_samples: 5
+  history_size: 3
+  truncation:
+    mode: none
+    omega: 1.0
+    k_base: 5
+    k_min: 1
+    k_max: null
+    threshold: null
+    penalty_weight: 6.73579
+world:
+  env_name: swm/OGBCube-v0
+  num_envs: 50
+  max_episode_steps: 100
+  env_type: single
+  ob_type: states
+  multiview: false
+  width: 224
+  height: 224
+  visualize_info: false
+  terminate_at_goal: true
+seed: 2022
+policy: cube/lewm
+map_proprio_keys: false
+model_overrides: {}
+dataset:
+  stats: ogbench/cube_single_expert
+  keys_to_cache:
+  - action
+plan_config:
+  horizon: 5
+  receding_horizon: 5
+  action_block: 5
+eval:
+  num_eval: 50
+  goal_offset_steps: 25
+  eval_budget: 50
+  img_size: 224
+  dataset_name: ogbench/cube_single_expert
+  callables:
+  - method: set_state
+    args:
+      qpos:
+        value: qpos
+      qvel:
+        value: qvel
+  - method: set_target_pos
+    args:
+      cube_id:
+        value: 0
+        in_dataset: false
+      target_pos:
+        value: goal_privileged_block_0_pos
+      target_quat:
+        value: goal_privileged_block_0_quat
+record:
+  enabled: false
+  dir: results/cube/records
+  n_mc: 8
+  n_elite: 30
+  n_random: 20
+  history_size: 3
+output:
+  dir: results/cube/runs
+  run_id: penalty_s2022
+  video: false
+
+==== RESULTS ====
+device: cuda
+metrics: {'success_rate': 62.0, 'episode_successes': array([False, False, False, False, False,  True,  True,  True,  True,
+        True,  True, False,  True, False, False, False,  True,  True,
+       False,  True,  True, False,  True,  True, False,  True,  True,
+        True,  True,  True,  True,  True,  True, False,  True, False,
+       False,  True,  True, False, False,  True,  True,  True,  True,
+        True, False,  True, False,  True]), 'seeds': None}
+mean_truncation_length: 5.0
+mean_sigma2: 0.8010785510142644
+evaluation_time: 685.0791630744934 seconds

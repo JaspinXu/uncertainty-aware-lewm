@@ -1,0 +1,36 @@
+[
+ {
+  "episode": 22,
+  "dataset_episode": 4144,
+  "start_dist_cm": 20.019205772223373,
+  "baseline": {
+   "success": false,
+   "replay_success_step": 0,
+   "max_cube_deviation_m": 0.0,
+   "final_dist_cm": 19.667199057134766
+  },
+  "gated": {
+   "success": true,
+   "replay_success_step": 22,
+   "max_cube_deviation_m": 0.0,
+   "final_dist_cm": 3.3639788413207583
+  }
+ },
+ {
+  "episode": 10,
+  "dataset_episode": 1108,
+  "start_dist_cm": 16.989452427041932,
+  "baseline": {
+   "success": false,
+   "replay_success_step": 0,
+   "max_cube_deviation_m": 2.976270748605847e-08,
+   "final_dist_cm": 17.1181714710464
+  },
+  "gated": {
+   "success": true,
+   "replay_success_step": 17,
+   "max_cube_deviation_m": 1.5294422756051418e-08,
+   "final_dist_cm": 3.625199325590696
+  }
+ }
+]

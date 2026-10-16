@@ -1,0 +1,48 @@
+{
+ "run_id": "smoke_baseline",
+ "env": "swm/OGBCube-v0",
+ "method": "baseline",
+ "seed": 0,
+ "policy": "cube/lewm",
+ "num_eval": 10,
+ "success_rate": 70.0,
+ "episode_successes": [
+  0,
+  1,
+  1,
+  0,
+  1,
+  1,
+  1,
+  0,
+  1,
+  1
+ ],
+ "episodes": [
+  165,
+  409,
+  752,
+  1752,
+  2697,
+  3078,
+  5111,
+  6369,
+  8132,
+  8506
+ ],
+ "start_steps": [
+  48,
+  129,
+  70,
+  118,
+  150,
+  49,
+  60,
+  102,
+  122,
+  34
+ ],
+ "evaluation_time": 17.93274188041687,
+ "device": "cuda",
+ "model_overrides": {}
+}

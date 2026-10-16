@@ -1,0 +1,7 @@
+{
+ "head": "det",
+ "mode": "err",
+ "beta": 0.5,
+ "val_success": 0.29577464788732394,
+ "head_path": "results/cube/l3/risk_head_det.pt"
+}
