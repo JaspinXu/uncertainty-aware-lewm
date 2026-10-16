@@ -90,9 +90,9 @@ def goal_material():
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     bsdf.inputs["Base Color"].default_value = (*GOAL_COLOR, 1.0)
-    bsdf.inputs["Alpha"].default_value = 0.35
+    bsdf.inputs["Alpha"].default_value = 0.16
     bsdf.inputs["Emission Color"].default_value = (*GOAL_COLOR, 1.0)
-    bsdf.inputs["Emission Strength"].default_value = 0.6
+    bsdf.inputs["Emission Strength"].default_value = 0.25
     bsdf.inputs["Roughness"].default_value = 0.3
     return mat
 
@@ -187,12 +187,12 @@ def build_scene(scene_npz, args) -> dict:
         else:
             obj = None
         objects.append(obj)
-    goal = add_object("goal", box_mesh("goal", (0.0205, 0.0205, 0.0205)), goal_material(), bevel=0.002)
+    goal = add_object("goal", box_mesh("goal", (0.0235, 0.0235, 0.0235)), goal_material(), bevel=0.002)
     goal.visible_shadow = False
-    edges = add_object("goal_edges", box_mesh("goal_edges", (0.021, 0.021, 0.021)),
+    edges = add_object("goal_edges", box_mesh("goal_edges", (0.024, 0.024, 0.024)),
                        principled("goal_edge", GOAL_COLOR, 0.4))
     wire = edges.modifiers.new("wire", "WIREFRAME")
-    wire.thickness = 0.0016
+    wire.thickness = 0.0022
     edge_bsdf = edges.data.materials[0].node_tree.nodes["Principled BSDF"]
     edge_bsdf.inputs["Emission Color"].default_value = (*GOAL_COLOR, 1.0)
     edge_bsdf.inputs["Emission Strength"].default_value = 2.0
@@ -228,11 +228,11 @@ def main() -> None:
     ap.add_argument("--frames", type=int, nargs="*", help="render only these env steps")
     ap.add_argument("--samples", type=int, default=16)
     ap.add_argument("--res", type=int, nargs=2, default=[560, 420])
-    ap.add_argument("--lens", type=float, default=35.0)
+    ap.add_argument("--lens", type=float, default=40.0)
     ap.add_argument("--cam", type=float, nargs=3, default=None, help="camera position (default: --offset from the target)")
     ap.add_argument("--target", type=float, nargs=3, default=None,
                     help="look-at point (default: midway between the cube's start and the goal, 12 cm up)")
-    ap.add_argument("--offset", type=float, nargs=3, default=[0.72, -0.68, 0.48])
+    ap.add_argument("--offset", type=float, nargs=3, default=[0.66, -0.62, 0.46])
     args = ap.parse_args(argv)
     d = dict(np.load(args.scene))
     ep = args.episode
