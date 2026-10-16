@@ -100,7 +100,10 @@ def expert_episode(env, geoms, run: dict, i: int) -> dict:
         mujoco.mj_forward(env._model, env._data)
         frames.append(poses(env._data, geoms))
         cube.append(env._data.qpos[sl].copy())
-    return {"poses": np.stack(frames), "cube": np.stack(cube), "success_step": len(frames) - 1}
+    dist = np.linalg.norm(np.stack(cube) - np.asarray(run["goal_pos"][i]), axis=1)
+    within = np.nonzero(dist <= SUCCESS_RADIUS)[0]  # the task's success criterion
+    return {"poses": np.stack(frames), "cube": np.stack(cube),
+            "success_step": int(within[0]) if len(within) else len(frames) - 1}
 
 
 def pick_episodes(runs: list[dict], k: int) -> list[int]:
