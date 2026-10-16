@@ -11,7 +11,7 @@ job submitted by `cluster/submit.sh`.
 | | |
 |---|---|
 | partitions | `normal` (default, **CPU only**, 3 h), `long` (CPU, 3 days), `gpu` (3 h), `gpu-long` (3 days, fewer nodes) |
-| GPU types | `a100-40`, `a100-80`, `h100-47`, `h100-96`, `h200-141` (only in `gpu`), `nv` (older cards: Titan V, Titan RTX, T4). A request without a type (`--gpus=1`) only gets `nv` cards |
+| GPU types | `a100-40`, `a100-80`, `h100-47`, `h100-96`, `h200-141` (only in `gpu`), `nv` (older cards: Titan V, Titan RTX, T4). A request without a type (`--gpus=1`) only gets `nv` cards. `h100-47` and part of `a100-40` (xgph10-15: A100 80GB split into MIG 3g.40gb slices) are MIG slices: MuJoCo renders there in software (llvmpipe, ~250 ms per frame) |
 | per user | 16 running and 32 queued jobs (every array task counts); 8 GPUs at once, at most a100-40 4, a100-80 2, h100-47 2, h100-96 1, h200-141 1 |
 | storage | home: shared all-flash NFS; `/mnt/scratch`: shared HDD NFS; `/tmp`: node-local |
 | network | HTTPS works from login and compute nodes; SSH to GitHub (ports 22 and 443) is blocked |
@@ -19,10 +19,13 @@ job submitted by `cluster/submit.sh`.
 `cluster/submit.sh` follows these rules: GPU jobs go to the `gpu` partition
 (a job submitted without a partition lands on a CPU node) and each asks for one
 GPU of an explicit type. Jobs that render the simulator (planning, oracle
-replays) take turns over whole GPUs (`a100-40 a100-80 a100-40 a100-80 a100-40
-a100-40 h100-96 h200-141`): the `h100-47` cards are MIG slices of an H100, which
-cannot render (software rendering, ~160 ms per frame instead of ~25 ms on an
-A100). Training-type jobs take turns over `h100-47 h100-47 a100-40 h100-96
+replays) take turns over `a100-40 a100-80 a100-40 a100-80 a100-40 a100-40
+h100-96 h200-141`, leaving out `h100-47`: those are MIG slices of an H100, where
+MuJoCo renders in software (~160-250 ms per frame instead of ~25 ms on a whole
+A100). Part of `a100-40` (xgph10-15) is also MIG (slices of A100 80GB cards),
+so some rendering jobs ran with software rendering. `bash cluster/submit.sh
+diag` and `diag-hw` compare frames from either renderer with the dataset's
+frames, as the encoder sees them. Training-type jobs take turns over `h100-47 h100-47 a100-40 h100-96
 a100-80`. Each phase is split into a few jobs that run several evaluation runs
 one after another, so that a whole phase stays far below 32 queued jobs. Every GPU job checks first that it really has a usable GPU and
 stops at once otherwise.

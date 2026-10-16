@@ -11,6 +11,7 @@
 #   bash cluster/submit.sh l5 <variant>    # (normally automatic) probes + planning for one variant
 #   bash cluster/submit.sh report          # L6: results/cube/RESULTS.md, after all queued jobs
 #   bash cluster/submit.sh diag            # ~10 min check: live-rendered vs dataset frames (results/cube/diag)
+#   bash cluster/submit.sh diag-hw         # the same on a whole GPU (hardware rendering; results/cube/diag_hw)
 #   bash cluster/submit.sh viz             # ~20 min: baseline + gated runs that save executed actions (for videos)
 #   bash cluster/submit.sh status          # what is done, what is queued
 #   bash cluster/submit.sh results         # commit + push the small result files and recent job logs
@@ -39,9 +40,9 @@ MAXJ_L1=4 MAXJ_TRAIN=3 MAXJ_L2=6 MAXJ_L3=2 MAXJ_L5=2
 # sbatch helpers
 # ---------------------------------------------------------------------- #
 # One GPU type per job, in turn, from two lists. Jobs that render the simulator
-# (planning runs, oracle replays) use whole GPUs: the h100-47 cards are MIG
-# slices of an H100, which cannot render (MuJoCo falls back to slow software
-# rendering). Training-type jobs start with the h100-47 slices. Together the
+# (planning runs, oracle replays) avoid h100-47: those are MIG slices of an H100,
+# where MuJoCo falls back to slow software rendering (a100-40 on xgph10-15 is MIG
+# as well, so such jobs may also render in software, just slower). Training-type jobs start with the h100-47 slices. Together the
 # lists match the per-user limits (a100-40 4, a100-80 2, h100-47 2, h100-96 1,
 # h200-141 1; 8 GPUs at once in total).
 read -r -a RENDER_TYPES <<< "${LEWM_GPU_TYPES:-a100-40 a100-80 a100-40 a100-80 a100-40 a100-40 h100-96 h200-141}"
@@ -331,6 +332,10 @@ case "${1:-}" in
   diag)  # live rendering vs dataset frames, as the encoder sees them
     sbg JD cluster/jobs/60_diag_domain_gap.sbatch
     echo "diagnostic job $JD (log: logs/lewm_diag_$JD.out)" >&2
+    ;;
+  diag-hw)  # the same check on a whole GPU (hardware OpenGL; a100-40 may be a MIG slice -> software)
+    _sb_gpu "${LEWM_HW_GPU:-h100-96}" JD cluster/jobs/60_diag_domain_gap.sbatch results/cube/diag_hw
+    echo "diagnostic job $JD on ${LEWM_HW_GPU:-h100-96} (log: logs/lewm_diag_$JD.out)" >&2
     ;;
   viz)  # executed actions of baseline and gated runs, for rendering rollout videos
     sbg JV cluster/jobs/70_viz_rollouts.sbatch

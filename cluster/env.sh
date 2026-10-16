@@ -13,6 +13,7 @@ export PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." &&
 #               Titan V, Titan RTX, T4); an untyped request (--gpus=1) only gets nv cards
 #   per user    16 running / 32 queued jobs (array tasks count one by one),
 #               8 GPUs: a100-40 4, a100-80 2, h100-47 2, h100-96 1, h200-141 1
+#               MIG slices (h100-47; a100-40 on xgph10-15) render MuJoCo in software (llvmpipe)
 #   storage     home: shared all-flash NFS; /mnt/scratch: shared HDD NFS; /tmp: node-local
 # cluster/submit.sh puts GPU jobs on $LEWM_GPU_PARTITION, asks for a GPU type
 # per job (rotating over $LEWM_GPU_TYPES) and keeps job counts low.

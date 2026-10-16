@@ -127,12 +127,13 @@ def main() -> None:
     else:
         pending.append("L1 signal test (bash cluster/submit.sh l1)")
 
-    gap = R / "diag/domain_gap.md"
-    if gap.exists():
-        out.append("### Live rendering vs dataset frames (diagnostic)\n")
-        out.append(gap.read_text().split("\n", 2)[2])
-        if (R / "diag/fig_domain_gap.png").exists():
-            out.append("![dataset | live | 4x difference](diag/fig_domain_gap.png)\n")
+    for sub in ("diag", "diag_hw"):
+        gap = R / sub / "domain_gap.md"
+        if gap.exists():
+            out.append(f"### Live rendering vs dataset frames (diagnostic, `{sub}`)\n")
+            out.append(gap.read_text().split("\n", 2)[2])
+            if (R / sub / "fig_domain_gap.png").exists():
+                out.append(f"![dataset | live | 4x difference]({sub}/fig_domain_gap.png)\n")
 
     ens = R / "ensemble/train_report.json"
     if ens.exists():
