@@ -27,16 +27,17 @@ of a five-member latent dynamics ensemble.
 - Within a planning call, neither separates the elite candidates that fail from
   those that succeed (AUROC 0.49 and 0.52).
 
-**Why selection cannot help.** 83% of failed plans are *search* failures: none
-of the replayed alternatives solves the task. Accordingly, re-ranking the
+**Selection helps little.** 83% of failed plans are *search* failures: none
+of the call's 51 replayed candidates solves the task. Re-ranking the
 candidates by σ² does not raise success. Neither does a risk head trained on
-the replays, although it predicts failure well (test AUROC 0.87).
+the replays, although it predicts failure well across calls (pooled test
+AUROC 0.87).
 
 **Where the search goes wrong.** The model predicts the planner's candidates
-far worse than the expert's own actions from the evaluation's start states:
-the median five-block error is 207 against 3.9. A rendering check rules out
-the simulator's renderer as a cause: with either the hardware or the software
-renderer, live frames encode like the dataset's frames.
+far worse than the expert's own actions: the median five-block error is 207
+against 3.9, over overlapping but different sets of states. A rendering check
+rules out a rendering gap: with either the hardware or the software renderer,
+live frames encode like the dataset's frames.
 
 **Closed loop.** Four planners put σ² into CEM's objective. Two of them raise
 success by about 5 points (9 seeds × 50 episodes, paired; both significant
@@ -45,10 +46,11 @@ after Holm correction):
 - the ensemble σ² penalty: 65.6% → 70.4%, p = 0.0016.
 
 An MC-dropout σ² penalty and a CVaR penalty gain less, not significantly; MC
-averaging alone gains nothing. The ensemble penalty's gain comes from the
-search, not from selection. Used only to re-rank the baseline's final
-candidates, the same score gains 0.45 points; inside CEM it gains 7.3 on the
-non-trivial episodes.
+averaging alone gains nothing. The ensemble penalty's gain does not come from
+choosing among the baseline's candidates. Used only to re-rank them, the same
+score picks plans that succeed 29.7% of the time, against 30.0% for the
+baseline's own choice. Inside CEM, it raises success on the non-trivial
+episodes by 7.3 points.
 
 **Representation.** Changes trained under one budget do not help planning.
 - A multi-step rollout loss cuts the five-block open-loop error 3.2-fold, yet
@@ -106,8 +108,9 @@ frame how L2–L5 are read.
    - Both signals are informative *between* planning problems but not *within*
      a planning call, which is where CEM chooses.
    - Most failures are search failures, not selection failures.
-3. **A paired comparison on the 9-seed test panel** of six uncertainty-aware
-   planners on Cube, including a risk head learned from the replays.
+3. **A paired comparison on the 9-seed test panel** of six planners that
+   change how CEM scores candidates: MC averaging, gated truncation, a CVaR
+   penalty, two σ² penalties and a risk head learned from the replays.
    - Two planners raise success by about 5 points: gated truncation and an
      ensemble σ² penalty, both of which put σ² into CEM's objective.
    - Re-ranking the baseline's converged candidates does not help.
@@ -347,7 +350,8 @@ calibration seeds.
 Our baseline is below the published 74%, which lies outside our interval.
 - We use the released checkpoint and the released evaluation configuration.
 - Per-seed variation is large: 50-episode runs range from 58% to 80%.
-- Rendering is not the cause (§5.6); the gap is otherwise unexplained.
+- A rendering gap is not the cause (§5.6); the gap is otherwise
+  unexplained.
 - All comparisons below are paired within our own panel.
 
 ### 5.2 Is σ² a useful risk signal? (L1)
@@ -504,8 +508,8 @@ episodes each):
   The risk head gains 0.7 points.
 - **What the gate does.** It truncates rarely: the mean scored horizon is 4.86
   blocks (4.73–4.94 per seed), so most candidates are still scored at block 5.
-- **The penalties do steer the plans.** The MC σ² penalty lowers the mean σ² of
-  the candidates it scores from 0.93 (MC-5) to 0.74.
+- **The MC penalty does steer the plans.** It lowers the mean σ² of the
+  candidates it scores from 0.93 (MC-5) to 0.74.
 - **Noise floor.** Re-running the *same* planner on the same seeds (the
   visualisation runs, wherever Slurm placed them) changed 20 of 300 episode
   outcomes. MC-5
@@ -513,16 +517,20 @@ episodes each):
   net gain. A single 50-episode run therefore says little; the panel pairs 450
   episodes per planner.
 
-![Figure 4](../results/cube/viz/out/s42/ep31_strip.png)
+![Figure 3](../results/cube/viz/out/s42/ep31_strip.png)
 
-*Figure 4. One test episode (seed 42) replayed from the logged actions and
-rendered with Blender. The episode was selected because the two planners
-disagree; it is an illustration, not evidence. The baseline lets go of the cube
-at the start and moves the empty gripper to the goal. The gated planner carries
-the cube there and succeeds at step 24. The green box marks the goal; the
-labels give the cube–goal distance. Over all 450 test episodes, success is
-65.6% for the baseline and 70.7% for gated planning. More examples and videos:
-`results/cube/viz/`.*
+*Figure 3. One test episode (seed 42), replayed from the actions logged in a
+re-run and rendered with Blender.*
+- *What happens: the baseline lets go of the cube at the start and moves the
+  empty gripper to the goal. The gated planner carries the cube there and
+  succeeds at step 24. The green box marks the goal; the labels give the
+  cube–goal distance.*
+- *How it was chosen: seed 42 is one of the three panel seeds with the
+  largest gated gains. The episode is one where gated succeeds and the
+  baseline fails, in the panel run and in the re-run alike. It is an
+  illustration, not evidence.*
+- *Over all 450 test episodes, success is 65.6% for the baseline and 70.7% for
+  gated planning. More examples and videos: `results/cube/viz/`.*
 
 ### 5.4 The learned risk head (L3, offline)
 
@@ -546,15 +554,15 @@ labels give the cube–goal distance. Over all 450 test episodes, success is
 ### 5.5 Representations (L4, L5)
 
 **Training.** All five variants trained for 20,000 steps from the pretrained
-model, taking 53–111 minutes each on one GPU (Figure 3). The factorised models
+model, taking 53–111 minutes each on one GPU (Figure 4). The factorised models
 end with a higher one-step validation loss than the control. Their loss also
 covers the proprio block, so it is not directly comparable; §5.5 below
 compares the variants by open-loop error relative to each model's latent
 variance and by the decoded cube position.
 
-![Figure 3](../results/cube/l4/fig_training.png)
+![Figure 4](../results/cube/l4/fig_training.png)
 
-*Figure 3. Validation one-step prediction loss during L4 training (log scale).*
+*Figure 4. Validation one-step prediction loss during L4 training (log scale).*
 
 **Probes** (Pearson r, linear / MLP, held-out episodes):
 
@@ -632,7 +640,7 @@ dataset's own next 25 actions, and encodes both kinds of frame.
 
 We ran it with both renderers our planning jobs used, depending on where
 Slurm placed them:
-- software rendering on a MIG slice of an A100 (about 240 ms per frame);
+- software rendering on a MIG slice of an A100 (roughly 0.2 s per frame);
 - hardware rendering on a whole H100 (4 ms per frame).
 
 Medians, with 10th–90th percentiles:
@@ -655,8 +663,8 @@ frames 388.
   motion equally well from either kind of frame.
 - **What this means for §5.2.** The replays measure model error, and the gap
   between the planner's candidates (207) and the expert's actions (3.9) is not
-  a rendering artefact. Rendering explains neither the weak second plans nor
-  the gap to the published baseline.
+  a rendering artefact. A rendering gap explains neither the weak second plans
+  nor the gap to the published baseline.
 
 ## 6 Discussion
 
@@ -668,18 +676,20 @@ Both readings of the PushT result hold, for different uses of σ².
 uninformative.** The elites of a planning call usually share their fate: only
 158 of 586 non-trivial calls have elites with both outcomes. Within a call,
 neither signal separates the elites that fail (AUROC 0.49 and 0.52), and
-neither does the LeWM cost (0.53). The learned risk head detects failure far
-better (test AUROC 0.87–0.89), yet it cannot choose a better plan either.
+neither does the LeWM cost (0.53). Across calls, the learned risk head
+separates failing from succeeding candidates far better (pooled test AUROC
+0.87–0.89, against 0.64 for the LeWM cost). Yet it cannot choose a better plan
+either.
 
 The pooled AUROCs of 0.62–0.63 look like a usable signal. They mostly say that
 hard start states have higher σ² and fail more often. In hindsight, our
 pre-registered verdict rule should have used the within-plan AUROC.
 
 **Inside CEM's objective, σ² can help.** Two of the four planners that use it
-there gain about 5 points (§6.3). Offline re-ranking (Q5) underestimates this
-by far. On the non-trivial plans, re-ranking with the ensemble penalty gained
-0.45 points; the same penalty inside CEM gained 7.3 points on the non-trivial
-episodes.
+there gain about 5 points (§6.3). Offline re-ranking (Q5) misses this.
+Re-ranking with the ensemble penalty picks plans that succeed no more often
+than the baseline's own (29.7% against 30.0% of non-trivial test plans). The
+same penalty inside CEM raises non-trivial episode success by 7.3 points.
 
 ### 6.2 Search failures dominate, and the search explores where the model is unreliable
 
@@ -695,7 +705,8 @@ one to expect. CEM picks the lowest predicted costs, and these tend to be the
 most underestimated. Our data, however, do not compare selected with
 unselected candidates.
 
-**The candidates lie where the model is least accurate.** The model predicts
+**The planner's candidates are predicted far less accurately than expert
+motion.** The model predicts
 the expert's 25 actions from the evaluation's start states with a median
 5-block error of 3.9. On the planner's candidates the median is 207. The two
 sets of states overlap but differ: the candidates include mid-episode second
@@ -705,17 +716,20 @@ CEM draws each action independently from a Gaussian in the normalised action
 space, so its candidates need not resemble the smooth expert motions the model
 was trained on.
 
-### 6.3 How uncertainty helps: through the search
+### 6.3 How uncertainty helps: most likely through the search
 
 The plan CEM returns is the mean of its final elites, and every L2 planner
 changes the score that picks those elites in each of the 30 iterations. So
 each one acts on the search as well as on the final choice.
 
-**The ensemble penalty.** For this planner the two effects can be compared
-directly. The same score, applied only to the baseline's final candidates
-(Q5), changed plan success by 0.45 points. Applied inside CEM, it changed
-episode success on the non-trivial episodes by 7.3 points. Its benefit
-therefore comes from the different candidates the modified search produces.
+**The ensemble penalty.** For this planner the two effects can be compared,
+if only roughly. Applied to the baseline's final candidates (Q5), the score
+picks plans that succeed 29.7% of the time, against 30.0% for the plan the
+baseline executed. Applied inside CEM, it raises episode success on the
+non-trivial episodes by 7.3 points. The comparison is not exact: the units
+differ (plans vs episodes), and re-ranking sees only 51 of the 300 final
+candidates. Still, the gain most likely comes from the different candidates
+the modified search produces.
 
 **The gate.** We could not test its score offline: the records hold no
 intermediate-block costs. The gate scores a candidate whose first-block
@@ -723,15 +737,18 @@ MC-dropout σ² is high at an earlier block. This penalises uncertain candidates
 that reach the goal late, and favours those predicted to arrive early, which
 leaves margin for error later in the plan.
 
-**Which planners help fits the strength of each signal.**
-- **The ensemble's σ² is the stronger signal** in every comparison we ran. It
-  is better in Q2 at every block, and it is the only one that adds to cost and
-  start distance in Q4. At block 5, though, even it tracks the error only
-  weakly (0.08).
+**Which planners help partly fits the signals they use.**
+- **The ensemble's σ²** tracks the prediction error better at every block (Q2),
+  and it is the only one that adds to cost and start distance (Q4). On its
+  own, MC-dropout's σ² flags failing elites and episodes about as well or
+  slightly better (Q3, Q4).
+- **At block 5, which both penalties use,** both signals track the error only
+  weakly (0.08 and 0.03).
+- **The two penalties also differ in λ.** The ensemble's was selected on the
+  calibration seeds. The MC penalty uses the equal-scale default, because the
+  selection chose λ = 0. It gains +2.4 points, not significantly.
 - **The gate reads MC-dropout's σ² at block 1**, where that signal is
   strongest (0.55).
-- **The MC σ²_H penalty** uses MC-dropout's weakest signal (0.03 at block 5)
-  and gains +2.4 points, not significantly.
 - **The CVaR penalty is tiny on Cube.** It is 1.1% of the cost, and 98% of the
   elites are the same as without it.
 - **MC averaging alone does not favour confident candidates at all.**
@@ -744,7 +761,7 @@ of each, with replays, would answer both.
 ### 6.4 Better prediction is not better planning
 
 **Multi-step training does what it targets but barely moves planning.** The
-5-step loss improves the planner's own rollout on dataset sequences 3.2-fold
+5-block loss improves the planner's own rollout on dataset sequences 3.2-fold
 and lowers the decoded cube error, yet success rises by only 1.3 points over
 the control. This is consistent with §6.2: the error that matters is on the
 planner's candidates, where it is far larger than on expert motion, and a loss
@@ -773,20 +790,21 @@ information did not help planning, at least not in the form we added it.
 
 The evidence points to the search distribution and to the data the model sees.
 - **Keep the search near the data.**
-  - Use σ² inside the search, as the two successful planners do. The ensemble
-    signal is the better one.
+  - Use σ² inside the search, as the two successful planners do; the ensemble
+    signal worked best here.
   - Start CEM from a goal-conditioned BC prior [Argenson & Dulac-Arnold, 2021;
     Hansen et al., 2022]; GCBC alone reaches 84% on Cube.
   - Sample temporally correlated noise [Pinneri et al., 2020].
 
-  These address both the search failures and the off-distribution error. The
-  BC prior was the third lever of our proposal, and we did not reach it.
+  These could address both the search failures and the off-distribution
+  error. The BC prior was the third lever of our proposal, and we did not
+  reach it.
 - **Train on the planner's own candidates.** The 41k replays are exactly such
   data, with true latents and outcomes, in the spirit of DAgger
   [Ross et al., 2011].
-- **Use σ² for what it can do on its own.** It flags problems the planner will
-  not solve (Figure 2), which suits abstention, hand-off or more frequent
-  replanning.
+- **Use σ² for what it can do on its own.** Its high values flag a group of
+  problems the planner will not solve (Figure 2). That could serve abstention,
+  hand-off or more frequent replanning.
 
 ## 7 Limitations
 
@@ -803,8 +821,8 @@ The evidence points to the search distribution and to the data the model sees.
 - **Run-to-run variation.** Re-running a seed changed up to 8 of 50 outcomes,
   so single-seed differences are not meaningful. Our conclusions rest on the
   paired 450-episode panels.
-- **Baseline gap.** Our baseline is below the published number. Rendering is
-  not the cause (§5.6); we have not identified what is.
+- **Baseline gap.** Our baseline is below the published number. A rendering
+  gap is not the cause (§5.6); we have not identified what is.
 
 ## 8 Conclusion
 
@@ -814,12 +832,13 @@ objective.
 - **Selection.** MC-dropout and ensemble variance track the model's
   short-horizon errors and identify hard problems. They do not identify the
   failing plans within a problem, and 83% of failed plans had no successful
-  alternative to select.
+  alternative among the replayed candidates.
 - **Search.** The search proposes action sequences the model predicts far
   worse than the expert's, and the model expected its failed plans to work.
   Two planners that put σ² into CEM's objective raise success by about 5
   points: gated truncation and the ensemble σ² penalty, both p < 0.01 after
-  correction. For the ensemble penalty, the gain demonstrably comes from the
+  correction. For the ensemble penalty, re-ranking the baseline's candidates
+  with the same score does not reproduce the gain, which points to the
   search.
 - **Representation.** Changes that improve open-loop prediction on dataset
   sequences do not improve planning, and factorising out proprioception hurts

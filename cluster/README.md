@@ -159,7 +159,7 @@ Rendering needs no cluster and no dataset:
 # 1. replay the episodes exactly and export the scene (experiment environment)
 python scripts/cube/viz_export.py results/cube/viz_runs/rollouts/viz_baseline_s42.npz \
     results/cube/viz_runs/rollouts/viz_gated_s42.npz --labels baseline gated \
-    --out results/cube/viz/scene_s42.npz --auto 4
+    --out results/cube/viz/scene_s42.npz --episodes 31 16 22   # or --auto K
 # 2. render with Blender's Cycles (a Python 3.11 env with `pip install bpy==4.2.0`)
 python scripts/cube/viz_blender.py results/cube/viz/scene_s42.npz --episode <E> --every 2 \
     --out results/cube/viz/frames
@@ -169,5 +169,8 @@ python scripts/cube/viz_compose.py results/cube/viz/scene_s42.npz --episode <E> 
 ```
 
 `viz_export.py` checks every replay against the cube positions logged during the
-run (`max_cube_deviation_m` in `scene_*.json` should be 0).
+run (`max_cube_deviation_m` in `scene_*.json` should be ~0). Re-runs do not
+reproduce every episode outcome of the panel runs (CEM details vary with the
+GPU), so check outcomes against `results/cube/runs/` before presenting an
+episode as a difference between planners (`results/cube/viz/README.md`).
 

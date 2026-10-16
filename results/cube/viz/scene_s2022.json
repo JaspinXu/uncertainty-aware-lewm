@@ -1,36 +1,36 @@
 [
  {
-  "episode": 40,
-  "dataset_episode": 8717,
-  "start_dist_cm": 32.65206564040554,
+  "episode": 22,
+  "dataset_episode": 4144,
+  "start_dist_cm": 20.019205772223373,
   "baseline": {
    "success": false,
    "replay_success_step": 0,
    "max_cube_deviation_m": 0.0,
-   "final_dist_cm": 12.05800103567359
+   "final_dist_cm": 19.667199057134766
   },
   "gated": {
    "success": true,
-   "replay_success_step": 16,
-   "max_cube_deviation_m": 1.0532124193607384e-08,
-   "final_dist_cm": 1.4385329696932672
+   "replay_success_step": 22,
+   "max_cube_deviation_m": 0.0,
+   "final_dist_cm": 3.3639788413207583
   }
  },
  {
-  "episode": 18,
-  "dataset_episode": 3220,
-  "start_dist_cm": 23.79627477757826,
+  "episode": 10,
+  "dataset_episode": 1108,
+  "start_dist_cm": 16.989452427041932,
   "baseline": {
    "success": false,
    "replay_success_step": 0,
-   "max_cube_deviation_m": 5.174040085265119e-10,
-   "final_dist_cm": 50.756820183663635
+   "max_cube_deviation_m": 2.976270748605847e-08,
+   "final_dist_cm": 17.1181714710464
   },
   "gated": {
    "success": true,
-   "replay_success_step": 18,
-   "max_cube_deviation_m": 1.0662220023549551e-08,
-   "final_dist_cm": 2.7804453402626423
+   "replay_success_step": 17,
+   "max_cube_deviation_m": 1.5294422756051418e-08,
+   "final_dist_cm": 3.625199325590696
   }
  }
 ]
