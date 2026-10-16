@@ -34,10 +34,16 @@ export PYOPENGL_PLATFORM="${PYOPENGL_PLATFORM:-$MUJOCO_GL}"
 export HF_HOME="${HF_HOME:-$STABLEWM_HOME/hf_cache}"
 export PYTHONPATH="$PROJECT_ROOT:$PROJECT_ROOT/stable-worldmodel:$PROJECT_ROOT/stable-pretraining${PYTHONPATH:+:$PYTHONPATH}"
 export PYTHONUNBUFFERED=1
+# temporary files of jobs on the node's own disk: with TMPDIR on NFS, data-loader
+# workers fail to clean up ("Device or resource busy: .nfs...") at every shutdown
+[[ -n "${SLURM_JOB_ID:-}" ]] && export TMPDIR=/tmp
 export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS="${OMP_NUM_THREADS:-${SLURM_CPUS_PER_TASK:-4}}"
 export WANDB_MODE="${WANDB_MODE:-disabled}"
 
+if [[ "$(uname -m)" != x86_64 ]]; then
+  echo "[env] $(hostname) is $(uname -m): the conda env is x86_64 -- submit through cluster/submit.sh (it excludes such nodes)" >&2
+fi
 if [[ -f "$CONDA_ROOT/etc/profile.d/conda.sh" ]]; then
   # conda's shell hooks reference unset variables: relax `set -u` while they run
   _lewm_flags="$-"
