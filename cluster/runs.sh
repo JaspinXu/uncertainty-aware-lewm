@@ -81,3 +81,23 @@ run_l5() {
   echo "variant=$v mode=$mode seed=$seed run=$run"
   python evaluate.py "${args[@]}" seed="$seed" output.run_id="$run"
 }
+
+# --- visualisation -------------------------------------------------------------
+# Same planner settings as the panels, plus the executed actions of every episode
+# (cube/rollout_log.py), so episodes can be replayed exactly and rendered
+# (scripts/cube/viz_export.py -> viz_blender.py -> viz_compose.py). Runs go to
+# results/cube/viz_runs, not runs/, so they never enter the panel summaries.
+VIZ_SEEDS=(42 2022 3033)
+done_viz() { [[ -f "results/cube/viz_runs/rollouts/viz_$1_s$2.npz" ]]; }
+run_viz() {
+  local method="$1" seed="$2" thr omega extra=()
+  case "$method" in
+    gated)
+      read -r thr omega < <(python scripts/cube/l2_params.py gated) || return 1
+      extra=(method.truncation.threshold="$thr" method.truncation.omega="$omega") ;;
+    baseline) ;;
+    *) echo "run_viz: only baseline and gated" >&2; return 1 ;;
+  esac
+  python evaluate.py --config-name cube method="$method" seed="$seed" output.dir=results/cube/viz_runs \
+    output.run_id="viz_${method}_s${seed}" ++output.save_rollout=true ${extra[@]+"${extra[@]}"}
+}

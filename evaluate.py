@@ -11,7 +11,9 @@ how candidate action sequences are scored (see planners.py).
 Writes ``<output.dir>/<run_id>.txt`` (resolved config + metrics) and
 ``<output.dir>/<run_id>.json`` (per-episode outcomes), where ``run_id``
 defaults to ``<method.name>_s<seed>``. With ``record.enabled=true`` every
-planning call is also logged to ``<record.dir>/<run_id>.pt`` (cube/recording.py).
+planning call is also logged to ``<record.dir>/<run_id>.pt`` (cube/recording.py);
+with ``++output.save_rollout=true`` the executed actions go to
+``<output.dir>/rollouts/<run_id>.npz`` (cube/rollout_log.py).
 """
 
 from __future__ import annotations
@@ -279,12 +281,22 @@ def run(cfg: DictConfig) -> None:
     results_dir.mkdir(parents=True, exist_ok=True)
     video_dir = results_dir / "videos" / run_id if cfg.output.video else None
 
+    rollout_log = None
+    if cfg.output.get("save_rollout", False):  # executed actions for exact replay (cube/rollout_log.py)
+        from cube.rollout_log import RolloutLogger
+
+        rollout_log = RolloutLogger(policy)
+
     start_time = time.time()
     metrics = evaluate_policy(cfg, world, dataset, policy, episodes, start_steps, video_dir)
     elapsed = time.time() - start_time
     print(metrics)
 
     write_outputs(cfg, run_id, results_dir, device, metrics, model, elapsed, episodes, start_steps)
+    if rollout_log is not None:
+        path = rollout_log.save(results_dir / "rollouts" / f"{run_id}.npz", dataset, episodes, start_steps,
+                                int(cfg.eval.goal_offset_steps), metrics["episode_successes"])
+        print(f"[evaluate] executed actions of {len(episodes)} episodes -> {path}")
 
     if recorder is not None:
         recorder.record_final(world.infos, getattr(policy, "_t", int(cfg.eval.eval_budget)))

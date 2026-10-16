@@ -32,3 +32,5 @@ results/cube/smoke/oracle/
 results/cube/**/*.csv.gz
 results/cube/**/*.pt
 results/cube/**/*.npz
+# executed actions for the rollout videos (small)
+!results/cube/viz_runs/rollouts/*.npz

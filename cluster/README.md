@@ -89,6 +89,7 @@ Then `bash cluster/submit.sh results` pushes the smoke-test outputs and logs.
 | L5 variant evaluation | automatic when each L4 run finishes | `results/cube/l5/representation.md`, `results/cube/runs/l4_*` |
 | L6 collected results | `bash cluster/submit.sh report` | `results/cube/RESULTS.md` |
 | Check: live-rendered vs dataset frames (~10 min) | `bash cluster/submit.sh diag` | `results/cube/diag/domain_gap.md` |
+| Rollouts for videos (~20 min) | `bash cluster/submit.sh viz` | `results/cube/viz_runs/rollouts/*.npz` |
 
 `planning` (at most 22 jobs) and `l4` (6 jobs) can be submitted together right after
 a clean smoke test. `planning` also trains the latent dynamics ensemble
@@ -143,3 +144,27 @@ job log of the past week (`results/cube/logs/`), and pushes them.
 * **Out of memory**: `SBATCH_EXTRA="--mem=96G"`.
 * Results are skipped when they exist; delete the corresponding files in
   `results/cube/` to recompute.
+
+## Rollout videos (baseline vs. gated planning)
+
+`bash cluster/submit.sh viz` re-runs the baseline and the gated planner on test
+seeds 42, 2022 and 3033 and saves the env actions every episode executed
+(`results/cube/viz_runs/rollouts/*.npz`, ~0.3 MB each, pushed by `results`).
+Rendering needs no cluster and no dataset:
+
+```bash
+# 1. replay the episodes exactly and export the scene (experiment environment)
+python scripts/cube/viz_export.py results/cube/viz_runs/rollouts/viz_baseline_s42.npz \
+    results/cube/viz_runs/rollouts/viz_gated_s42.npz --labels baseline gated \
+    --out results/cube/viz/scene_s42.npz --auto 4
+# 2. render with Blender's Cycles (a Python 3.11 env with `pip install bpy==4.2.0`)
+python scripts/cube/viz_blender.py results/cube/viz/scene_s42.npz --episode <E> --every 2 \
+    --out results/cube/viz/frames
+# 3. side-by-side MP4 + GIF + film strip (experiment environment, needs imageio-ffmpeg)
+python scripts/cube/viz_compose.py results/cube/viz/scene_s42.npz --episode <E> \
+    --frames results/cube/viz/frames --out results/cube/viz/out
+```
+
+`viz_export.py` checks every replay against the cube positions logged during the
+run (`max_cube_deviation_m` in `scene_*.json` should be 0).
+

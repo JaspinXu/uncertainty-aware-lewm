@@ -11,6 +11,7 @@
 #   bash cluster/submit.sh l5 <variant>    # (normally automatic) probes + planning for one variant
 #   bash cluster/submit.sh report          # L6: results/cube/RESULTS.md, after all queued jobs
 #   bash cluster/submit.sh diag            # ~10 min check: live-rendered vs dataset frames (results/cube/diag)
+#   bash cluster/submit.sh viz             # ~20 min: baseline + gated runs that save executed actions (for videos)
 #   bash cluster/submit.sh status          # what is done, what is queued
 #   bash cluster/submit.sh results         # commit + push the small result files and recent job logs
 #
@@ -330,6 +331,10 @@ case "${1:-}" in
   diag)  # live rendering vs dataset frames, as the encoder sees them
     sbg JD cluster/jobs/60_diag_domain_gap.sbatch
     echo "diagnostic job $JD (log: logs/lewm_diag_$JD.out)" >&2
+    ;;
+  viz)  # executed actions of baseline and gated runs, for rendering rollout videos
+    sbg JV cluster/jobs/70_viz_rollouts.sbatch
+    echo "visualisation runs: job $JV (log: logs/lewm_viz_$JV.out)" >&2
     ;;
   status) status ;;
   results)  # small result files + the tail of every job log of the last week -> git

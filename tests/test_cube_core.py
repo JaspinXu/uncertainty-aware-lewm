@@ -320,3 +320,23 @@ def test_mid_episode_replay_is_exact():
     res = replay(other, snap["qpos"], snap["qvel"], goal, goal_q, acts[None, 15:], render_every=0,
                  sim=snap, mid_episode=True)
     np.testing.assert_array_equal(res.final_qpos[0], live._data.qpos)
+
+
+def test_rollout_logger_copies_inplace_buffers():
+    """The world updates its info buffers in place; the logger must keep copies."""
+    from cube.rollout_log import RolloutLogger
+
+    class Policy:
+        def get_action(self, info):
+            return np.full((2, 5), float(info["privileged/block_0_pos"][0, 0, 0]), np.float32)
+
+    pol = Policy()
+    log = RolloutLogger(pol)
+    buf = {"privileged/block_0_pos": np.zeros((2, 1, 3)), "goal_privileged_block_0_pos": np.ones((2, 1, 3))}
+    for t in range(3):
+        buf["privileged/block_0_pos"][:] = t  # in-place update, as World does
+        pol.get_action(buf)
+    cube = np.stack(log.cube, axis=1)
+    assert cube.shape == (2, 3, 3)
+    assert np.array_equal(cube[0, :, 0], [0.0, 1.0, 2.0])
+    assert np.array_equal(np.stack(log.actions, axis=1)[1, :, 0], [0.0, 1.0, 2.0])
