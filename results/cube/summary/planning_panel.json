@@ -1,0 +1,297 @@
+{
+ "labels": {
+  "baseline": {
+   "seeds": [
+    42,
+    43,
+    44,
+    45,
+    1011,
+    2022,
+    3033,
+    4044,
+    5055
+   ],
+   "per_seed": {
+    "42": 64.0,
+    "43": 80.0,
+    "44": 64.0,
+    "45": 64.0,
+    "1011": 66.0,
+    "2022": 62.0,
+    "3033": 57.99999999999999,
+    "4044": 66.0,
+    "5055": 66.0
+   },
+   "mean": 65.55555555555556,
+   "std": 5.981452814975454,
+   "pooled": 65.55555555555556,
+   "pooled_ci": [
+    61.05010539365442,
+    69.79767134871182
+   ],
+   "n_episodes": 450,
+   "eval_time_mean_s": 111.72483266724481,
+   "nontrivial_n": 287,
+   "nontrivial_success": 46.34146341463415,
+   "trivial_success": 99.38650306748467
+  },
+  "mc5": {
+   "seeds": [
+    42
+   ],
+   "per_seed": {
+    "42": 66.0
+   },
+   "mean": 66.0,
+   "std": 0.0,
+   "pooled": 66.0,
+   "pooled_ci": [
+    52.15382593969471,
+    77.56305085458965
+   ],
+   "n_episodes": 50,
+   "eval_time_mean_s": 104.10176277160645,
+   "nontrivial_n": 34,
+   "nontrivial_success": 50.0,
+   "trivial_success": 100.0
+  },
+  "gated": {
+   "seeds": [
+    42,
+    45
+   ],
+   "per_seed": {
+    "42": 74.0,
+    "45": 70.0
+   },
+   "mean": 72.0,
+   "std": 2.8284271247461903,
+   "pooled": 72.0,
+   "pooled_ci": [
+    62.51197121124493,
+    79.86031484291924
+   ],
+   "n_episodes": 100,
+   "eval_time_mean_s": 136.10904955863953,
+   "nontrivial_n": 65,
+   "nontrivial_success": 56.92307692307692,
+   "trivial_success": 100.0
+  },
+  "goal_cvar": {
+   "seeds": [
+    42,
+    45
+   ],
+   "per_seed": {
+    "42": 72.0,
+    "45": 66.0
+   },
+   "mean": 69.0,
+   "std": 4.242640687119285,
+   "pooled": 69.0,
+   "pooled_ci": [
+    59.373944201630714,
+    77.22030284514743
+   ],
+   "n_episodes": 100,
+   "eval_time_mean_s": 140.6917040348053,
+   "nontrivial_n": 65,
+   "nontrivial_success": 52.307692307692314,
+   "trivial_success": 100.0
+  },
+  "penalty": {
+   "seeds": [
+    42
+   ],
+   "per_seed": {
+    "42": 74.0
+   },
+   "mean": 74.0,
+   "std": 0.0,
+   "pooled": 74.0,
+   "pooled_ci": [
+    60.44684262151608,
+    84.12847256991044
+   ],
+   "n_episodes": 50,
+   "eval_time_mean_s": 97.78846597671509,
+   "nontrivial_n": 34,
+   "nontrivial_success": 61.76470588235294,
+   "trivial_success": 100.0
+  },
+  "risk": {
+   "seeds": [
+    42,
+    43,
+    44,
+    45,
+    1011,
+    2022,
+    3033,
+    4044,
+    5055
+   ],
+   "per_seed": {
+    "42": 72.0,
+    "43": 80.0,
+    "44": 56.00000000000001,
+    "45": 62.0,
+    "1011": 68.0,
+    "2022": 62.0,
+    "3033": 64.0,
+    "4044": 70.0,
+    "5055": 62.0
+   },
+   "mean": 66.22222222222223,
+   "std": 7.102425250887504,
+   "pooled": 66.22222222222223,
+   "pooled_ci": [
+    61.73150232537841,
+    70.43832199166067
+   ],
+   "n_episodes": 450,
+   "eval_time_mean_s": 60.40545564227634,
+   "nontrivial_n": 287,
+   "nontrivial_success": 47.038327526132406,
+   "trivial_success": 100.0
+  }
+ },
+ "comparisons": {
+  "mc5": {
+   "seeds": [
+    42
+   ],
+   "n_paired": 50,
+   "delta_mean_pp": 2.0000000000000018,
+   "delta_per_seed_pp": [
+    2.0000000000000018
+   ],
+   "mcnemar": {
+    "a_only": 1,
+    "b_only": 2,
+    "discordant": 3,
+    "p_value": 1.0
+   },
+   "nontrivial_delta_pp": 2.941176470588236,
+   "nontrivial_mcnemar": {
+    "a_only": 1,
+    "b_only": 2,
+    "discordant": 3,
+    "p_value": 1.0
+   }
+  },
+  "gated": {
+   "seeds": [
+    42,
+    45
+   ],
+   "n_paired": 100,
+   "delta_mean_pp": 7.9999999999999964,
+   "delta_per_seed_pp": [
+    9.999999999999998,
+    5.999999999999995
+   ],
+   "mcnemar": {
+    "a_only": 1,
+    "b_only": 9,
+    "discordant": 10,
+    "p_value": 0.021484375
+   },
+   "nontrivial_delta_pp": 12.307692307692303,
+   "nontrivial_mcnemar": {
+    "a_only": 1,
+    "b_only": 9,
+    "discordant": 10,
+    "p_value": 0.021484375
+   }
+  },
+  "goal_cvar": {
+   "seeds": [
+    42,
+    45
+   ],
+   "n_paired": 100,
+   "delta_mean_pp": 4.999999999999999,
+   "delta_per_seed_pp": [
+    7.9999999999999964,
+    2.0000000000000018
+   ],
+   "mcnemar": {
+    "a_only": 4,
+    "b_only": 9,
+    "discordant": 13,
+    "p_value": 0.266845703125
+   },
+   "nontrivial_delta_pp": 7.6923076923076925,
+   "nontrivial_mcnemar": {
+    "a_only": 4,
+    "b_only": 9,
+    "discordant": 13,
+    "p_value": 0.266845703125
+   }
+  },
+  "penalty": {
+   "seeds": [
+    42
+   ],
+   "n_paired": 50,
+   "delta_mean_pp": 9.999999999999998,
+   "delta_per_seed_pp": [
+    9.999999999999998
+   ],
+   "mcnemar": {
+    "a_only": 0,
+    "b_only": 5,
+    "discordant": 5,
+    "p_value": 0.0625
+   },
+   "nontrivial_delta_pp": 14.70588235294118,
+   "nontrivial_mcnemar": {
+    "a_only": 0,
+    "b_only": 5,
+    "discordant": 5,
+    "p_value": 0.0625
+   }
+  },
+  "risk": {
+   "seeds": [
+    42,
+    43,
+    44,
+    45,
+    1011,
+    2022,
+    3033,
+    4044,
+    5055
+   ],
+   "n_paired": 450,
+   "delta_mean_pp": 0.6666666666666661,
+   "delta_per_seed_pp": [
+    7.9999999999999964,
+    0.0,
+    -7.9999999999999964,
+    -2.0000000000000018,
+    2.0000000000000018,
+    0.0,
+    6.000000000000005,
+    3.9999999999999925,
+    -4.0000000000000036
+   ],
+   "mcnemar": {
+    "a_only": 27,
+    "b_only": 30,
+    "discordant": 57,
+    "p_value": 0.7913664277791806
+   },
+   "nontrivial_delta_pp": 0.6968641114982577,
+   "nontrivial_mcnemar": {
+    "a_only": 27,
+    "b_only": 29,
+    "discordant": 56,
+    "p_value": 0.8938530948350216
+   }
+  }
+ }
+}

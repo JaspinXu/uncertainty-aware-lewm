@@ -1,0 +1,86 @@
+{
+ "sizes": {
+  "train": [
+   54825,
+   1075
+  ],
+  "val": [
+   10200,
+   200
+  ],
+  "test": [
+   30957,
+   607
+  ]
+ },
+ "heads": {
+  "full": {
+   "train": 11,
+   "best_val_loss": 1.0602421760559082,
+   "val_quality": {
+    "spearman_err": 0.5530666442741993,
+    "spearman_true_cost": 0.5488967454132442,
+    "auroc_failure_from_success_logit": 0.8793001425738928,
+    "auroc_failure_from_det_cost": 0.6366831908474957
+   },
+   "rerank_val": {
+    "err@0.25": 0.2887323943661972,
+    "err@0.5": 0.2746478873239437,
+    "err@1.0": 0.2676056338028169,
+    "err@2.0": 0.28169014084507044,
+    "err@4.0": 0.28169014084507044,
+    "true_cost": 0.2746478873239437
+   },
+   "test_quality": {
+    "spearman_err": 0.5050799829001158,
+    "spearman_true_cost": 0.5691475490445317,
+    "auroc_failure_from_success_logit": 0.8909374291524832,
+    "auroc_failure_from_det_cost": 0.6425916666406768
+   }
+  },
+  "det": {
+   "train": 11,
+   "best_val_loss": 1.148522138595581,
+   "val_quality": {
+    "spearman_err": 0.5575407547588949,
+    "spearman_true_cost": 0.5074389539566853,
+    "auroc_failure_from_success_logit": 0.8832913058606248,
+    "auroc_failure_from_det_cost": 0.6366831908474957
+   },
+   "rerank_val": {
+    "err@0.25": 0.2746478873239437,
+    "err@0.5": 0.29577464788732394,
+    "err@1.0": 0.28169014084507044,
+    "err@2.0": 0.28169014084507044,
+    "err@4.0": 0.28169014084507044,
+    "true_cost": 0.28169014084507044
+   },
+   "test_quality": {
+    "spearman_err": 0.4494378706658066,
+    "spearman_true_cost": 0.4796133476837783,
+    "auroc_failure_from_success_logit": 0.8727382569753541,
+    "auroc_failure_from_det_cost": 0.6425916666406768
+   }
+  }
+ },
+ "val_det_cost_success": 0.2887323943661972,
+ "selection": {
+  "head": "det",
+  "mode": "err",
+  "beta": 0.5,
+  "val_success": 0.29577464788732394,
+  "head_path": "results/cube/l3/risk_head_det.pt"
+ },
+ "test_rerank": {
+  "n_plans": 444,
+  "exec_success": 0.29954954954954954,
+  "det_cost_success": 0.2927927927927928,
+  "risk_success": 0.2927927927927928,
+  "mcnemar": {
+   "a_only": 13,
+   "b_only": 13,
+   "discordant": 26,
+   "p_value": 1.0
+  }
+ }
+}

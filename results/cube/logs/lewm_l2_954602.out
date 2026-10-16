@@ -1,0 +1,8 @@
+[env] conda env 'lewm' not found -- run cluster/setup_env.sh first
+=== 2026-10-16 05:50:59 | job 954602 on xgpj0 (partition gpu) ===
+PROJECT_ROOT=/home/z/zhaobin/uncertainty-aware-lewm
+STABLEWM_HOME=/home/z/zhaobin/lewm_data
+NVIDIA A100 80GB PCIe, 81920 MiB, 580.178.04
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+ModuleNotFoundError: No module named 'torch'

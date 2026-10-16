@@ -1,0 +1,147 @@
+=== 2026-10-16 02:56:39 | job 954594 on xgpi12 (partition gpu) ===
+PROJECT_ROOT=/home/z/zhaobin/uncertainty-aware-lewm
+STABLEWM_HOME=/home/z/zhaobin/lewm_data
+NVIDIA H100 NVL, 95830 MiB, 580.173.02
+torch 2.8.0+cu128 cuda True
+[env] GPU NVIDIA H100 NVL MIG 3g.47gb (sm_90, 46 GB)
+/home/z/zhaobin/uncertainty-aware-lewm/stable-worldmodel/stable_worldmodel/envs/__init__.py:215: UserWarning: ale-py not found; ALE/* envs are unavailable. Install with: pip install 'stable-worldmodel[env]' or pip install ale-py.
+  from stable_worldmodel.envs import ale  # noqa: F401
+2026-10-16 02:56:54.759 | INFO     | stable_worldmodel.wm.utils:_resolve_folder:138 - Loading checkpoint from folder /home/z/zhaobin/lewm_data/checkpoints/cube/lewm...
+02:57:03 | INFO  | __init__.py | PyTorch version 2.8.0 available.
+02:57:04 | INFO  | atomic_chec~| [atomic_save] installed crash-safe checkpoint plugin (write to sibling .tmp + fsync + atomic rename)
+02:57:04 | INFO  | utils.py    | Created ViT-tiny from scratch with config: {'hidden_size': 192, 'num_hidden_layers': 12, 'num_attention_heads': 3, 'intermediate_size': 768, 'image_size': 224, 'patch_size': 14}
+[encode] 512/2010000 rows (233 frames/s)
+[encode] 102912/2010000 rows (2476 frames/s)
+[encode] 205312/2010000 rows (2701 frames/s)
+[encode] 307712/2010000 rows (2789 frames/s)
+[encode] 410112/2010000 rows (2835 frames/s)
+[encode] 512512/2010000 rows (2865 frames/s)
+[encode] 614912/2010000 rows (2887 frames/s)
+[encode] 717312/2010000 rows (2903 frames/s)
+[encode] 819712/2010000 rows (2916 frames/s)
+[encode] 922112/2010000 rows (2927 frames/s)
+[encode] 1024512/2010000 rows (2935 frames/s)
+[encode] 1126912/2010000 rows (2943 frames/s)
+[encode] 1229312/2010000 rows (2948 frames/s)
+[encode] 1331712/2010000 rows (2953 frames/s)
+[encode] 1434112/2010000 rows (2954 frames/s)
+[encode] 1536512/2010000 rows (2954 frames/s)
+[encode] 1638912/2010000 rows (2955 frames/s)
+[encode] 1741312/2010000 rows (2956 frames/s)
+[encode] 1843712/2010000 rows (2958 frames/s)
+[encode] 1946112/2010000 rows (2960 frames/s)
+Traceback (most recent call last):
+Traceback (most recent call last):
+Traceback (most recent call last):
+Traceback (most recent call last):
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00287600000690'
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00740800000692'
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a0064ce0000068e'
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00762f0000068c'
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00167c0000068f'
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00759600000691'
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00601d0000068d'
+[encode] wrote /home/z/zhaobin/lewm_data/latents/cube__lewm.npy {'policy': 'cube/lewm', 'dataset': 'ogbench/cube_single_expert', 'rows': 2010000, 'dim': 192, 'dtype': 'float16', 'seconds': 679.3716547489166, 'complete': True}
+/home/z/zhaobin/uncertainty-aware-lewm/train_ensemble.py:111: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:203.)
+  lat = torch.from_numpy(np.ascontiguousarray(lat_np)).to(dev)
+[ens] latents (2010000, 192), episodes train=9500 val=500, val clips=17200
+/home/z/zhaobin/uncertainty-aware-lewm/stable-worldmodel/stable_worldmodel/envs/__init__.py:215: UserWarning: ale-py not found; ALE/* envs are unavailable. Install with: pip install 'stable-worldmodel[env]' or pip install ale-py.
+  from stable_worldmodel.envs import ale  # noqa: F401
+[ens] member 0 step 1 tf=1.1530 ar=1.1143 (5s)
+[ens] member 0 step 1000 tf=0.0352 ar=0.0759 (99s)
+[ens] member 0 step 2000 tf=0.0207 ar=0.0451 (192s)
+[2026-10-16T03:11:57.481] error: *** JOB 954594 ON xgpi12 CANCELLED AT 2026-10-16T03:11:57 DUE to SIGNAL Terminated ***

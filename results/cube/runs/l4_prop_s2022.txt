@@ -1,0 +1,82 @@
+==== CONFIG ====
+cache_dir: null
+solver:
+  _target_: stable_worldmodel.solver.CEMSolver
+  model: ???
+  batch_size: 50
+  num_samples: 300
+  var_scale: 1.0
+  n_steps: 30
+  topk: 30
+  device: cuda
+  seed: 2022
+method:
+  name: baseline
+  planner: baseline
+world:
+  env_name: swm/OGBCube-v0
+  num_envs: 50
+  max_episode_steps: 100
+  env_type: single
+  ob_type: states
+  multiview: false
+  width: 224
+  height: 224
+  visualize_info: false
+  terminate_at_goal: true
+seed: 2022
+policy: cube/l4_prop
+map_proprio_keys: true
+model_overrides:
+  w_prop: 0
+dataset:
+  stats: ogbench/cube_single_expert
+  keys_to_cache:
+  - action
+plan_config:
+  horizon: 5
+  receding_horizon: 5
+  action_block: 5
+eval:
+  num_eval: 50
+  goal_offset_steps: 25
+  eval_budget: 50
+  img_size: 224
+  dataset_name: ogbench/cube_single_expert
+  callables:
+  - method: set_state
+    args:
+      qpos:
+        value: qpos
+      qvel:
+        value: qvel
+  - method: set_target_pos
+    args:
+      cube_id:
+        value: 0
+        in_dataset: false
+      target_pos:
+        value: goal_privileged_block_0_pos
+      target_quat:
+        value: goal_privileged_block_0_quat
+record:
+  enabled: false
+  dir: results/cube/records
+  n_mc: 8
+  n_elite: 30
+  n_random: 20
+  history_size: 3
+output:
+  dir: results/cube/runs
+  run_id: l4_prop_s2022
+  video: false
+
+==== RESULTS ====
+device: cuda
+metrics: {'success_rate': 57.99999999999999, 'episode_successes': array([False, False, False,  True, False,  True,  True,  True,  True,
+        True, False, False,  True, False, False,  True,  True, False,
+       False,  True,  True,  True, False,  True, False,  True,  True,
+        True,  True,  True,  True, False, False, False,  True,  True,
+       False,  True,  True, False, False,  True,  True, False,  True,
+        True, False,  True, False,  True]), 'seeds': None}
+evaluation_time: 69.4418466091156 seconds

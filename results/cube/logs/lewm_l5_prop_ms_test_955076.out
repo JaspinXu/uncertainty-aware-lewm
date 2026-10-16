@@ -1,0 +1,6 @@
+[env] conda env 'lewm' not found -- run cluster/setup_env.sh first
+=== 2026-10-16 05:29:47 | job 955076 on xgpj0 (partition gpu) ===
+PROJECT_ROOT=/home/z/zhaobin/uncertainty-aware-lewm
+STABLEWM_HOME=/home/z/zhaobin/lewm_data
+NVIDIA A100 80GB PCIe, 81920 MiB, 580.178.04
+cluster/env.sh: line 73: /home/z/zhaobin/miniforge3/envs/lewm/bin/python: cannot execute binary file: Exec format error

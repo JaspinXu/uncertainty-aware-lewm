@@ -1,0 +1,400 @@
+[train] step=8300 lr=3.273e-05 grad_norm=0.3009 samples_per_s=684.5 pred=0.009713 sigreg=0.9141 redund=0.06447 aux=0.03504 loss=0.1275
+[train] step=8400 lr=3.235e-05 grad_norm=0.2686 samples_per_s=701.1 pred=0.008814 sigreg=0.875 redund=0.06322 aux=0.02859 loss=0.1219
+[train] step=8500 lr=3.196e-05 grad_norm=0.296 samples_per_s=781.5 pred=0.009041 sigreg=0.9336 redund=0.0573 aux=0.02643 loss=0.1243
+[train] step=8600 lr=3.157e-05 grad_norm=0.2913 samples_per_s=843.3 pred=0.009073 sigreg=0.8828 redund=0.06281 aux=0.03275 loss=0.1233
+[train] step=8700 lr=3.118e-05 grad_norm=0.274 samples_per_s=789.1 pred=0.009999 sigreg=0.9414 redund=0.05648 aux=0.02624 loss=0.1258
+[train] step=8800 lr=3.079e-05 grad_norm=0.2482 samples_per_s=717 pred=0.009052 sigreg=0.9219 redund=0.0568 aux=0.02578 loss=0.123
+[train] step=8900 lr=3.04e-05 grad_norm=0.2727 samples_per_s=733.2 pred=0.009048 sigreg=0.9141 redund=0.06106 aux=0.02378 loss=0.124
+[train] step=9000 lr=3e-05 grad_norm=0.3027 samples_per_s=779 pred=0.009955 sigreg=0.9531 redund=0.06033 aux=0.02812 loss=0.1289
+[train] step=9100 lr=2.961e-05 grad_norm=0.2978 samples_per_s=866.5 pred=0.008321 sigreg=0.8672 redund=0.05379 aux=0.02635 loss=0.116
+[train] step=9200 lr=2.921e-05 grad_norm=0.3118 samples_per_s=803 pred=0.009529 sigreg=0.9453 redund=0.06579 aux=0.03135 loss=0.1305
+[train] step=9300 lr=2.882e-05 grad_norm=0.3017 samples_per_s=728.7 pred=0.009421 sigreg=0.9141 redund=0.06318 aux=0.01791 loss=0.1248
+[train] step=9400 lr=2.842e-05 grad_norm=0.2944 samples_per_s=715.1 pred=0.008941 sigreg=0.9688 redund=0.06534 aux=0.01938 loss=0.1309
+[train] step=9500 lr=2.802e-05 grad_norm=0.281 samples_per_s=829.7 pred=0.008502 sigreg=0.8633 redund=0.06443 aux=0.02964 loss=0.1213
+[train] step=9600 lr=2.762e-05 grad_norm=0.2875 samples_per_s=852.5 pred=0.00819 sigreg=0.9062 redund=0.05754 aux=0.01712 loss=0.1202
+[train] step=9700 lr=2.722e-05 grad_norm=0.2882 samples_per_s=835.5 pred=0.009223 sigreg=0.9531 redund=0.06786 aux=0.01955 loss=0.131
+[train] step=9800 lr=2.681e-05 grad_norm=0.2623 samples_per_s=697.9 pred=0.008823 sigreg=0.9453 redund=0.06208 aux=0.02095 loss=0.1269
+[train] step=9900 lr=2.641e-05 grad_norm=0.2855 samples_per_s=735.1 pred=0.008094 sigreg=0.9023 redund=0.05913 aux=0.01964 loss=0.1207
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a379bb70000104c'
+terminate called without an active exception
+Exception ignored in: <function _MultiProcessingDataLoaderIter.__del__ at 0x7759441747c0>
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1664, in __del__
+    self._shutdown_workers()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1628, in _shutdown_workers
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/process.py", line 149, in join
+    res = self._popen.wait(timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/popen_fork.py", line 40, in wait
+    if not wait([self.sentinel], timeout):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/connection.py", line 948, in wait
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/_utils/signal_handling.py", line 73, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 1618283) is killed by signal: Aborted. 
+[train] step=10000 lr=2.601e-05 grad_norm=0.2665 samples_per_s=919.1 pred=0.007936 sigreg=0.8906 redund=0.05886 aux=0.01953 loss=0.1194 val_pred=0.005365 val_sigreg=10.89 val_redund=0.4158 val_aux=0.01696 val_loss=1.196
+[train] step=10100 lr=2.561e-05 grad_norm=0.2475 samples_per_s=858.9 pred=0.007925 sigreg=0.8945 redund=0.0672 aux=0.01697 loss=0.1238
+[train] step=10200 lr=2.521e-05 grad_norm=0.2665 samples_per_s=628.3 pred=0.007618 sigreg=0.8945 redund=0.05297 aux=0.01185 loss=0.1159
+[train] step=10300 lr=2.48e-05 grad_norm=0.2746 samples_per_s=717.8 pred=0.008469 sigreg=0.9648 redund=0.06224 aux=0.01977 loss=0.1285
+[train] step=10400 lr=2.44e-05 grad_norm=0.2812 samples_per_s=725.5 pred=0.008209 sigreg=0.9258 redund=0.05659 aux=0.01942 loss=0.1219
+[train] step=10500 lr=2.4e-05 grad_norm=0.2848 samples_per_s=778 pred=0.008584 sigreg=0.9609 redund=0.06283 aux=0.02063 loss=0.1285
+[train] step=10600 lr=2.36e-05 grad_norm=0.2965 samples_per_s=806.2 pred=0.009304 sigreg=0.8867 redund=0.05562 aux=0.02326 loss=0.119
+[train] step=10700 lr=2.319e-05 grad_norm=0.266 samples_per_s=690.8 pred=0.0084 sigreg=0.9258 redund=0.06591 aux=0.01922 loss=0.1268
+[train] step=10800 lr=2.279e-05 grad_norm=0.2706 samples_per_s=734.6 pred=0.007627 sigreg=0.8633 redund=0.05561 aux=0.01776 loss=0.1148
+[train] step=10900 lr=2.239e-05 grad_norm=0.299 samples_per_s=786 pred=0.008359 sigreg=0.9375 redund=0.05808 aux=0.02079 loss=0.1239
+[train] step=11000 lr=2.199e-05 grad_norm=0.2598 samples_per_s=877.4 pred=0.007662 sigreg=0.8906 redund=0.05776 aux=0.01595 loss=0.1182
+[train] step=11100 lr=2.159e-05 grad_norm=0.2754 samples_per_s=812.1 pred=0.008242 sigreg=0.9922 redund=0.05913 aux=0.01365 loss=0.1285
+[train] step=11200 lr=2.119e-05 grad_norm=0.31 samples_per_s=708.3 pred=0.009559 sigreg=0.9688 redund=0.06406 aux=0.01998 loss=0.131
+[train] step=11300 lr=2.08e-05 grad_norm=0.2672 samples_per_s=761.6 pred=0.007643 sigreg=0.9062 redund=0.05578 aux=0.01579 loss=0.1187
+[train] step=11400 lr=2.04e-05 grad_norm=0.2981 samples_per_s=831.6 pred=0.008365 sigreg=0.9062 redund=0.06323 aux=0.01597 loss=0.1231
+[train] step=11500 lr=2e-05 grad_norm=0.2765 samples_per_s=877.2 pred=0.007982 sigreg=0.9609 redund=0.06355 aux=0.01992 loss=0.1282
+[train] step=11600 lr=1.961e-05 grad_norm=0.2605 samples_per_s=789.7 pred=0.007257 sigreg=0.8555 redund=0.05122 aux=0.01447 loss=0.1115
+[train] step=11700 lr=1.922e-05 grad_norm=0.2853 samples_per_s=700.5 pred=0.008201 sigreg=0.9219 redund=0.0587 aux=0.0157 loss=0.1221
+[train] step=11800 lr=1.883e-05 grad_norm=0.2993 samples_per_s=746.4 pred=0.007679 sigreg=0.9023 redund=0.05955 aux=0.01366 loss=0.1199
+[train] step=11900 lr=1.844e-05 grad_norm=0.2646 samples_per_s=885.7 pred=0.007842 sigreg=0.9375 redund=0.06582 aux=0.01928 loss=0.1272
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00ceea0000104d'
+terminate called without an active exception
+Exception ignored in: <function _MultiProcessingDataLoaderIter.__del__ at 0x7759441747c0>
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1664, in __del__
+    self._shutdown_workers()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1628, in _shutdown_workers
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/process.py", line 149, in join
+    res = self._popen.wait(timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/popen_fork.py", line 40, in wait
+    if not wait([self.sentinel], timeout):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/connection.py", line 948, in wait
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/_utils/signal_handling.py", line 73, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 1618440) is killed by signal: Aborted. 
+[train] step=12000 lr=1.805e-05 grad_norm=0.2767 samples_per_s=872.9 pred=0.008396 sigreg=0.9844 redund=0.05972 aux=0.0163 loss=0.1283 val_pred=0.004828 val_sigreg=10.92 val_redund=0.4115 val_aux=0.01336 val_loss=1.195
+[train] step=12100 lr=1.766e-05 grad_norm=0.2794 samples_per_s=766.2 pred=0.008587 sigreg=0.9062 redund=0.06267 aux=0.02114 loss=0.1236
+[train] step=12200 lr=1.728e-05 grad_norm=0.255 samples_per_s=683.5 pred=0.007485 sigreg=0.8906 redund=0.05514 aux=0.01583 loss=0.1167
+[train] step=12300 lr=1.69e-05 grad_norm=0.2631 samples_per_s=756.9 pred=0.007271 sigreg=0.8984 redund=0.06701 aux=0.02113 loss=0.1239
+[train] step=12400 lr=1.652e-05 grad_norm=0.2758 samples_per_s=773.2 pred=0.008454 sigreg=0.9648 redund=0.05656 aux=0.01773 loss=0.1254
+[train] step=12500 lr=1.614e-05 grad_norm=0.2726 samples_per_s=812.8 pred=0.007615 sigreg=0.9297 redund=0.05912 aux=0.01392 loss=0.1221
+[train] step=12600 lr=1.576e-05 grad_norm=0.2891 samples_per_s=672.3 pred=0.007172 sigreg=1.031 redund=0.06136 aux=0.01182 loss=0.1318
+[train] step=12700 lr=1.539e-05 grad_norm=0.2744 samples_per_s=756.1 pred=0.008391 sigreg=0.9688 redund=0.05577 aux=0.01486 loss=0.1252
+[train] step=12800 lr=1.502e-05 grad_norm=0.2782 samples_per_s=739.6 pred=0.007308 sigreg=0.8984 redund=0.05817 aux=0.01515 loss=0.119
+[train] step=12900 lr=1.465e-05 grad_norm=0.2585 samples_per_s=805 pred=0.007543 sigreg=0.8789 redund=0.05472 aux=0.01773 loss=0.1158
+[train] step=13000 lr=1.429e-05 grad_norm=0.2968 samples_per_s=754.5 pred=0.007588 sigreg=0.9492 redund=0.05871 aux=0.0158 loss=0.124
+[train] step=13100 lr=1.392e-05 grad_norm=0.265 samples_per_s=704.8 pred=0.0078 sigreg=0.9297 redund=0.05619 aux=0.01716 loss=0.1211
+[train] step=13200 lr=1.356e-05 grad_norm=0.2745 samples_per_s=722.4 pred=0.006988 sigreg=0.9297 redund=0.05725 aux=0.01539 loss=0.1206
+[train] step=13300 lr=1.321e-05 grad_norm=0.2533 samples_per_s=847.6 pred=0.006908 sigreg=0.8359 redund=0.0577 aux=0.01547 loss=0.1125
+[train] step=13400 lr=1.285e-05 grad_norm=0.256 samples_per_s=840.6 pred=0.007114 sigreg=0.9062 redund=0.05791 aux=0.01422 loss=0.119
+[train] step=13500 lr=1.25e-05 grad_norm=0.2625 samples_per_s=840.3 pred=0.007335 sigreg=0.9219 redund=0.0574 aux=0.01693 loss=0.1207
+[train] step=13600 lr=1.216e-05 grad_norm=0.2739 samples_per_s=626.8 pred=0.007159 sigreg=0.9141 redund=0.06168 aux=0.01551 loss=0.1216
+[train] step=13700 lr=1.181e-05 grad_norm=0.2684 samples_per_s=766.8 pred=0.006884 sigreg=0.9141 redund=0.0538 aux=0.02363 loss=0.1182
+[train] step=13800 lr=1.147e-05 grad_norm=0.2383 samples_per_s=666.9 pred=0.006606 sigreg=0.8594 redund=0.05212 aux=0.01091 loss=0.1109
+[train] step=13900 lr=1.114e-05 grad_norm=0.2815 samples_per_s=750.4 pred=0.006925 sigreg=0.8984 redund=0.05804 aux=0.01158 loss=0.1182
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a37efe20000104e'
+terminate called without an active exception
+Exception ignored in: <function _MultiProcessingDataLoaderIter.__del__ at 0x7759441747c0>
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1664, in __del__
+    self._shutdown_workers()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1628, in _shutdown_workers
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/process.py", line 149, in join
+    res = self._popen.wait(timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/popen_fork.py", line 40, in wait
+    if not wait([self.sentinel], timeout):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/connection.py", line 948, in wait
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/_utils/signal_handling.py", line 73, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 1618579) is killed by signal: Aborted. 
+[train] step=14000 lr=1.08e-05 grad_norm=0.2578 samples_per_s=730.8 pred=0.007375 sigreg=0.8594 redund=0.06262 aux=0.01646 loss=0.1175 val_pred=0.004161 val_sigreg=10.78 val_redund=0.4086 val_aux=0.01101 val_loss=1.179
+[train] step=14100 lr=1.047e-05 grad_norm=0.258 samples_per_s=751.1 pred=0.007176 sigreg=0.9297 redund=0.05826 aux=0.01135 loss=0.1209
+[train] step=14200 lr=1.015e-05 grad_norm=0.25 samples_per_s=721 pred=0.006755 sigreg=0.8672 redund=0.05417 aux=0.01428 loss=0.1134
+[train] step=14300 lr=9.824e-06 grad_norm=0.2556 samples_per_s=832.3 pred=0.007348 sigreg=0.9492 redund=0.05869 aux=0.01226 loss=0.1234
+[train] step=14400 lr=9.506e-06 grad_norm=0.2687 samples_per_s=793.9 pred=0.006644 sigreg=0.9102 redund=0.05352 aux=0.01252 loss=0.1167
+[train] step=14500 lr=9.192e-06 grad_norm=0.2825 samples_per_s=691.3 pred=0.006834 sigreg=0.8984 redund=0.06312 aux=0.01544 loss=0.121
+[train] step=14600 lr=8.882e-06 grad_norm=0.2624 samples_per_s=717.5 pred=0.00726 sigreg=0.9531 redund=0.05975 aux=0.01412 loss=0.1245
+[train] step=14700 lr=8.576e-06 grad_norm=0.284 samples_per_s=761 pred=0.007247 sigreg=0.9258 redund=0.06163 aux=0.01498 loss=0.1231
+[train] step=14800 lr=8.275e-06 grad_norm=0.2745 samples_per_s=849.9 pred=0.006895 sigreg=0.9297 redund=0.05338 aux=0.01832 loss=0.1189
+[train] step=14900 lr=7.978e-06 grad_norm=0.2518 samples_per_s=902 pred=0.007337 sigreg=0.9219 redund=0.05595 aux=0.01373 loss=0.1197
+[train] step=15000 lr=7.685e-06 grad_norm=0.2519 samples_per_s=700 pred=0.007062 sigreg=0.8984 redund=0.05443 aux=0.01907 loss=0.1172
+[train] step=15100 lr=7.397e-06 grad_norm=0.2547 samples_per_s=719.4 pred=0.006721 sigreg=0.8945 redund=0.05458 aux=0.01177 loss=0.1158
+[train] step=15200 lr=7.113e-06 grad_norm=0.2952 samples_per_s=813.1 pred=0.007644 sigreg=0.9023 redund=0.06089 aux=0.0191 loss=0.1211
+[train] step=15300 lr=6.834e-06 grad_norm=0.2604 samples_per_s=821.9 pred=0.00767 sigreg=0.9766 redund=0.06184 aux=0.01442 loss=0.1279
+[train] step=15400 lr=6.559e-06 grad_norm=0.2622 samples_per_s=810.5 pred=0.006841 sigreg=0.9453 redund=0.05749 aux=0.01564 loss=0.1221
+[train] step=15500 lr=6.29e-06 grad_norm=0.2704 samples_per_s=724 pred=0.007082 sigreg=0.9531 redund=0.05867 aux=0.01021 loss=0.1234
+[train] step=15600 lr=6.025e-06 grad_norm=0.2527 samples_per_s=720 pred=0.006365 sigreg=0.8906 redund=0.0518 aux=0.008906 loss=0.1132
+[train] step=15700 lr=5.765e-06 grad_norm=0.2714 samples_per_s=824.8 pred=0.00728 sigreg=0.9453 redund=0.05958 aux=0.01576 loss=0.1236
+[train] step=15800 lr=5.511e-06 grad_norm=0.2709 samples_per_s=922.4 pred=0.006547 sigreg=0.9258 redund=0.05076 aux=0.01568 loss=0.117
+[train] step=15900 lr=5.261e-06 grad_norm=0.2353 samples_per_s=787.9 pred=0.00678 sigreg=0.918 redund=0.05271 aux=0.01679 loss=0.1173
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a0061f90000104f'
+terminate called without an active exception
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00413f00001050'
+terminate called without an active exception
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00552300001051'
+terminate called without an active exception
+Exception ignored in: <function _MultiProcessingDataLoaderIter.__del__ at 0x7759441747c0>
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1664, in __del__
+    self._shutdown_workers()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1628, in _shutdown_workers
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/process.py", line 149, in join
+    res = self._popen.wait(timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/popen_fork.py", line 40, in wait
+    if not wait([self.sentinel], timeout):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/connection.py", line 948, in wait
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/_utils/signal_handling.py", line 73, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 1618756) is killed by signal: Aborted. 
+[train] step=16000 lr=5.016e-06 grad_norm=0.2709 samples_per_s=700.6 pred=0.006302 sigreg=0.9297 redund=0.05419 aux=0.01478 loss=0.1184 val_pred=0.00386 val_sigreg=10.91 val_redund=0.4059 val_aux=0.009866 val_loss=1.19
+[train] step=16100 lr=4.777e-06 grad_norm=0.3011 samples_per_s=862.8 pred=0.007525 sigreg=0.9297 redund=0.05663 aux=0.02188 loss=0.1215
+[train] step=16200 lr=4.543e-06 grad_norm=0.2664 samples_per_s=771.9 pred=0.006721 sigreg=0.9336 redund=0.05468 aux=0.01412 loss=0.1195
+[train] step=16300 lr=4.314e-06 grad_norm=0.2521 samples_per_s=788.9 pred=0.006702 sigreg=0.918 redund=0.05956 aux=0.01197 loss=0.1202
+[train] step=16400 lr=4.09e-06 grad_norm=0.2922 samples_per_s=716.6 pred=0.006598 sigreg=0.9258 redund=0.05822 aux=0.01511 loss=0.1207
+[train] step=16500 lr=3.872e-06 grad_norm=0.2709 samples_per_s=675.5 pred=0.0078 sigreg=0.9414 redund=0.0607 aux=0.01718 loss=0.1248
+[train] step=16600 lr=3.66e-06 grad_norm=0.2835 samples_per_s=813.8 pred=0.007143 sigreg=0.9688 redund=0.06829 aux=0.01284 loss=0.13
+[train] step=16700 lr=3.453e-06 grad_norm=0.2475 samples_per_s=821 pred=0.006203 sigreg=0.9141 redund=0.05858 aux=0.008476 loss=0.1184
+[train] step=16800 lr=3.251e-06 grad_norm=0.2531 samples_per_s=864.3 pred=0.005954 sigreg=0.8633 redund=0.05849 aux=0.01261 loss=0.1141
+[train] step=16900 lr=3.056e-06 grad_norm=0.2448 samples_per_s=672 pred=0.006651 sigreg=0.8906 redund=0.05304 aux=0.01252 loss=0.1145
+[train] step=17000 lr=2.865e-06 grad_norm=0.2626 samples_per_s=764.4 pred=0.006851 sigreg=0.9062 redund=0.05856 aux=0.01191 loss=0.1189
+[train] step=17100 lr=2.681e-06 grad_norm=0.2588 samples_per_s=779.9 pred=0.006998 sigreg=0.918 redund=0.06152 aux=0.01787 loss=0.1221
+[train] step=17200 lr=2.503e-06 grad_norm=0.2703 samples_per_s=817.8 pred=0.007205 sigreg=0.9375 redund=0.05512 aux=0.01216 loss=0.1205
+[train] step=17300 lr=2.33e-06 grad_norm=0.2623 samples_per_s=862.2 pred=0.007823 sigreg=0.875 redund=0.05548 aux=0.01861 loss=0.116
+[train] step=17400 lr=2.163e-06 grad_norm=0.2383 samples_per_s=718.7 pred=0.006424 sigreg=0.9453 redund=0.05572 aux=0.0144 loss=0.1207
+[train] step=17500 lr=2.002e-06 grad_norm=0.2385 samples_per_s=746.4 pred=0.006962 sigreg=0.875 redund=0.05958 aux=0.01586 loss=0.117
+[train] step=17600 lr=1.847e-06 grad_norm=0.277 samples_per_s=871.9 pred=0.006518 sigreg=0.9102 redund=0.05494 aux=0.01493 loss=0.1175
+[train] step=17700 lr=1.698e-06 grad_norm=0.2545 samples_per_s=853.5 pred=0.006278 sigreg=0.8516 redund=0.05119 aux=0.01677 loss=0.1102
+[train] step=17800 lr=1.555e-06 grad_norm=0.2751 samples_per_s=787.4 pred=0.006244 sigreg=0.9141 redund=0.05544 aux=0.01552 loss=0.1175
+[train] step=17900 lr=1.419e-06 grad_norm=0.2696 samples_per_s=729.5 pred=0.006458 sigreg=0.9023 redund=0.05696 aux=0.01463 loss=0.1175
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a00afc900001052'
+terminate called without an active exception
+Exception ignored in: <function _MultiProcessingDataLoaderIter.__del__ at 0x7759441747c0>
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1664, in __del__
+    self._shutdown_workers()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1628, in _shutdown_workers
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/process.py", line 149, in join
+    res = self._popen.wait(timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/popen_fork.py", line 40, in wait
+    if not wait([self.sentinel], timeout):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/connection.py", line 948, in wait
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/_utils/signal_handling.py", line 73, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 1618914) is killed by signal: Aborted. 
+[train] step=18000 lr=1.288e-06 grad_norm=0.2635 samples_per_s=784.4 pred=0.006653 sigreg=0.9141 redund=0.05397 aux=0.009862 loss=0.1167 val_pred=0.003771 val_sigreg=10.89 val_redund=0.4068 val_aux=0.009493 val_loss=1.188
+[train] step=18100 lr=1.163e-06 grad_norm=0.2596 samples_per_s=915.5 pred=0.006996 sigreg=0.9531 redund=0.05603 aux=0.01406 loss=0.1224
+[train] step=18200 lr=1.045e-06 grad_norm=0.2557 samples_per_s=745.3 pred=0.005937 sigreg=0.8945 redund=0.05391 aux=0.007712 loss=0.1142
+[train] step=18300 lr=9.329e-07 grad_norm=0.2675 samples_per_s=728.4 pred=0.006782 sigreg=0.9219 redund=0.05094 aux=0.01349 loss=0.1166
+[train] step=18400 lr=8.27e-07 grad_norm=0.2544 samples_per_s=666.3 pred=0.006463 sigreg=0.9062 redund=0.0557 aux=0.01625 loss=0.1175
+[train] step=18500 lr=7.274e-07 grad_norm=0.2501 samples_per_s=834.8 pred=0.007003 sigreg=0.875 redund=0.05603 aux=0.01067 loss=0.1147
+[train] step=18600 lr=6.341e-07 grad_norm=0.2617 samples_per_s=791.7 pred=0.007479 sigreg=0.9453 redund=0.05933 aux=0.01391 loss=0.1235
+[train] step=18700 lr=5.471e-07 grad_norm=0.2399 samples_per_s=839.1 pred=0.006139 sigreg=0.918 redund=0.05633 aux=0.0116 loss=0.118
+[train] step=18800 lr=4.665e-07 grad_norm=0.2571 samples_per_s=779.3 pred=0.007119 sigreg=0.9258 redund=0.05843 aux=0.01806 loss=0.1216
+[train] step=18900 lr=3.923e-07 grad_norm=0.2553 samples_per_s=716.5 pred=0.006878 sigreg=0.9805 redund=0.05738 aux=0.008729 loss=0.1248
+[train] step=19000 lr=3.244e-07 grad_norm=0.272 samples_per_s=783 pred=0.006285 sigreg=0.8906 redund=0.05977 aux=0.01482 loss=0.1177
+[train] step=19100 lr=2.629e-07 grad_norm=0.2435 samples_per_s=911.5 pred=0.006542 sigreg=0.875 redund=0.0497 aux=0.0127 loss=0.1113
+[train] step=19200 lr=2.079e-07 grad_norm=0.2562 samples_per_s=791.6 pred=0.006987 sigreg=0.9062 redund=0.06322 aux=0.01537 loss=0.1217
+[train] step=19300 lr=1.593e-07 grad_norm=0.2538 samples_per_s=724.4 pred=0.006759 sigreg=0.8789 redund=0.05385 aux=0.01066 loss=0.1139
+[train] step=19400 lr=1.171e-07 grad_norm=0.2528 samples_per_s=742.7 pred=0.006781 sigreg=0.8906 redund=0.06116 aux=0.01041 loss=0.1185
+[train] step=19500 lr=8.139e-08 grad_norm=0.237 samples_per_s=802.7 pred=0.006783 sigreg=0.8789 redund=0.05471 aux=0.008856 loss=0.1141
+[train] step=19600 lr=5.215e-08 grad_norm=0.2633 samples_per_s=887.3 pred=0.006556 sigreg=0.8906 redund=0.05986 aux=0.01351 loss=0.1179
+[train] step=19700 lr=2.939e-08 grad_norm=0.2594 samples_per_s=793 pred=0.007195 sigreg=1 redund=0.06069 aux=0.01482 loss=0.1289
+[train] step=19800 lr=1.311e-08 grad_norm=0.2533 samples_per_s=740.4 pred=0.006538 sigreg=0.8984 redund=0.05717 aux=0.01337 loss=0.1175
+[train] step=19900 lr=3.31e-09 grad_norm=0.2739 samples_per_s=786.5 pred=0.006391 sigreg=0.9375 redund=0.05927 aux=0.01499 loss=0.122
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 303, in _run_finalizers
+    finalizer()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 227, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/util.py", line 136, in _remove_temp_dir
+    rmtree(tempdir, onerror=onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 752, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 703, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/shutil.py", line 701, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+OSError: [Errno 16] Device or resource busy: '.nfs000000003a379af700001053'
+terminate called without an active exception
+Exception ignored in: <function _MultiProcessingDataLoaderIter.__del__ at 0x7759441747c0>
+Traceback (most recent call last):
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1664, in __del__
+    self._shutdown_workers()
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/dataloader.py", line 1628, in _shutdown_workers
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/process.py", line 149, in join
+    res = self._popen.wait(timeout)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/popen_fork.py", line 40, in wait
+    if not wait([self.sentinel], timeout):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/multiprocessing/connection.py", line 948, in wait
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/z/zhaobin/miniforge3/envs/lewm/lib/python3.11/site-packages/torch/utils/data/_utils/signal_handling.py", line 73, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 1619058) is killed by signal: Aborted. 
+[train] step=20000 lr=3.244e-13 grad_norm=0.2587 samples_per_s=822 pred=0.007347 sigreg=0.8945 redund=0.05395 aux=0.009468 loss=0.1158 val_pred=0.003714 val_sigreg=10.9 val_redund=0.4065 val_aux=0.009356 val_loss=1.189
+[train] finished l4_prop_aux at step 20000 (61.9 min)
+[l4] prop_aux finished -> submitting its L5 evaluation
+L5 prop_aux: representation 955036, w_prop selection 955037 -> test runs 955038
+       JOBID                   NAME     STATE       TIME  PARTITION             NODELIST(REASON)
+      955027           lewm_l5_repr   PENDING       0:00        gpu          (QOSMaxGRESPerUser)
+      954595         lewm_ens_score   PENDING       0:00        gpu                 (Dependency)
+      955038  lewm_l5_prop_aux_test   PENDING       0:00        gpu                 (Dependency)
+      955037 lewm_l5_prop_aux_selec   PENDING       0:00        gpu                   (Priority)
+      955036           lewm_l5_repr   PENDING       0:00        gpu                       (None)
+      954607                lewm_l3   PENDING       0:00        gpu                 (Dependency)
+      954606                lewm_l3   PENDING       0:00        gpu                 (Dependency)
+      954605          lewm_l3_train   PENDING       0:00        gpu                 (Dependency)
+      954603                lewm_l2   PENDING       0:00        gpu                 (Dependency)
+      954602                lewm_l2   PENDING       0:00        gpu                 (Dependency)
+      954601                lewm_l2   PENDING       0:00        gpu                 (Dependency)
+      954600                lewm_l2   PENDING       0:00        gpu                 (Dependency)
+      954599                lewm_l2   PENDING       0:00        gpu                 (Dependency)
+      954598                lewm_l2   PENDING       0:00        gpu                 (Dependency)
+      954597            lewm_l2_cal   PENDING       0:00        gpu                 (Dependency)
+      954961                lewm_l4   RUNNING    1:01:23        gpu                        xgph9
+      954960                lewm_l4   RUNNING    1:03:23        gpu                        xgpi3
+      954958                lewm_l4   RUNNING    1:03:53        gpu                       xgpi12
+      954959                lewm_l4   RUNNING      45:51        gpu                        xgpg2
+      954964               lewm_ens   RUNNING       7:54        gpu                       xgpi14
+      955028      lewm_l5_lewm_test   RUNNING       7:14        gpu                       xgph13
+      954608           lewm_summary   PENDING       0:00     normal                 (Dependency)
+      954604           lewm_summary   PENDING       0:00     normal                 (Dependency)
+      954596        lewm_l1_analyze   PENDING       0:00     normal                 (Dependency)
