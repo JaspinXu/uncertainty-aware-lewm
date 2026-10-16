@@ -1,0 +1,19 @@
+[
+ {
+  "episode": 31,
+  "dataset_episode": 7005,
+  "start_dist_cm": 37.218680930103694,
+  "baseline": {
+   "success": false,
+   "replay_success_step": 0,
+   "max_cube_deviation_m": 3.630429290524262e-14,
+   "final_dist_cm": 35.17113814471798
+  },
+  "gated": {
+   "success": true,
+   "replay_success_step": 24,
+   "max_cube_deviation_m": 0.0,
+   "final_dist_cm": 3.287700187355827
+  }
+ }
+]

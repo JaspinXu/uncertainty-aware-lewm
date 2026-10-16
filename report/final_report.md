@@ -4,15 +4,6 @@
 `results/cube/`, which `scripts/cube/make_report.py` collects into
 `results/cube/RESULTS.md`.*
 
-> **Status (2026-10-16).** Provisional numbers are marked †:
-> - the L2 rows with fewer than 9 seeds;
-> - the L5 rows of `prop_aux` and `prop_ms`;
-> - the diagnostic in §5.6.
->
-> The missing runs were lost to a node failure and are being re-run; the
-> numbers will be updated when they finish. The σ² penalty with the ensemble
-> (p = 0.058 on 7 seeds) is the result most likely to change.
-
 ## Abstract
 
 LeWorldModel (LeWM) plans by cross-entropy-method (CEM) search for action
@@ -21,11 +12,11 @@ fail because the planner exploits model errors, an uncertainty-aware planner
 should help. On PushT, however, three such planners gained at most 2.2 points
 (p > 0.1).
 
-We test the premise directly on OGBench-Cube. We recorded 807 planning calls of
-the pretrained LeWM and replayed 41,157 of the candidates it considered in the
-simulator, starting from the exact planning state. The replays are bit-exact.
-They give every candidate its real outcome and the model's real prediction
-error.
+We test the premise directly on OGBench-Cube pick-and-place. We recorded 807
+planning calls of the pretrained LeWM and replayed 41,157 of the candidates it
+considered in the simulator, starting from the exact planning state. The
+replays are bit-exact. They give every candidate its real outcome and the
+model's real prediction error.
 
 **Uncertainty signals.** We compared MC-dropout variance with the disagreement
 of a five-member latent dynamics ensemble.
@@ -36,30 +27,34 @@ of a five-member latent dynamics ensemble.
 - Within a planning call, neither separates the elite candidates that fail from
   those that succeed (AUROC 0.49 and 0.52).
 
-**Why re-ranking cannot help.** 83% of failed plans are *search* failures: none
-of the replayed alternatives solves the task. Consistent with this:
-- re-ranking candidates by σ² does not raise success;
-- re-ranking with a risk head trained on the replays does not either, although
-  the head predicts failure well (AUROC 0.88);
-- in closed loop, MC averaging, a CVaR penalty and two σ² penalties give no
-  significant gain.
+**Why selection cannot help.** 83% of failed plans are *search* failures: none
+of the replayed alternatives solves the task. Accordingly, re-ranking the
+candidates by σ² does not raise success. Neither does a risk head trained on
+the replays, although it predicts failure well (test AUROC 0.87).
 
-The one exception is uncertainty-gated horizon truncation (+5.3 points,
-p = 0.002, significant after Holm correction). It reads σ² at the first block,
-where σ² tracks the error best.
+**Where the search goes wrong.** The model predicts the planner's candidates
+far worse than the expert's own actions from the evaluation's start states:
+the median five-block error is 207 against 3.9. A rendering check rules out
+the simulator's renderer as a cause: with either the hardware or the software
+renderer, live frames encode like the dataset's frames.
 
-**Representation.** Representation changes trained under one budget show the
-same pattern. Against an equally trained control, a multi-step rollout loss cuts
-the five-block open-loop error on held-out dataset sequences 3.2-fold, yet
-raises success by only 1.3 points. A factorised proprioceptive latent lowers
-success by 5.1 points.
+**Closed loop.** Four planners put σ² into CEM's objective. Two of them raise
+success by about 5 points (9 seeds × 50 episodes, paired; both significant
+after Holm correction):
+- gated horizon truncation: 65.6% → 70.7%, p = 0.0014;
+- the ensemble σ² penalty: 65.6% → 70.4%, p = 0.0016.
 
-On the planner's own candidates, the model's prediction error is more than
-an order of magnitude larger than on held-out dataset sequences. A check is
-still pending on whether part of this comes from live rendering. If it does
-not, the planner searches where the model is least reliable, and a better
-search distribution, not a better uncertainty signal, is the lever that
-matters.
+An MC-dropout σ² penalty and a CVaR penalty gain less, not significantly; MC
+averaging alone gains nothing. The ensemble penalty's gain comes from the
+search, not from selection. Used only to re-rank the baseline's final
+candidates, the same score gains 0.45 points; inside CEM it gains 7.3 on the
+non-trivial episodes.
+
+**Representation.** Changes trained under one budget do not help planning.
+- A multi-step rollout loss cuts the five-block open-loop error 3.2-fold, yet
+  changes success by +1.3 points (n.s.).
+- Factorised proprioceptive latents lower success by 3.3–5.6 points (two of
+  the three significantly).
 
 ## 1 Introduction
 
@@ -112,12 +107,17 @@ frame how L2–L5 are read.
      a planning call, which is where CEM chooses.
    - Most failures are search failures, not selection failures.
 3. **A paired comparison on the 9-seed test panel** of six uncertainty-aware
-   planners on Cube, including a risk head learned from the replays (7–9 seeds
-   per planner so far †). Only gated truncation helps.
+   planners on Cube, including a risk head learned from the replays.
+   - Two planners raise success by about 5 points: gated truncation and an
+     ensemble σ² penalty, both of which put σ² into CEM's objective.
+   - Re-ranking the baseline's converged candidates does not help.
 4. **Five representation variants** of LeWM trained under one budget and
    evaluated three ways: probes, open-loop prediction error and closed-loop
-   planning (two variants pending †). Better open-loop prediction on dataset
-   sequences does not carry over to planning success.
+   planning. Better open-loop prediction on dataset sequences does not carry
+   over to planning success.
+5. **A rendering check.** Live frames from both the hardware and the
+   software renderer encode like the dataset's own frames, so the replays
+   measure model error, not a rendering artefact.
 
 ## 2 Background
 
@@ -133,7 +133,8 @@ frame how L2–L5 are read.
 **Planning protocol (paper, Cube).**
 - CEM with 300 samples, 30 iterations and the top 30 as elites.
 - Horizon of 5 blocks (25 environment steps). The whole plan is executed before
-  replanning, so a 50-step episode has 2 planning calls.
+  replanning, so a 50-step episode has at most 2 planning calls (it ends
+  when the cube reaches the goal).
 - Cost = ‖ẑ₅ − z_goal‖².
 - The start and goal come from the expert dataset; the goal is the state 25
   steps after the start.
@@ -152,8 +153,8 @@ by MC-dropout [Gal & Ghahramani, 2016] or deep ensembles
 ### 3.1 Recording planning calls and replaying them (L1)
 
 `cube/recording.py` subclasses the CEM solver and the MPC policy. Its only side
-effect is logging: in a pilot run, the recorded costs equal the solver's costs
-exactly. At every planning call it stores four things.
+effect is logging: the recorded costs match the solver's (largest difference
+2·10⁻⁴ in the smoke tests, 0 in the L1 recording runs). At every planning call it stores four things.
 - **Simulator state.** Joint positions and velocities; the solver warm start;
   the pinch-site pose that the controller caches from the previous step; and
   the goal target (`cube/simstate.py`).
@@ -183,8 +184,9 @@ the *true* latents z_k, which give two quantities:
   plans succeeds in replay".
 
 Restoring only joint positions and velocities is enough for plans made at an
-episode start. For mid-episode plans it is not. In our first smoke test, one of
-five checked plans diverged by 0.14 in max |Δqpos|. Replays became exact once
+episode start. For mid-episode plans it is not. In our first smoke test, the
+fidelity check over five plans found a largest |Δqpos| of 0.14 (median 3·10⁻⁷).
+Replays became exact once
 the warm start and the cached pose were restored too
 (`tests/test_cube_core.py::test_mid_episode_replay_is_exact`).
 
@@ -323,7 +325,9 @@ calibration seeds.
   - Non-trivial episodes are also reported separately.
 - **Compute.** NUS SoC cluster, one GPU per job; commands are in
   `cluster/README.md`.
-  - Rendering jobs (planning and replays) ran on whole A100, H100 or H200 GPUs.
+  - Rendering jobs (planning and replays) ran on A100, H100 or H200 GPUs.
+    Some of the A100s were MIG slices, on which MuJoCo renders in software
+    (§5.6).
   - Training jobs ran on H100 MIG slices and A100s.
   - Every job is resumable and skips finished runs.
 
@@ -343,7 +347,7 @@ calibration seeds.
 Our baseline is below the published 74%, which lies outside our interval.
 - We use the released checkpoint and the released evaluation configuration.
 - Per-seed variation is large: 50-episode runs range from 58% to 80%.
-- The cause of the gap is open; §5.6 tests one candidate.
+- Rendering is not the cause (§5.6); the gap is otherwise unexplained.
 - All comparisons below are paired within our own panel.
 
 ### 5.2 Is σ² a useful risk signal? (L1)
@@ -374,16 +378,22 @@ So the cost mostly tells hard start states from easy ones.
 | σ²_H vs \|cost − true cost\| | 0.040 [−0.023, 0.103] | 0.092 [0.012, 0.157] |
 
 The ensemble is the better signal at every block. At the final block, where
-the cost is evaluated, both correlations are close to zero. The same holds for
-the error of the cost itself (Figure 1).
+the cost is evaluated, both correlations are close to zero (Figure 1). The same
+holds for the error of the cost itself.
 
 The size of the error matters as much as its ranking.
 - On the planner's candidates, the median error at block 5 is 207 for the
   pretrained predictor and 206 for the ensemble mean.
-- On held-out dataset sequences, the same predictor's mean 5-block error is
-  8.3: 0.044 of the total latent variance (§5.5).
-- On the candidates, the error is about 1.1 times the total latent variance.
-  §5.6 checks how much of this comes from live rendering.
+- On the expert's own actions from the evaluation's start states, it is 3.9
+  (median; §5.6).
+- On held-out dataset sequences, the mean error is 0.044 of the total latent
+  variance (§5.5).
+
+So the model predicts the planner's candidates far worse than the expert's
+motions. The medians differ by a factor of about 50. The two sets of states
+overlap but are not the same: the candidates come from non-trivial planning
+calls, including second plans; the expert check uses all start states of two
+seeds.
 
 ![Figure 1](../results/cube/l1/fig_sigma_vs_error.png)
 
@@ -469,30 +479,50 @@ minutes for all five members.
 
 ### 5.3 Uncertainty-aware planners in closed loop (L2, L3)
 
-Paired against the baseline on the same start and goal states:
+Paired against the baseline on the same start and goal states (9 seeds × 50
+episodes each):
 
-| planner | seeds | success (%) | Δ (pp) | gained / lost | McNemar p | Δ non-trivial (pp) |
+| planner | success (%) | Δ (pp) | gained / lost | McNemar p | Holm-adjusted p | Δ non-trivial (pp) |
 |---|---:|---:|---:|---:|---:|---:|
-| baseline | 9 | 65.6 ± 6.0 | – | – | – | – |
-| MC-5 | 8† | 65.8 ± 5.6 | +0.25 | 18 / 17 | 1.00 | +0.0 |
-| **gated** | 8† | **70.8 ± 5.1** | **+5.25** | **32 / 11** | **0.002** | **+8.1** (p = 0.003) |
-| Goal-CVaR | 7† | 67.4 ± 6.4 | +0.86 | 19 / 16 | 0.74 | +0.9 |
-| σ² penalty (MC) | 7† | 68.9 ± 6.9 | +2.29 | 18 / 10 | 0.18 | +3.7 |
-| σ² penalty (ensemble) | 7† | 70.0 ± 6.8 | +3.43 | 23 / 11 | 0.058 | +5.1 |
-| risk head (L3) | 9 | 66.2 ± 7.1 | +0.67 | 30 / 27 | 0.79 | +0.7 |
+| baseline | 65.6 ± 6.0 | – | – | – | – | – |
+| MC-5 | 65.8 ± 5.2 | +0.2 | 21 / 20 | 1.00 | 1.00 | +0.0 |
+| **gated** | **70.7 ± 4.8** | **+5.1** | **36 / 13** | **0.0014** | **0.008** | **+7.7** |
+| Goal-CVaR | 66.9 ± 5.7 | +1.3 | 26 / 20 | 0.46 | 1.00 | +1.7 |
+| σ² penalty (MC) | 68.0 ± 6.2 | +2.4 | 25 / 14 | 0.11 | 0.43 | +3.8 |
+| **σ² penalty (ensemble)** | **70.4 ± 6.1** | **+4.9** | **34 / 12** | **0.0016** | **0.008** | **+7.3** |
+| risk head (L3) | 66.2 ± 7.1 | +0.7 | 30 / 27 | 0.79 | 1.00 | +0.7 |
 
-- Δ is computed on the seeds that both planners have.
-- **Noise floor.** MC-5 flips 35 of 400 episodes, in both directions, for no
-  net gain. Small changes to the objective reshuffle outcomes episode by
-  episode, which is why the panel uses 9 seeds.
-- **Gated truncation** is the only significant effect. Holm-adjusted over the
-  six planners, p ≈ 0.011. It raises success in 5 of 8 seeds (+6 to +14
-  points) and lowers it slightly in 3 (−2 to −4).
-- **Truncation is rare.** The gated planner's mean scored horizon is 4.86
+- **Two planners help, by about 5 points each**, and both remain significant
+  after Holm correction over the six planners:
+  - gated truncation raises success in 6 of 9 seeds (+4 to +14 points) and
+    lowers it in 3 (−2 to −4);
+  - the ensemble σ² penalty raises it in 8 of 9 seeds (+2 to +12) and lowers
+    it in one (−2).
+  - On the non-trivial episodes, both gain 7–8 points (p = 0.002 each).
+- **The others do not.** MC averaging alone, the CVaR penalty and the
+  MC-dropout σ² penalty change success by 0.2–2.4 points, none significantly.
+  The risk head gains 0.7 points.
+- **What the gate does.** It truncates rarely: the mean scored horizon is 4.86
   blocks (4.73–4.94 per seed), so most candidates are still scored at block 5.
 - **The penalties do steer the plans.** The MC σ² penalty lowers the mean σ² of
-  the scored candidates from 0.93 (MC-5) to 0.74. Neither penalty's success
-  change is significant.
+  the candidates it scores from 0.93 (MC-5) to 0.74.
+- **Noise floor.** Re-running the *same* planner on the same seeds (the
+  visualisation runs, wherever Slurm placed them) changed 20 of 300 episode
+  outcomes. MC-5
+  against the baseline flips 41 of 450 episodes, in both directions, for no
+  net gain. A single 50-episode run therefore says little; the panel pairs 450
+  episodes per planner.
+
+![Figure 4](../results/cube/viz/out/s42/ep31_strip.png)
+
+*Figure 4. One test episode (seed 42) replayed from the logged actions and
+rendered with Blender. The episode was selected because the two planners
+disagree; it is an illustration, not evidence. The baseline lets go of the cube
+at the start and moves the empty gripper to the goal. The gated planner carries
+the cube there and succeeds at step 24. The green box marks the goal; the
+labels give the cube–goal distance. Over all 450 test episodes, success is
+65.6% for the baseline and 70.7% for gated planning. More examples and videos:
+`results/cube/viz/`.*
 
 ### 5.4 The learned risk head (L3, offline)
 
@@ -516,8 +546,15 @@ Paired against the baseline on the same start and goal states:
 ### 5.5 Representations (L4, L5)
 
 **Training.** All five variants trained for 20,000 steps from the pretrained
-model, taking 53–111 minutes each on one GPU. The training curves are plotted
-in `results/cube/l4/fig_training.png` when `RESULTS.md` is generated (†).
+model, taking 53–111 minutes each on one GPU (Figure 3). The factorised models
+end with a higher one-step validation loss than the control. Their loss also
+covers the proprio block, so it is not directly comparable; §5.5 below
+compares the variants by open-loop error relative to each model's latent
+variance and by the decoded cube position.
+
+![Figure 3](../results/cube/l4/fig_training.png)
+
+*Figure 3. Validation one-step prediction loss during L4 training (log scale).*
 
 **Probes** (Pearson r, linear / MLP, held-out episodes):
 
@@ -570,124 +607,162 @@ What the latents encode:
 | `lewm` (control) | – | 66.7 ± 7.3 | +1.1 (0.61) | – |
 | `ms` | – | 68.0 ± 5.8 | +2.4 (0.17) | +1.3 (0.54) |
 | `prop` | 0 | 61.6 ± 7.9 | **−4.0 (0.027)** | **−5.1 (0.007)** |
-| `prop_aux` | 1† | pending† | | |
-| `prop_ms` | 0.1† | pending† | | |
+| `prop_aux` | 1 | 63.3 ± 8.1 | −2.2 (0.22) | −3.3 (0.058) |
+| `prop_ms` | 0.1 | 61.1 ± 7.6 | **−4.4 (0.024)** | **−5.6 (0.004)** |
 
 - **w_prop selection.** Over the three calibration seeds, the w_prop values
-  differ by at most 2.7 points for every variant. The values used for
-  `prop_aux` and `prop_ms` (1 and 0.1) come from those calibration runs.
-- **Results.** Retraining alone changes nothing, and the multi-step loss gives
-  a small, non-significant gain. The proprio factorisation hurts.
+  differ by at most 2.7 points for every variant.
+- **Results.**
+  - Retraining alone changes nothing.
+  - The multi-step loss gives a small, non-significant gain.
+  - All three proprio-factorised variants plan worse than the control, by
+    3.3–5.6 points (p = 0.007, 0.058 and 0.004). The non-trivial episodes lose
+    5.6–8.7 points.
 
-### 5.6 Diagnostic: live-rendered vs dataset frames†
+### 5.6 Check: live-rendered vs dataset frames
 
 The evaluation gives the first plan dataset frames, for both the start and the
-goal; every later observation is rendered live, and so are the replays. A
-difference between live and dataset frames, as the encoder sees them, would
-add to the measured prediction errors in §5.2 and would hurt second plans.
+goal; every later observation is rendered live, and so are the replays. If the
+encoder saw live frames differently from dataset frames, the errors in §5.2
+would contain a rendering gap, and second plans would be handicapped.
 
-`scripts/cube/check_domain_gap.py` measures this gap on the evaluation start
-states of two test seeds. *Result pending.*
+`scripts/cube/check_domain_gap.py` tests this on the 100 evaluation start
+states of seeds 42 and 43. It renders each dataset state live, replays the
+dataset's own next 25 actions, and encodes both kinds of frame.
+
+We ran it with both renderers our planning jobs used, depending on where
+Slurm placed them:
+- software rendering on a MIG slice of an A100 (about 240 ms per frame);
+- hardware rendering on a whole H100 (4 ms per frame).
+
+Medians, with 10th–90th percentiles:
+
+| quantity | software renderer | hardware renderer |
+|---|---|---|
+| pixel difference, live vs dataset frame of the same state (0–255) | 0.36 [0.22, 0.54] | 0.24 [0.08, 0.43] |
+| latent distance, live vs dataset frame of the same state | **0.02** [0.01, 0.06] | **0.01** [0.00, 0.02] |
+| cube drift when the dataset's actions are replayed | 0.01 cm | 0.01 cm |
+| 5-block prediction error of the expert's actions, from the dataset start frame | 3.87 [1.37, 20.7] | 3.87 [1.37, 20.7] |
+| the same, from the live start frame, against live frames | 3.82 [1.41, 24.3] | 3.74 [1.41, 20.7] |
+
+For scale, dataset frames 5 steps apart lie 32.8 apart, and random pairs of
+frames 388.
+
+- **No rendering gap with either renderer.** Live frames encode like the
+  dataset's frames, at a distance about 1,600 times smaller than one block of
+  motion (software) or smaller still (hardware).
+- **The simulator reproduces the dataset**, and the model predicts expert
+  motion equally well from either kind of frame.
+- **What this means for §5.2.** The replays measure model error, and the gap
+  between the planner's candidates (207) and the expert's actions (3.9) is not
+  a rendering artefact. Rendering explains neither the weak second plans nor
+  the gap to the published baseline.
 
 ## 6 Discussion
 
 ### 6.1 Is the signal uninformative, or is it used poorly?
 
-**Mostly the former, in the sense that matters for the planner.** Both
-signals measure something real.
-- Their σ² at the first block ranks the model's errors (Spearman 0.55 and
-  0.69).
-- A high-σ² executed plan almost always fails (Figure 2).
+Both readings of the PushT result hold, for different uses of σ².
 
-But CEM's decision is a choice among the elites of one call, and there σ²
-carries no information.
-- Within-plan AUROCs are 0.49–0.52.
-- σ²_H barely tracks the terminal error (0.03 and 0.08), and the error of the
-  cost no better.
+**As a selector among the baseline's converged candidates, σ² is
+uninformative.** The elites of a planning call usually share their fate: only
+158 of 586 non-trivial calls have elites with both outcomes. Within a call,
+neither signal separates the elites that fail (AUROC 0.49 and 0.52), and
+neither does the LeWM cost (0.53). The learned risk head detects failure far
+better (test AUROC 0.87–0.89), yet it cannot choose a better plan either.
 
-The pooled AUROCs of 0.62–0.63 look like a usable signal, but they mostly say
-that hard start states have higher σ² and fail more often. The LeWM cost shows
-the same between-problem pattern (pooled 0.64, within 0.56).
+The pooled AUROCs of 0.62–0.63 look like a usable signal. They mostly say that
+hard start states have higher σ² and fail more often. In hindsight, our
+pre-registered verdict rule should have used the within-plan AUROC.
 
-The learned risk head confirms this from another side. It detects failure much
-better than either signal (0.88), with or without σ², yet it cannot choose a
-better plan.
+**Inside CEM's objective, σ² can help.** Two of the four planners that use it
+there gain about 5 points (§6.3). Offline re-ranking (Q5) underestimates this
+by far. On the non-trivial plans, re-ranking with the ensemble penalty gained
+0.45 points; the same penalty inside CEM gained 7.3 points on the non-trivial
+episodes.
 
-In hindsight, our pre-registered verdict rule should have used the within-plan
-AUROC. Under the rule as written, the ensemble's GO rests on a 0.45-point,
-non-significant Q5 gain.
-
-### 6.2 Search failures dominate, and the model is optimistic exactly where it fails
+### 6.2 Search failures dominate, and the search explores where the model is unreliable
 
 **Selection is not the main problem.** Only 17% of failed plans had a
 successful alternative among the replayed candidates, and only 4% of failed
 second plans. Even a perfect selector over the replayed candidates would raise
-non-trivial plan success only from 30% to 41%. This caps what any scoring
-change can achieve through re-ranking.
+non-trivial plan success only from 30% to 41%.
 
-**The model is over-optimistic about its failures.** For failed executed
-plans, the true cost exceeds the predicted one by a median of 252, against 45.5
-for successes. This is the optimizer's curse
-[Smith & Winkler, 2006]: CEM picks the lowest predicted costs, and these are
-disproportionately the most underestimated.
+**The model expected its failed plans to work.** For failed executed plans,
+the true cost exceeds the predicted cost by a median of 252, against 45.5 for
+successes. This is what the optimizer's curse [Smith & Winkler, 2006] leads
+one to expect. CEM picks the lowest predicted costs, and these tend to be the
+most underestimated. Our data, however, do not compare selected with
+unselected candidates.
 
-**The candidates lie where the model is least accurate.** At block 5:
-- on the planner's candidates the error is ≈ 110% of the total latent
-  variance;
-- on held-out dataset sequences it is 4%.
+**The candidates lie where the model is least accurate.** The model predicts
+the expert's 25 actions from the evaluation's start states with a median
+5-block error of 3.9. On the planner's candidates the median is 207. The two
+sets of states overlap but differ: the candidates include mid-episode second
+plans, the expert check includes trivial start states. Still, a difference
+this large points to the action sequences. A likely reason is the sampling:
+CEM draws each action independently from a Gaussian in the normalised action
+space, so its candidates need not resemble the smooth expert motions the model
+was trained on.
 
-A likely reason is the sampling. CEM draws each action independently from a
-Gaussian in the normalised action space, so its candidates need not resemble
-the smooth expert motions the model was trained on. We did not measure this
-directly.
+### 6.3 How uncertainty helps: through the search
 
-**A caveat.** Part of this gap could come from rendering, if live frames
-differed from dataset frames as the encoder sees them. The diagnostic in §5.6
-separates the two explanations.
+The plan CEM returns is the mean of its final elites, and every L2 planner
+changes the score that picks those elites in each of the 30 iterations. So
+each one acts on the search as well as on the final choice.
 
-### 6.3 Why does gating help when the penalties do not?
+**The ensemble penalty.** For this planner the two effects can be compared
+directly. The same score, applied only to the baseline's final candidates
+(Q5), changed plan success by 0.45 points. Applied inside CEM, it changed
+episode success on the non-trivial episodes by 7.3 points. Its benefit
+therefore comes from the different candidates the modified search produces.
 
-Every L2 planner changes CEM's scoring rule. The plan is the mean of the final
-elites, so each of them acts on the search. Only gating helps: 70.8% against
-65.8% for MC-5. It differs from MC-5 only in how a minority of candidates are
-scored (the mean scored horizon is 4.86 blocks).
+**The gate.** We could not test its score offline: the records hold no
+intermediate-block costs. The gate scores a candidate whose first-block
+MC-dropout σ² is high at an earlier block. This penalises uncertain candidates
+that reach the goal late, and favours those predicted to arrive early, which
+leaves margin for error later in the plan.
 
-Two features of its rule fit the data.
-1. **It reads σ² where σ² is informative.** The gate uses σ² at the first
-   block, where σ² tracks the prediction error best (Q2: 0.55, against 0.03
-   at block 5). The two penalties use σ²_H.
-2. **It rewards plans that arrive early.** Scoring an uncertain candidate at
-   an earlier block compares an intermediate prediction with the goal. This
-   favours candidates predicted to reach the goal early, which leaves margin
-   for prediction error later in the plan.
+**Which planners help fits the strength of each signal.**
+- **The ensemble's σ² is the stronger signal** in every comparison we ran. It
+  is better in Q2 at every block, and it is the only one that adds to cost and
+  start distance in Q4. At block 5, though, even it tracks the error only
+  weakly (0.08).
+- **The gate reads MC-dropout's σ² at block 1**, where that signal is
+  strongest (0.55).
+- **The MC σ²_H penalty** uses MC-dropout's weakest signal (0.03 at block 5)
+  and gains +2.4 points, not significantly.
+- **The CVaR penalty is tiny on Cube.** It is 1.1% of the cost, and 98% of the
+  elites are the same as without it.
+- **MC averaging alone does not favour confident candidates at all.**
 
-The records do not store intermediate-block costs, so we could not replay the
-gated score on the recorded candidates. A recorded gated run with replays
-would separate the two explanations, and would show whether the gate finds
-better candidates or chooses better among them.
+We did not record these planners' searches. Two things therefore remain open:
+whether the candidates they favour are actually predicted more accurately, and
+how much of the gate's gain comes from each of its two effects. A recorded run
+of each, with replays, would answer both.
 
 ### 6.4 Better prediction is not better planning
 
 **Multi-step training does what it targets but barely moves planning.** The
 5-step loss improves the planner's own rollout on dataset sequences 3.2-fold
 and lowers the decoded cube error, yet success rises by only 1.3 points over
-the control. This is consistent with §6.2: the error that matters is the one
-on the planner's candidates. That error is far larger (median 207, against a
-mean of 8.3 on dataset sequences) than the in-distribution error this loss
-reduces. §5.6 checks how much of the difference comes from rendering.
+the control. This is consistent with §6.2: the error that matters is on the
+planner's candidates, where it is far larger than on expert motion, and a loss
+on dataset sequences need not reduce it.
 
-**The proprio factorisation hurts for a specific reason.**
+**The proprio factorisation hurts, and we can only partly say why.** All three
+factorised variants plan worse than the control (−3.3 to −5.6 points; two of
+the three significantly). One contributor is plausible:
 - The de-redundancy penalty pushes z_vis to drop variance that the arm state
   explains linearly.
-- In pick-and-place data the cube moves with the gripper, so its position is
-  partly predictable from the arm state.
-- The penalty therefore also removes the *linear* cube-position directions from
-  z_vis: linear r drops from 0.996 to 0.29, while the MLP r stays at 0.999.
-- With w_prop = 0, the planning cost is a squared distance in z_vis, so it no
-  longer sees the cube position linearly, and success drops by 5 points.
-- The cube-pose head restores yaw (0.97) and part of the linear position
-  (0.47); adding the multi-step loss restores more (0.74). Their planning
-  results are pending.
+- In pick-and-place data the cube moves with the gripper, so the penalty also
+  removes linear cube-position directions from z_vis: linear r drops from
+  0.996 to 0.29, while the MLP r stays at 0.999.
+
+This does not explain everything. `prop_ms` restores the most linear cube
+information (0.74) and still plans worst. `prop_aux` plans with w_prop = 1,
+where the full latent decodes the cube position linearly (0.97). The changed
+predictor interface and the proprio block in the cost may matter as well.
 
 **What the representation lacks matters less than how it is searched.** The
 proposal's motivation was that LeWM's latent "misses rotation and motion",
@@ -696,19 +771,22 @@ information did not help planning, at least not in the form we added it.
 
 ### 6.5 What would help
 
-The evidence points to the search distribution and to the data the model sees,
-not to the uncertainty signal.
-- **Keep the search near the data.** Start CEM from a goal-conditioned BC prior
-  (GCBC alone reaches 84% on Cube [Argenson & Dulac-Arnold, 2021; Hansen et
-  al., 2022]) or sample temporally correlated noise [Pinneri et al., 2020].
-  This addresses the search failures and the off-distribution error at once.
-  It was the third lever of our proposal, and we did not reach it.
+The evidence points to the search distribution and to the data the model sees.
+- **Keep the search near the data.**
+  - Use σ² inside the search, as the two successful planners do. The ensemble
+    signal is the better one.
+  - Start CEM from a goal-conditioned BC prior [Argenson & Dulac-Arnold, 2021;
+    Hansen et al., 2022]; GCBC alone reaches 84% on Cube.
+  - Sample temporally correlated noise [Pinneri et al., 2020].
+
+  These address both the search failures and the off-distribution error. The
+  BC prior was the third lever of our proposal, and we did not reach it.
 - **Train on the planner's own candidates.** The 41k replays are exactly such
   data, with true latents and outcomes, in the spirit of DAgger
   [Ross et al., 2011].
-- **Use σ² for what it can do.** It flags problems the planner will not solve
-  (Figure 2), which suits abstention, hand-off or more frequent replanning
-  rather than plan selection.
+- **Use σ² for what it can do on its own.** It flags problems the planner will
+  not solve (Figure 2), which suits abstention, hand-off or more frequent
+  replanning.
 
 ## 7 Limitations
 
@@ -717,35 +795,39 @@ not to the uncertainty signal.
 - **The replays cover 51 of the 300 final candidates per call.** "Search
   failure" means that none of these succeeds. The oracle upper bound is
   therefore a lower bound on what a full re-ranking could reach.
-- **Live rendering.** True latents come from live-rendered frames, and a
-  rendering gap would inflate the measured errors (§5.6).
-- **Incomplete runs.** At the time of writing, some L2 planners have 7–8 of
-  the 9 test seeds (†).
-- **Multiple comparisons.** p-values are raw McNemar values, plus a Holm
-  adjustment for the planner family. The representation comparisons are not
-  adjusted.
-- **The gating mechanism** is inferred, not measured (§6.3).
-- **Baseline gap.** Our baseline is below the published number, and we have
-  not identified why.
+- **Mechanisms not measured.** We did not record the searches of the two
+  successful planners (§6.3), and the account of the proprio variants is
+  partial (§6.4).
+- **Multiple comparisons.** p-values are exact McNemar values. The planner
+  family is also Holm-adjusted; the representation comparisons are not.
+- **Run-to-run variation.** Re-running a seed changed up to 8 of 50 outcomes,
+  so single-seed differences are not meaningful. Our conclusions rest on the
+  paired 450-episode panels.
+- **Baseline gap.** Our baseline is below the published number. Rendering is
+  not the cause (§5.6); we have not identified what is.
 
 ## 8 Conclusion
 
-On OGBench-Cube, uncertainty does not help LeWM's planner choose between plans,
-because the choice is not where it fails.
-- MC-dropout and ensemble variance track the model's short-horizon errors. They
-  identify hard problems, but not the failing plans within a problem.
-- 83% of failed plans had no successful alternative among the replayed
-  candidates.
-- On the candidates the search proposes, the model's errors are more than an
-  order of magnitude larger than on dataset sequences (a rendering check is
-  pending, §5.6).
+On OGBench-Cube, uncertainty does not help LeWM's planner choose among the
+plans its search converges to. It can help when it is part of the search
+objective.
+- **Selection.** MC-dropout and ensemble variance track the model's
+  short-horizon errors and identify hard problems. They do not identify the
+  failing plans within a problem, and 83% of failed plans had no successful
+  alternative to select.
+- **Search.** The search proposes action sequences the model predicts far
+  worse than the expert's, and the model expected its failed plans to work.
+  Two planners that put σ² into CEM's objective raise success by about 5
+  points: gated truncation and the ensemble σ² penalty, both p < 0.01 after
+  correction. For the ensemble penalty, the gain demonstrably comes from the
+  search.
+- **Representation.** Changes that improve open-loop prediction on dataset
+  sequences do not improve planning, and factorising out proprioception hurts
+  it.
 
-The one uncertainty-aware planner that helps, gated truncation (+5 points),
-reads σ² at the first block, where σ² is informative; its mechanism remains
-to be isolated. Better open-loop prediction
-on dataset sequences does not translate into planning success. The next lever
-is the search distribution: keeping candidates near the data, or training the
-model on the candidates the planner actually proposes.
+The next lever is the search distribution itself: keeping candidates near the
+data, with uncertainty, a behaviour-cloning prior or correlated sampling, and
+training the model on the candidates the planner actually proposes.
 
 ## References
 

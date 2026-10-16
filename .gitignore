@@ -37,3 +37,5 @@ results/cube/**/*.npz
 # rendered frames for the rollout videos (large; the composed videos/strips are kept)
 results/cube/viz/frames/
 results/cube/viz/scene_*.npz
+results/cube/viz/out/**/*.gif
+!results/cube/viz/out/**/*.mp4
