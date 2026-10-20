@@ -23,7 +23,7 @@ import torch.nn.functional as F
 from einops import rearrange
 from torch import nn
 
-from .truncation import TruncationConfig, compute_truncation_index, gather_at_index
+from .truncation import TruncationConfig, compute_truncation_index, gather_at_index, terminal_charge
 from .uncertainty import EnsembleEstimator, UncertaintyEstimator, rollout_statistics
 
 
@@ -49,6 +49,7 @@ class UncertaintyAwareJEPA(nn.Module):
 
         # diagnostics collected across planning iterations (for logging/plots)
         self.truncation_lengths: list = []
+        self.truncated_frac: list = []  # fraction of candidates scored before the full horizon
         self.mean_sigma2: list = []
         # per-candidate sigma^2 at the first predicted step (for gated calibration)
         self.sigma2_refs: list = []
@@ -64,6 +65,7 @@ class UncertaintyAwareJEPA(nn.Module):
 
     def reset_diagnostics(self) -> None:
         self.truncation_lengths.clear()
+        self.truncated_frac.clear()
         self.mean_sigma2.clear()
         self.sigma2_refs.clear()
         self.sigma2_perstep.clear()
@@ -177,9 +179,12 @@ class UncertaintyAwareJEPA(nn.Module):
 
         if self.trunc_cfg.penalty_weight:
             cost = cost + self.trunc_cfg.penalty_weight * gather_at_index(sigma2_steps, idx)
+        if self.trunc_cfg.terminal_weight:
+            cost = cost + terminal_charge(dist_steps, idx, self.trunc_cfg.terminal_weight)
 
         # ---- diagnostics ----
         self.truncation_lengths.append((idx.float() + 1).mean().item())
+        self.truncated_frac.append((idx < P - 1).float().mean().item())
         self.mean_sigma2.append(sigma2_steps.mean().item())
         # store step-0 sigma^2 for every candidate (used by gated threshold calibration)
         self.sigma2_refs.append(sigma2_steps[..., 0].detach().cpu().reshape(-1))

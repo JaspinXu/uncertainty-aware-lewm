@@ -1,0 +1,49 @@
+{
+  "segment_failure_rate_by_replan": {
+    "0": 0.4975,
+    "25": 0.9748743718592965
+  },
+  "n_by_replan": {
+    "0": 400,
+    "25": 199
+  },
+  "first_plan_auroc_cost_only": 0.6537413435335884,
+  "first_plan_auroc_gbm": 0.8970474261856546,
+  "first_plan_auroc_gbm_delta_ci": [
+    0.18629091069312942,
+    0.3032538818385854
+  ],
+  "first_plan_auroc_s2_mc20": 0.5707392684817121,
+  "first_plan_auroc_s2_ens": 0.5740393509837747,
+  "candidate_reranker": {
+    "share": 0.12394364923238754,
+    "ci": [
+      -0.07262401878833771,
+      0.29400475397706005
+    ],
+    "success_base": 0.375,
+    "success_reranked": 0.325,
+    "success_oracle": 0.57
+  },
+  "onpolicy_err_block1_per_elem_median": 0.05831208825111389,
+  "onpolicy_err_block1_per_elem_mean": 0.15815922617912292,
+  "expert_val_loss_released": 0.004485457956045866,
+  "expert_err_block1_per_elem": {
+    "median": 0.003571853507310152,
+    "mean": 0.0050733862444758415
+  },
+  "across_state_rho_s2_mc20": [
+    0.511449126470539,
+    0.3770452984628784,
+    0.24404771609315412,
+    0.13348568684708625,
+    -0.02311165208457797
+  ],
+  "across_state_rho_s2_ens": [
+    0.6839598327200852,
+    0.6326330952926001,
+    0.5578218435407953,
+    0.4318543726724027,
+    0.20175655077302748
+  ]
+}

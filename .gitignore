@@ -3,19 +3,47 @@ __pycache__/
 *.pyc
 *.egg-info/
 .venv/
+.ipynb_checkpoints/
 
 # editors / macOS
 .DS_Store
 .idea/
 .cursor/
 .vscode/
+*.swp
+
+# local secrets
+.env
+.env.*
 
 # data and run-time artifacts (never committed)
 datasets/
+*.h5
+*.hdf5
 outputs/
+multirun/
 wandb/
 *.mp4
 *.log
-results/logs/
-results/videos/
-results/archive/
+slurm-*.out
+results/**/logs/
+results/**/videos/
+results/**/archive/
+
+# bulky result data: under results/ only text, json, csv and figures are committed
+# (results/cube/step1/ keeps report.md, *.json, fig_*.png and drops ~940 MB of
+# closed-loop logs, replays, latent cache and ensemble weights;
+# results/cube/compare/ keeps the per-seed json, summary.md, per_seed.csv and
+# split.json and drops the trained models and the calibration sigma^2 arrays)
+results/**/*.pt
+results/**/*.npy
+results/**/*.npz
+results/**/*.pkl
+
+# model weights are never committed (released checkpoints come from the LeWM
+# HuggingFace collection; train.py writes weights_epoch_*.pt and *.ckpt);
+# the small checkpoints/<env>/config.json files stay tracked
+checkpoints/**/*.pt
+checkpoints/**/*.ckpt
+checkpoints/**/*.pth
+checkpoints/**/*.safetensors

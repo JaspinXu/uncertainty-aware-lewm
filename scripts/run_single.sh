@@ -6,7 +6,7 @@
 #
 # Optional environment:
 #   RUN_ID      result name (default <METHOD>_s<SEED>)
-#   NUM_EVAL=50 CEM_SAMPLES=300 CEM_STEPS=30 CEM_TOPK=30 REC_HORIZON=5 POLICY=pusht/lewm
+#   NUM_EVAL=50 CEM_SAMPLES=300 CEM_STEPS=30 CEM_TOPK=30 REC_HORIZON=5 POLICY=pusht
 #   FORCE=1     rerun even if a complete result exists (old files go to results/archive/)
 #   PYTHON      interpreter (default: python)
 set -uo pipefail
@@ -52,7 +52,7 @@ fi
 
 CMD=(
   "$PYTHON" evaluate.py
-  "method=$METHOD" "seed=$SEED" "policy=${POLICY:-pusht/lewm}"
+  "method=$METHOD" "seed=$SEED" "policy=${POLICY:-pusht}"
   "eval.num_eval=${NUM_EVAL:-50}"
   "solver.num_samples=${CEM_SAMPLES:-300}" "solver.n_steps=${CEM_STEPS:-30}" "solver.topk=${CEM_TOPK:-30}"
   "plan_config.receding_horizon=${REC_HORIZON:-5}"

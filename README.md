@@ -3,8 +3,9 @@
 Course project built on top of [LeWorldModel](https://le-wm.github.io/)
 (Maes, Le Lidec, Scieur, LeCun, Balestriero, 2026; [paper](https://arxiv.org/pdf/2603.19312v1),
 [checkpoints](https://huggingface.co/collections/quentinll/lewm)). The pretrained LeWM
-checkpoint (`checkpoints/pusht/lewm`) and the CEM planner are kept fixed; only the
-trajectory-scoring function changes. Everything is evaluated on PushT.
+checkpoint (`checkpoints/pusht/`) and the CEM planner are kept fixed; only the
+trajectory-scoring function changes. The comparison below is on PushT; the
+Cube Step-1 section further down tests σ² on OGBench Cube (`checkpoints/cube/`).
 
 Methods compared (all n=50 episodes, CEM 300 candidates / 30 iterations / top-30,
 receding horizon 5):
@@ -44,15 +45,26 @@ cd uncertainty-aware-lewm
 pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128
 export STABLEWM_HOME="$PWD"     # checkpoints/ and datasets/ live here
 export PYTHONPATH="$PWD:$PWD/stable-worldmodel:$PWD/stable-pretraining:$PYTHONPATH"
-export MUJOCO_GL=egl
+export MUJOCO_GL=egl            # Cube on macOS: glfw (egl is unavailable, dm_control rejects cgl)
 ```
 
-Data: download `pusht_expert_train` from the
+Data and checkpoints: neither the datasets nor the model weights are in the
+repository (`*.pt` is git-ignored). Download them from the
 [LeWM HuggingFace collection](https://huggingface.co/collections/quentinll/lewm)
-and place it at `$STABLEWM_HOME/datasets/pusht_expert_train.h5` (the evaluators
-open `HDF5Dataset(eval.dataset_name, cache_dir=$STABLEWM_HOME)`, which resolves
-to `<cache_dir>/datasets/<name>.h5`). The dataset is not included in this
-folder; the checkpoint is (`checkpoints/pusht/lewm/`).
+and place them under `$STABLEWM_HOME`. Only the small `config.json` next to each
+checkpoint is versioned.
+
+| What | Path under `$STABLEWM_HOME` | Selected by |
+|---|---|---|
+| PushT dataset | `datasets/pusht_expert_train.h5` | `config/eval/pusht.yaml` |
+| PushT checkpoint | `checkpoints/pusht/{config.json, weights.pt}` | `policy=pusht` |
+| Cube dataset | `datasets/cube_single_expert.h5` | `config/eval/step1.yaml` |
+| Cube checkpoint | `checkpoints/cube/{config.json, weights.pt}` | `policy=cube` |
+
+The evaluators open `HDF5Dataset(eval.dataset_name, cache_dir=$STABLEWM_HOME)`,
+which resolves to `<cache_dir>/datasets/<name>.h5`. `config/eval/cube.yaml`
+names the Cube dataset `ogbench/cube_single_expert`; with the file at the path
+above, pass `eval.dataset_name=cube_single_expert`, as `step1.yaml` does.
 
 ## Reproducing the final comparison
 
@@ -120,13 +132,39 @@ panel alongside the other methods.
 ```bash
 bash scripts/run_single.sh METHOD SEED [hydra overrides...]
 #   METHOD: baseline | mc5 | gated | goal_cvar
-#   env:    NUM_EVAL=50 CEM_SAMPLES=300 CEM_STEPS=30 CEM_TOPK=30 REC_HORIZON=5 POLICY=pusht/lewm RUN_ID FORCE=1
+#   env:    NUM_EVAL=50 CEM_SAMPLES=300 CEM_STEPS=30 CEM_TOPK=30 REC_HORIZON=5 POLICY=pusht RUN_ID FORCE=1
 python evaluate.py method=goal_cvar seed=42 method.alpha=0.25 output.run_id=goal_a0p25_s42
 ```
 
 A run writes `results/<run_id>.txt` (resolved config + metrics, per-episode
 successes included) and `results/logs/<run_id>.log`; videos are off by default
 (`output.video=true` writes `results/videos/<run_id>/`).
+
+## Cube Step 1: does σ² separate failures?
+
+This step tests whether planning-time σ² flags the frozen Cube LeWM's real
+failures. It runs before any planner is built on σ². Criteria, thresholds and
+the decision rule were fixed in
+[docs/step1_preregistration.md](docs/step1_preregistration.md) before the data
+was collected.
+
+The planner is the baseline LeWM (`config/eval/step1.yaml` = `cube.yaml`). It is
+evaluated only on non-trivial start states, i.e. ones where the cube is not
+already within 4 cm of the goal. Every replan saves the full MuJoCo state, so
+each logged action sequence can be replayed exactly to obtain its real outcome.
+
+```bash
+bash scripts/run_step1.sh      # resumable; on macOS it sets MUJOCO_GL=glfw
+```
+
+| Stage | Script | Output in `results/cube/step1/` |
+|---|---|---|
+| Closed loop, 8 seeds × 50 episodes, plus replays of executed plans and of 200 states × 600 CEM candidates | `scripts/step1_collect.py` | `closed_loop/`, `plan_replays/`, `candidate_replays/` |
+| 5 predictor heads on frozen-encoder latents (ensemble σ²) | `scripts/step1_ensemble.py` | `ensemble/` |
+| Predictions, real errors, MC-dropout and ensemble σ² | `scripts/step1_score.py` | `scores.pt` |
+| Criteria C1–C3, gate G, decision | `scripts/step1_decide.py` | `report.md`, `decision.json`, `fig_*.png` |
+
+Library code lives in `ua/step1/`.
 
 ## Training (upstream LeWM, unchanged)
 

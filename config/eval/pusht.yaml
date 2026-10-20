@@ -20,7 +20,7 @@ world:
   max_episode_steps: ???   # set in code: 2 * eval.eval_budget
 
 seed: 42
-policy: pusht/lewm        # checkpoint folder under $STABLEWM_HOME/checkpoints/
+policy: pusht             # checkpoint folder under $STABLEWM_HOME/checkpoints/
 cache_dir: null
 
 dataset:

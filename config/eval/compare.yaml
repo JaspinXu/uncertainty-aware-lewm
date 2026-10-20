@@ -1,0 +1,32 @@
+# Multi-seed method comparison on OGBench Cube (frozen LeWM).
+#
+#   bash scripts/run_cube_compare.sh       # train -> calibrate -> evaluate -> summary
+#
+# Protocol = config/eval/cube.yaml (CEM 300 samples / 10 iterations / top-30,
+# horizon 5 blocks, receding horizon 5) on non-trivial start states (cube more
+# than 4 cm from the goal), with the goal `compare.offset` expert steps ahead and
+# a budget of 2 x offset steps. Start states come only from dataset episodes
+# outside the latent cache, which no learned component (prior, k̂) has seen. For a
+# seed every planner sees the same start states, so all runs are paired.
+defaults:
+  - cube
+  - _self_
+
+eval:
+  dataset_name: cube_single_expert   # $STABLEWM_HOME/datasets/<name>.h5 (cube.yaml uses ogbench/cube_single_expert)
+
+compare:
+  out_dir: results/cube/compare
+  # latent cache of the training episodes (scripts/cube_train.py builds it if missing)
+  latents: results/cube/step1/ensemble/latents.pt
+  cache_episodes: 3200       # episodes encoded for training; the last val_episodes are held out
+  val_episodes: 200
+  episode_seed: 0
+  offset: 25                 # goal offset in env steps (LeWM protocol); budget = 2 x offset
+  min_init_dist: 0.04        # m; start states already within the success radius are dropped
+  seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # evaluation seeds, 50 episodes each (eval.num_eval)
+  cal_seeds: [900, 901]      # calibration runs of the gates, disjoint from the evaluation seeds
+  train:
+    sigma_prior: {offsets: [25, 25], steps: 8000}            # Gaussian BC prior (bc_only, prior_cem_*)
+    prior_tc: {offsets: [1, 100], k_max: 100, steps: 8000}   # time-conditioned BC prior (bc_select_khat)
+    khat: {offsets: [0, 150], expectile: 0.1, steps: 10000}  # steps-to-goal estimate (bc_select_khat)

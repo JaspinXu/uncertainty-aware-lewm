@@ -1,0 +1,79 @@
+# Shared OGBench-Cube evaluation protocol (single cube, goal from the dataset).
+# The planner is chosen with `method=<name>` (see config/eval/method/*.yaml).
+#
+#   python evaluate.py --config-name cube method=baseline seed=42
+
+defaults:
+  - launcher: local
+  - solver: cem
+  - method: baseline
+  - _self_
+
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+world:
+  env_name: swm/OGBCube-v0
+  num_envs: ${eval.num_eval}
+  max_episode_steps: ???   # set in code: 2 * eval.eval_budget
+  env_type: single
+  ob_type: states
+  multiview: False
+  width: 224
+  height: 224
+  visualize_info: False
+  terminate_at_goal: True
+
+seed: 42
+policy: cube              # checkpoint folder under $STABLEWM_HOME/checkpoints/
+cache_dir: null
+
+dataset:
+  stats: ${eval.dataset_name}
+  keys_to_cache:
+    - action
+
+# planning budget (same as PushT: horizon 5, replan every 5 action blocks)
+plan_config:
+  horizon: 5
+  receding_horizon: 5
+  action_block: 5          # frameskip
+
+# CEM budget for Cube (LeWM paper App. D: 10 iterations outside PushT)
+solver:
+  num_samples: 300
+  n_steps: 10
+  topk: 30
+
+# evaluation from dataset (replay expert start states, goal = state 25 steps later)
+eval:
+  num_eval: 50
+  goal_offset_steps: 25
+  eval_budget: 50
+  img_size: 224
+  dataset_name: ogbench/cube_single_expert   # $STABLEWM_HOME/datasets/ogbench/cube_single_expert.h5
+  callables:
+    # -- set state
+    - method: set_state
+      args:
+        qpos:
+          value: qpos
+        qvel:
+          value: qvel
+    # -- set target pos
+    - method: set_target_pos
+      args:
+        cube_id:
+          value: 0
+          in_dataset: False
+        target_pos:
+          value: goal_privileged_block_0_pos
+        target_quat:
+          value: goal_privileged_block_0_quat
+
+output:
+  dir: results/cube        # kept apart from the PushT results in results/
+  run_id: null             # default: <method.name>_s<seed>
+  video: false             # true -> results/cube/videos/<run_id>/env_*.mp4
