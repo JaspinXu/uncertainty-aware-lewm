@@ -26,7 +26,16 @@ compare:
   min_init_dist: 0.04        # m; start states already within the success radius are dropped
   seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # evaluation seeds, 50 episodes each (eval.num_eval)
   cal_seeds: [900, 901]      # calibration runs of the gates, disjoint from the evaluation seeds
+  # learned components: scripts/cube_train.py -> <out_dir>/models/<file> (default <name>.pt)
   train:
-    sigma_prior: {offsets: [25, 25], steps: 8000}            # Gaussian BC prior (bc_only, prior_cem_*)
+    sigma_prior:      # Gaussian BC prior for goals exactly `offset` steps ahead (bc_only, prior_cem_*)
+      offsets: ["${compare.offset}", "${compare.offset}"]
+      steps: 8000
+      gaussian: true
+      file: "sigma_prior_k${compare.offset}.pt"
+    sigma_prior_var:  # the same for goals 1-100 steps ahead, not told how far (bc_only_var, prior_cem_*_var)
+      offsets: [1, 100]
+      steps: 20000
+      gaussian: true
     prior_tc: {offsets: [1, 100], k_max: 100, steps: 8000}   # time-conditioned BC prior (bc_select_khat)
     khat: {offsets: [0, 150], expectile: 0.1, steps: 10000}  # steps-to-goal estimate (bc_select_khat)

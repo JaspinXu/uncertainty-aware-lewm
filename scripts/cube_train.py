@@ -1,14 +1,17 @@
 """Train the learned components of the compared planners on frozen LeWM latents (config/eval/compare.yaml).
 
     python scripts/cube_train.py                          # every component that is missing
+    python scripts/cube_train.py compare.offset=50        # ... with the sigma prior for goals 50 steps ahead
     python scripts/cube_train.py "+only=[sigma_prior]"    # one component
     python scripts/cube_train.py +force=1                 # retrain even if a checkpoint exists
 
-Writes <compare.out_dir>/models/:
-  sigma_prior.pt  Gaussian BC prior: mean and per-dimension std of the expert's next 25 actions,
-                  goal 25 steps ahead, Gaussian NLL. Used by bc_only and prior_cem_* (CEM from
-                  N(mu_p, sigma^2)); ``sigma_mean`` (mean predicted std on held-out data) is the
-                  constant of prior_cem_sconst.
+Writes <compare.out_dir>/models/ (file names from compare.train.<name>.file, default <name>.pt):
+  sigma_prior_k<offset>.pt  Gaussian BC prior: mean and per-dimension std of the expert's next 25
+                  actions, goal exactly compare.offset steps ahead, Gaussian NLL. Used by bc_only and
+                  prior_cem_* (CEM from N(mu_p, sigma^2)); ``sigma_mean`` (mean predicted std on
+                  held-out data) is the constant of prior_cem_sconst.
+  sigma_prior_var.pt  the same for goals 1-100 steps ahead, without the offset as an input: it is
+                  not told how far the goal is. Used by bc_only_var and prior_cem_*_var.
   prior_tc.pt     time-conditioned BC prior (MSE, goal 1-100 steps ahead, the offset is an input).
   khat.pt         steps-to-goal estimate k̂ (expectile 0.1, goals 0-150 steps ahead).
                   prior_tc + khat are bc_select_khat.
@@ -17,8 +20,9 @@ Writes <compare.out_dir>/models/:
 
 The latent cache (compare.latents) holds every frame of compare.cache_episodes episodes encoded by the
 frozen LeWM encoder; it is built here from the dataset if missing (episodes drawn with
-compare.episode_seed), and not loaded at all when every component and split.json already exist. The last compare.val_episodes cached episodes are held out for early stopping.
-Actions are normalized with the planner's own StandardScaler (fit on the dataset, as evaluate.build_world).
+compare.episode_seed), and not loaded at all when every component and split.json already exist.
+The last compare.val_episodes cached episodes are held out for early stopping. Actions are
+normalized with the planner's own StandardScaler (fit on the dataset, as evaluate.build_world).
 """
 
 from __future__ import annotations
@@ -51,7 +55,12 @@ from ua.step1.prior import PriorData, eval_mse, train_prior  # noqa: E402
 from ua.step1.steps_to_goal import evaluate as eval_khat  # noqa: E402
 from ua.step1.steps_to_goal import train_steps_to_goal  # noqa: E402
 
-COMPONENTS = ("sigma_prior", "prior_tc", "khat")
+COMPONENTS = ("sigma_prior", "sigma_prior_var", "prior_tc", "khat")
+
+
+def model_file(cfg, name: str) -> Path:
+    """Checkpoint of a component (the same rule as scripts/cube_compare.py)."""
+    return ROOT / cfg.compare.out_dir / "models" / str(cfg.compare.train[name].get("file", f"{name}.pt"))
 
 
 def h5_path(cfg) -> Path:
@@ -97,10 +106,10 @@ def main(cfg: DictConfig) -> None:
     only = [str(c) for c in cfg.get("only", COMPONENTS)]
     assert set(only) <= set(COMPONENTS), f"unknown component in {only}; choose from {COMPONENTS}"
     force = bool(cfg.get("force", False))
-    todo = [name for name in only if force or not (mdir / f"{name}.pt").exists()]
+    todo = [name for name in only if force or not model_file(cfg, name).exists()]
     for name in only:
         if name not in todo:
-            print(f"[train] {name}: {mdir / f'{name}.pt'} exists, skipping", flush=True)
+            print(f"[train] {name}: {model_file(cfg, name)} exists, skipping", flush=True)
     if not todo and (mdir / "split.json").exists():
         return  # nothing to train and the split is known: the latent cache is not needed
 
@@ -121,7 +130,7 @@ def main(cfg: DictConfig) -> None:
 
     meta = {"action_mean": mean, "action_scale": scale, "train_episodes": episodes[:-n_val]}
     for name in todo:
-        ckpt = mdir / f"{name}.pt"
+        ckpt = model_file(cfg, name)
         c = tcfg[name]
         offsets = tuple(int(k) for k in c.offsets)
         train, val = data(offsets)
@@ -134,7 +143,7 @@ def main(cfg: DictConfig) -> None:
                   "distance " + ", ".join(f"{b} {v:.0f}" for b, v in ev["mean_pred_by_k"].items()), flush=True)
             state = {"state_dict": model.state_dict(), "offsets": offsets, "expectile": expectile}
         else:
-            k_max, gaussian = int(c.get("k_max", 0)), name == "sigma_prior"
+            k_max, gaussian = int(c.get("k_max", 0)), bool(c.get("gaussian", False))
             model, log = train_prior(train, val, steps=int(c.steps), k_max=k_max, gaussian=gaussian)
             ev = eval_mse(model, val)
             extra = f", NLL {ev['nll']:.3f}, mean sigma_p {ev['sigma_mean']:.3f}" if gaussian else ""

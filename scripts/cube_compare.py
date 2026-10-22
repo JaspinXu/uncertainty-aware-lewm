@@ -23,6 +23,9 @@ Planners:
   prior_cem_s1      CEM from N(mu_p, 1)          sigma = CEM's default width (as bc_init)
   prior_cem_sconst  CEM from N(mu_p, c^2)        c = the prior's mean sigma_p on held-out data
   prior_cem_sp      CEM from N(mu_p, sigma_p^2)  the prior's own per-dimension uncertainty
+                    (these four use the prior for goals exactly compare.offset steps ahead;
+  bc_only_var,      the same four with the prior that is not told how far the goal is,
+  prior_cem_*_var   trained on goals 1-100 steps ahead: models/sigma_prior_var.pt)
   bc_select_khat    time-conditioned prior proposes a chunk per goal offset (5..100); LeWM rolls
                     each out; k̂ picks the shortest estimated time to the goal
   calibrate         MC-5 planning on compare.cal_seeds, recording planning-time sigma^2 per
@@ -61,7 +64,9 @@ from ua.step1.steps_to_goal import load_steps_to_goal  # noqa: E402
 
 UA_METHODS = ("mc5", "gated", "gated_tc", "goal_cvar")  # config/eval/method/<name>.yaml on the MC-5 planner
 PRIOR_CEM = {"prior_cem_s1": None, "prior_cem_sconst": "const", "prior_cem_sp": "prior"}  # -> init std
-PLANNERS = ("lewm", *UA_METHODS, "bc_only", *PRIOR_CEM, "bc_select_khat", "calibrate")
+PRIOR_PLANNERS = ("bc_only", *PRIOR_CEM)  # on the Gaussian prior; "<name>_var" uses sigma_prior_var
+PLANNERS = ("lewm", *UA_METHODS, *PRIOR_PLANNERS, *(f"{p}_var" for p in PRIOR_PLANNERS), "bc_select_khat",
+            "calibrate")
 GATED_PERCENTILE = 50.0  # the original Gated recipe: threshold = p50 of planning-time step-0 sigma^2
 TYPES = ("carry", "pick", "place", "move")  # cube held at the start / at the goal: yes-yes, no-yes, yes-no, no-no
 CONTACT_COL = "proprio_gripper_contact"
@@ -84,6 +89,11 @@ def cached_episodes(cfg) -> list[int]:
     return [int(e) for e in torch.load(path, weights_only=False, map_location="cpu")["episodes"]]
 
 
+def model_file(cfg, name: str) -> Path:
+    """Checkpoint of a learned component (the same rule as scripts/cube_train.py)."""
+    return ROOT / cfg.compare.out_dir / "models" / str(cfg.compare.train[name].get("file", f"{name}.pt"))
+
+
 def method_cfg(name: str) -> DictConfig:
     return OmegaConf.load(ROOT / "config" / "eval" / "method" / f"{name}.yaml")
 
@@ -97,7 +107,6 @@ def load_calibration(kdir: Path) -> np.ndarray:
 
 def build(planner: str, cfg, device: str, kdir: Path):
     """Cost model, run name, solver factory (seed -> solver) and the settings to record."""
-    mdir = ROOT / cfg.compare.out_dir / "models"
     cem_args = dict(batch_size=1, num_samples=int(cfg.solver.num_samples), var_scale=float(cfg.solver.var_scale),
                     n_steps=int(cfg.solver.n_steps), topk=int(cfg.solver.topk), device=device)
     settings = {"cem": {k: v for k, v in cem_args.items() if k != "device"}}
@@ -128,13 +137,16 @@ def build(planner: str, cfg, device: str, kdir: Path):
 
     base = load_base(cfg.policy, device)
     if planner == "bc_select_khat":
-        prior, khat = load_prior(mdir / "prior_tc.pt", device), load_steps_to_goal(mdir / "khat.pt", device)
+        prior = load_prior(model_file(cfg, "prior_tc"), device)
+        khat = load_steps_to_goal(model_file(cfg, "khat"), device)
         return base, run, lambda seed: PriorSelectSolver(prior, base, khat), settings
-    ckpt = mdir / "sigma_prior.pt"
+    name, component = (planner[:-4], "sigma_prior_var") if planner.endswith("_var") else (planner, "sigma_prior")
+    ckpt = model_file(cfg, component)
     prior = load_prior(ckpt, device)
-    if planner == "bc_only":
+    settings["prior"] = ckpt.name
+    if name == "bc_only":
         return base, run, lambda seed: PriorSolver(prior, base), settings
-    init_std = PRIOR_CEM[planner]
+    init_std = PRIOR_CEM[name]
     if init_std == "const":
         init_std = float(torch.load(ckpt, weights_only=False, map_location="cpu")["sigma_mean"])
     settings["init_std"] = "cem default (var_scale)" if init_std is None else init_std

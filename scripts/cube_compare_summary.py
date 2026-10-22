@@ -7,7 +7,7 @@ Reads <compare.out_dir>/k<offset>/<run>/seed_*.json and writes k<offset>/summary
   1. every run: success mean ± std over seeds, pooled success with a Wilson 95% CI, success by task
      type, and against lewm on the same start states: Δ (pp), episodes gained / lost, exact McNemar p
      (Holm-adjusted over the runs) and an exact sign-flip p over the per-seed differences;
-  2. the ablation pairs (gated vs mc5, gated_tc vs gated, the three prior_cem widths, ...);
+  2. the ablation pairs (gated vs mc5, gated_tc vs gated, the three prior_cem widths with either prior, ...);
   3. planner diagnostics (fraction of CEM candidates truncated, scored blocks, sigma^2);
   4. the per-seed success rates of every run.
 A comparison only pairs the seeds both runs have, and checks that their start states are identical.
@@ -32,11 +32,16 @@ from ua.step1.stats import mcnemar  # noqa: E402
 
 REFERENCE = "lewm"
 ORDER = ("lewm", "mc5", "gated", "gated_tc", "goal_cvar", "bc_only",
-         "prior_cem_s1", "prior_cem_sconst", "prior_cem_sp", "bc_select_khat")
+         "prior_cem_s1", "prior_cem_sconst", "prior_cem_sp", "bc_only_var",
+         "prior_cem_s1_var", "prior_cem_sconst_var", "prior_cem_sp_var", "bc_select_khat")
 PAIRS = (  # (run, against): the questions the comparison is meant to answer
     ("gated", "mc5"), ("gated_tc", "mc5"), ("gated_tc", "gated"),
     ("prior_cem_sconst", "prior_cem_s1"), ("prior_cem_sp", "prior_cem_s1"), ("prior_cem_sp", "prior_cem_sconst"),
-    ("prior_cem_sp", "bc_only"), ("bc_select_khat", "bc_only"), ("bc_select_khat", "prior_cem_sp"),
+    ("prior_cem_sp", "bc_only"),
+    # the same with the prior that is not told how far the goal is (_var), and what knowing it is worth
+    ("prior_cem_sconst_var", "prior_cem_s1_var"), ("prior_cem_sp_var", "prior_cem_s1_var"),
+    ("prior_cem_sp_var", "prior_cem_sconst_var"), ("prior_cem_sp_var", "bc_only_var"), ("bc_only", "bc_only_var"),
+    ("bc_select_khat", "bc_only"), ("bc_select_khat", "prior_cem_sp"), ("bc_select_khat", "prior_cem_sp_var"),
 )
 TYPES = ("carry", "pick", "place", "move")
 

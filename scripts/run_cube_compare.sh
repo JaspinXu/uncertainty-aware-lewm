@@ -11,7 +11,8 @@
 #
 # Environment (defaults in brackets):
 #   STAGES     [train calibrate eval summary]
-#   METHODS    [lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp bc_select_khat]
+#   METHODS    [lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp
+#               bc_only_var prior_cem_s1_var prior_cem_sconst_var prior_cem_sp_var bc_select_khat]
 #              goal_cvar is available too; see scripts/cube_compare.py for what each one is
 #   SEEDS      [0 1 2 3 4 5 6 7 8 9]   evaluation seeds, 50 non-trivial episodes each
 #   CAL_SEEDS  [900 901]               calibration seeds of the gates, disjoint from SEEDS
@@ -29,7 +30,7 @@ cd "$ROOT"
 
 export PYTHON="${PYTHON:-python}"
 STAGES="${STAGES:-train calibrate eval summary}"
-METHODS="${METHODS:-lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp bc_select_khat}"
+METHODS="${METHODS:-lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp bc_only_var prior_cem_s1_var prior_cem_sconst_var prior_cem_sp_var bc_select_khat}"
 export SEEDS="${SEEDS:-0 1 2 3 4 5 6 7 8 9}"
 CAL_SEEDS="${CAL_SEEDS:-900 901}"
 export OFFSET="${OFFSET:-25}"

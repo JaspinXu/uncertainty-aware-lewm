@@ -8,16 +8,18 @@
 #
 #   conda activate <env>; cd ~/ua-lewm; bash scripts/submit_cube_compare.sh
 #   GPU=a100-80 METHODS="lewm gated gated_tc" bash scripts/submit_cube_compare.sh
+#   OFFSET=50 bash scripts/submit_cube_compare.sh     # goal 50 steps ahead, budget 100 steps
 #
 # Environment: PARTITION [gpu]  GPU [h100-47] (any --gpus type, or "any")  TIME [03:00:00]
-#   METHODS [lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp bc_select_khat]
+#   METHODS [lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp
+#            bc_only_var prior_cem_s1_var prior_cem_sconst_var prior_cem_sp_var bc_select_khat]
 #   plus SEEDS / CAL_SEEDS / OFFSET / DATASET / EXTRA, passed through to scripts/run_cube_compare.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PARTITION="${PARTITION:-gpu}"
 GPU="${GPU:-h100-47}"
 TIME="${TIME:-03:00:00}"
-ALL_METHODS="${METHODS:-lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp bc_select_khat}"
+ALL_METHODS="${METHODS:-lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp bc_only_var prior_cem_s1_var prior_cem_sconst_var prior_cem_sp_var bc_select_khat}"
 command -v python >/dev/null || { echo "activate the Python environment first (conda activate ...)" >&2; exit 1; }
 mkdir -p results/cube/compare/logs
 
