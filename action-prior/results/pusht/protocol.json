@@ -1,0 +1,29 @@
+{
+  "seeds": [
+    62,
+    63,
+    64,
+    65,
+    66
+  ],
+  "task_seed": 54782026,
+  "num_tasks": 50,
+  "rho": 0.25,
+  "guided_std": 0.5,
+  "iterations": [
+    5,
+    30
+  ],
+  "samples": 300,
+  "goal_offset": 25,
+  "budget": 50,
+  "checkpoint_sha256": "77e4d3e46c2370ff3f86f820dd6151f5307587da3b9b953a6f5e28b36f200d45",
+  "code_sha256": {
+    "evaluate.py": "821e1d0978ec2a416df5ee75fd2a76a806b4e828f59b786fcc2bd4dde1820cb8",
+    "prior.py": "44923e948776b5e5ff1be9c2e4609d259a4c8ec89326987acb9bc70d8017f493",
+    "planner.py": "19f73995a966ec67260fb647881b14f8e2278e012ba30f04f68b199207b6f213",
+    "train_prior.py": "9da4c774b27966905f6255e195318284ad50dffff36e335bbac42379d90ed55e",
+    "cache_latents.py": "e9dfd9b25a4033df16cb0f158dabf7d24623c8616659976ced9957e0448cc25f"
+  },
+  "note": "Separate PushT prior trained on PushT train trajectories. rho and noise transferred from Cube without PushT test tuning. No claim of zero-shot Cube-policy transfer."
+}

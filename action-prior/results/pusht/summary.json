@@ -1,0 +1,208 @@
+{
+  "complete": true,
+  "groups": {
+    "bc-5": {
+      "mean_percent": 59.599999999999994,
+      "std_percent": 0.8944271909999166,
+      "per_seed_percent": [
+        60.0,
+        60.0,
+        57.99999999999999,
+        60.0,
+        60.0
+      ],
+      "mean_seconds_per_batched_solve": 0.12777494435431436
+    },
+    "baseline-5": {
+      "mean_percent": 70.0,
+      "std_percent": 2.8284271247461867,
+      "per_seed_percent": [
+        66.0,
+        72.0,
+        72.0,
+        68.0,
+        72.0
+      ],
+      "mean_seconds_per_batched_solve": 4.734600373194553
+    },
+    "guided-5": {
+      "mean_percent": 89.60000000000001,
+      "std_percent": 2.6076809620810617,
+      "per_seed_percent": [
+        90.0,
+        88.0,
+        92.0,
+        92.0,
+        86.0
+      ],
+      "mean_seconds_per_batched_solve": 3.616290077602025
+    },
+    "baseline-30": {
+      "mean_percent": 93.60000000000001,
+      "std_percent": 2.9664793948382626,
+      "per_seed_percent": [
+        94.0,
+        98.0,
+        94.0,
+        92.0,
+        90.0
+      ],
+      "mean_seconds_per_batched_solve": 18.35498284449568
+    },
+    "guided-30": {
+      "mean_percent": 96.39999999999999,
+      "std_percent": 1.6733200530681527,
+      "per_seed_percent": [
+        98.0,
+        94.0,
+        96.0,
+        96.0,
+        98.0
+      ],
+      "mean_seconds_per_batched_solve": 17.583733477978967
+    }
+  },
+  "paired": {
+    "guided-5_minus_baseline-5": {
+      "delta_pp": 19.6,
+      "ci95_pp": [
+        8.4,
+        30.400000000000006
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 13,
+          "losses": 1,
+          "p": 0.0018310546875
+        },
+        {
+          "wins": 10,
+          "losses": 2,
+          "p": 0.03857421875
+        },
+        {
+          "wins": 11,
+          "losses": 1,
+          "p": 0.00634765625
+        },
+        {
+          "wins": 13,
+          "losses": 1,
+          "p": 0.0018310546875
+        },
+        {
+          "wins": 12,
+          "losses": 5,
+          "p": 0.143463134765625
+        }
+      ]
+    },
+    "guided-5_minus_bc-5": {
+      "delta_pp": 30.000000000000004,
+      "ci95_pp": [
+        16.790000000000006,
+        43.6
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 16,
+          "losses": 1,
+          "p": 0.000274658203125
+        },
+        {
+          "wins": 15,
+          "losses": 1,
+          "p": 0.000518798828125
+        },
+        {
+          "wins": 18,
+          "losses": 1,
+          "p": 7.62939453125e-05
+        },
+        {
+          "wins": 17,
+          "losses": 1,
+          "p": 0.00014495849609375
+        },
+        {
+          "wins": 15,
+          "losses": 2,
+          "p": 0.002349853515625
+        }
+      ]
+    },
+    "guided-30_minus_baseline-30": {
+      "delta_pp": 2.8,
+      "ci95_pp": [
+        -1.2000000000000002,
+        7.6
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 3,
+          "losses": 1,
+          "p": 0.625
+        },
+        {
+          "wins": 0,
+          "losses": 2,
+          "p": 0.5
+        },
+        {
+          "wins": 2,
+          "losses": 1,
+          "p": 1.0
+        },
+        {
+          "wins": 3,
+          "losses": 1,
+          "p": 0.625
+        },
+        {
+          "wins": 4,
+          "losses": 0,
+          "p": 0.125
+        }
+      ]
+    },
+    "guided-30_minus_bc-5": {
+      "delta_pp": 36.8,
+      "ci95_pp": [
+        23.2,
+        50.4
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 20,
+          "losses": 1,
+          "p": 2.09808349609375e-05
+        },
+        {
+          "wins": 19,
+          "losses": 2,
+          "p": 0.00022125244140625
+        },
+        {
+          "wins": 20,
+          "losses": 1,
+          "p": 2.09808349609375e-05
+        },
+        {
+          "wins": 19,
+          "losses": 1,
+          "p": 4.00543212890625e-05
+        },
+        {
+          "wins": 19,
+          "losses": 0,
+          "p": 3.814697265625e-06
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "50 independent test trajectories, repeated five planner seeds.",
+    "Single prior-training seed.",
+    "Non-significance is not proof of equivalence or no regression."
+  ]
+}
