@@ -13,6 +13,8 @@ Writes <compare.out_dir>/models/ (file names from compare.train.<name>.file, def
   sigma_prior_var.pt  the same for goals 1-100 steps ahead, without the offset as an input: it is
                   not told how far the goal is. Used by bc_only_var and prior_cem_*_var.
   prior_tc.pt     time-conditioned BC prior (MSE, goal 1-100 steps ahead, the offset is an input).
+  sigma_prior_tc.pt  the same as a Gaussian prior (mean and sigma_k), for bc_select_khat_m1 /
+                  _sp_m* / _sconst_m*, which add draws from N(mu_k, sigma^2) to the proposals.
   khat.pt         steps-to-goal estimate k̂ (expectile 0.1, goals 0-150 steps ahead).
                   prior_tc + khat are bc_select_khat.
   split.json      the cached training / validation episodes. scripts/cube_compare.py draws its
@@ -55,12 +57,12 @@ from ua.step1.prior import PriorData, eval_mse, train_prior  # noqa: E402
 from ua.step1.steps_to_goal import evaluate as eval_khat  # noqa: E402
 from ua.step1.steps_to_goal import train_steps_to_goal  # noqa: E402
 
-COMPONENTS = ("sigma_prior", "sigma_prior_var", "prior_tc", "khat")
+COMPONENTS = ("sigma_prior", "sigma_prior_var", "prior_tc", "sigma_prior_tc", "khat")
 
 
 def model_file(cfg, name: str) -> Path:
     """Checkpoint of a component (the same rule as scripts/cube_compare.py)."""
-    return ROOT / cfg.compare.out_dir / "models" / str(cfg.compare.train[name].get("file", f"{name}.pt"))
+    return ROOT / cfg.compare.models_dir / str(cfg.compare.train[name].get("file", f"{name}.pt"))
 
 
 def h5_path(cfg) -> Path:
@@ -90,7 +92,15 @@ def latent_cache(cfg, device) -> dict:
 
 
 def action_scaler(cfg) -> tuple[np.ndarray, np.ndarray]:
-    """The planner's action normalization (evaluate.build_world fits the same scaler)."""
+    """The planner's action normalization (evaluate.build_world fits the same scaler). Without the
+    dataset (e.g. a machine that only trains on the latent cache), the copy saved with any trained
+    component, which is the same scaler."""
+    if not h5_path(cfg).exists():
+        for path in sorted((ROOT / cfg.compare.models_dir).glob("*.pt")):
+            ck = torch.load(path, weights_only=False, map_location="cpu")
+            if "action_mean" in ck:
+                print(f"[train] {h5_path(cfg)} missing: action scaler from {path.name}", flush=True)
+                return ck["action_mean"], ck["action_scale"]
     values = get_dataset(cfg, cfg.eval.dataset_name).get_col_data("action")
     scaler = preprocessing.StandardScaler().fit(values[~np.isnan(values).any(axis=1)])
     return scaler.mean_.astype(np.float32), scaler.scale_.astype(np.float32)
@@ -101,7 +111,7 @@ def main(cfg: DictConfig) -> None:
     OmegaConf.set_struct(cfg, False)
     device = pick_device()
     tcfg = cfg.compare.train
-    mdir = ROOT / cfg.compare.out_dir / "models"
+    mdir = ROOT / cfg.compare.models_dir
     mdir.mkdir(parents=True, exist_ok=True)
     only = [str(c) for c in cfg.get("only", COMPONENTS)]
     assert set(only) <= set(COMPONENTS), f"unknown component in {only}; choose from {COMPONENTS}"

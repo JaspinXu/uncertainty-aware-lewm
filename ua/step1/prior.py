@@ -18,8 +18,11 @@ Planners:
 - ``PriorInitCEMSolver``: CEM from N(mu_p, sigma^2) at every planning call,
   with sigma = 1 (CEM's default width), a constant, or the prior's sigma_p.
 - ``PriorSelectSolver``: a time-conditioned prior proposes one chunk per goal
-  offset in ``ks``; the world model rolls each out and a steps-to-goal estimate
-  k̂ (ua/step1/steps_to_goal.py) scores each one's time to the goal.
+  offset in ``ks`` (a Gaussian one optionally adds draws from N(mu_k, sigma^2));
+  the world model rolls each out and a steps-to-goal estimate k̂
+  (ua/step1/steps_to_goal.py) scores each one's time to the goal.
+- ``KhatCost``: LeWM as a CEM cost model scored by the same time to the goal
+  instead of its terminal latent distance (any CEM solver, e.g. PriorInitCEMSolver).
 """
 
 from __future__ import annotations
@@ -33,7 +36,7 @@ import torch.nn.functional as F
 from stable_worldmodel.solver import CEMSolver
 from torch import nn
 
-from ua.step1.rollout import deterministic_rollouts
+from ua.step1.rollout import deterministic_rollouts, ensemble_rollouts, sigma2
 
 HORIZON, BLOCK, ACT = 5, 5, 5   # planner blocks, env steps per block, action dim
 GOAL_OFFSET = HORIZON * BLOCK    # 25 env steps
@@ -215,22 +218,23 @@ class PriorInitCEMSolver(CEMSolver):
     """CEM whose initial distribution at every planning call is N(mu_p, sigma^2) (scoring unchanged).
 
     ``init_std``: None -> sigma = ``var_scale`` (CEM's default width, 1); "prior" -> the Gaussian
-    prior's per-dimension sigma_p; a number -> that constant. CEM refits mean and std to its
-    elites after the first iteration, as usual.
+    prior's per-dimension sigma_p; a number -> that constant. Either width is multiplied by
+    ``std_scale`` (alpha; alpha -> 0 is the prior's mean, i.e. behaviour cloning). CEM refits mean and
+    std to its elites after the first iteration, as usual.
     """
 
-    def __init__(self, *args, prior: BCPrior, init_std=None, **kwargs):
+    def __init__(self, *args, prior: BCPrior, init_std=None, std_scale: float = 1.0, **kwargs):
         super().__init__(*args, **kwargs)
         assert init_std != "prior" or prior.gaussian, "init_std='prior' needs a Gaussian prior"
-        self.prior, self.init_std = prior, init_std
+        self.prior, self.init_std, self.std_scale = prior, init_std, float(std_scale)
         self._std = None
 
     def solve(self, info_dict: dict, init_action=None) -> dict:
         mu, std = propose(self.prior, self.model, info_dict)
         if self.init_std == "prior":
-            self._std = std.cpu().to(self.dtype)
+            self._std = (self.std_scale * std).cpu().to(self.dtype)
         elif self.init_std is not None:
-            self._std = torch.full_like(mu, float(self.init_std)).cpu().to(self.dtype)
+            self._std = torch.full_like(mu, self.std_scale * float(self.init_std)).cpu().to(self.dtype)
         try:
             return super().solve(info_dict, init_action=mu.cpu())
         finally:
@@ -270,6 +274,15 @@ class PriorSolver:
         return self.solve(*args, **kwargs)
 
 
+def time_to_goal(khat, pred: torch.Tensor, goal: torch.Tensor, history: int) -> torch.Tensor:
+    """Estimated steps to the goal of each rollout, (N,): the minimum over its predicted states j
+    (the states after blocks history .. HORIZON) of the steps up to j plus k̂(state j, goal).
+    A learned cost-to-go instead of the terminal latent distance. pred (N, P, D), goal (N, D)."""
+    n, P = pred.shape[:2]
+    togo = khat(pred.flatten(0, 1), goal.repeat_interleave(P, 0)).clamp(min=0).view(n, P)
+    return (togo + BLOCK * torch.arange(history, history + P, device=togo.device)).min(dim=-1).values
+
+
 class PriorSelectSolver(PriorSolver):
     """Proposals of a time-conditioned prior for goal offsets ``ks``; the world model picks one per env.
 
@@ -277,23 +290,85 @@ class PriorSelectSolver(PriorSolver):
     min over its blocks j of (steps up to block j + k̂(predicted latent after block j, goal)),
     a learned cost-to-go instead of the myopic latent distance. ``chosen_k`` records the selected
     offset of every planning call.
+
+    ``samples`` = M > 1 (Gaussian prior) proposes, for every k, the mean plus M - 1 draws from
+    N(mu_k, sigma^2), sigma = the prior's sigma_k (``init_std`` "prior") or a constant; the M = 1
+    proposals stay in the set, so a larger M only adds options. ``chosen_sample`` records which
+    one won (0 = the mean).
+
+    ``penalty`` = lambda > 0 adds lambda x the ensemble's latent sigma^2 (variance across ``members``,
+    summed over latent dims, mean over the predicted blocks) to every proposal's time to goal: the
+    evaluator distrusts proposals its independently trained predictors disagree on.
+    ``penalty_changed`` records, per env and call, whether that changed the choice.
     """
 
-    def __init__(self, prior: BCPrior, model, khat, ks=(5, 10, 15, 25, 35, 50, 75, 100)):
+    def __init__(self, prior: BCPrior, model, khat, ks=(5, 10, 15, 25, 35, 50, 75, 100), samples: int = 1,
+                 init_std=None, seed: int = 0, members=None, penalty: float = 0.0):
         assert prior.k_max, "PriorSelectSolver needs a time-conditioned prior"
+        assert samples == 1 or init_std not in (None, "prior") or prior.gaussian, "sigma_k needs a Gaussian prior"
+        assert samples == 1 or init_std is not None, "draws need a width: 'prior' or a constant"
         super().__init__(prior, model)
         self.khat, self.ks = khat, [int(k) for k in ks]
+        assert not penalty or members, "the ensemble penalty needs the ensemble members"
+        self.samples, self.init_std = int(samples), init_std
+        self.members, self.penalty = members, float(penalty)
+        self.penalty_changed: list[bool] = []
+        self.gen = torch.Generator().manual_seed(int(seed))
         self.chosen_k: list[int] = []
+        self.chosen_sample: list[int] = []
+
+    @torch.no_grad()
+    def score(self, zh: torch.Tensor, g: torch.Tensor):
+        """From the latents of the history (n, H, D) and the goal (n, D): the proposals (n, S M, HORIZON,
+        25), their time to goal (n, S M) and, given ``members``, their ensemble latent sigma^2 (n, S M)."""
+        n, S, H, M = len(zh), len(self.ks), zh.shape[1], self.samples
+        k = torch.as_tensor(self.ks, device=zh.device).repeat(n)
+        mu, std = self.prior.dist(zh[:, -1].repeat_interleave(S, 0), g.repeat_interleave(S, 0), k)  # (n S, 5, 25)
+        cand = mu[:, None]
+        if M > 1:
+            sigma = std if self.init_std == "prior" else torch.full_like(mu, float(self.init_std))
+            eps = torch.randn((len(mu), M - 1, *mu.shape[1:]), generator=self.gen).to(mu.device)
+            cand = torch.cat([cand, mu[:, None] + sigma[:, None] * eps], dim=1)
+        cand = cand.reshape(n, S * M, HORIZON, -1)  # per env: k-major, then the M proposals of that k
+        emb0, flat = zh.repeat_interleave(S * M, 0), cand.flatten(0, 1)
+        pred = deterministic_rollouts(self.model, emb0, flat)  # (n S M, P, D)
+        cost = time_to_goal(self.khat, pred, g.repeat_interleave(S * M, 0), H).view(n, S * M)
+        var = None
+        if self.members:
+            var = sigma2(ensemble_rollouts(self.members, emb0, flat)).mean(dim=-1).view(n, S * M)
+        return cand, cost, var
 
     @torch.no_grad()
     def solve(self, info_dict: dict, init_action=None) -> dict:
-        zh, g = encode_history_goal(self.model, info_dict)
-        n, S, H = len(zh), len(self.ks), zh.shape[1]
-        k = torch.as_tensor(self.ks, device=zh.device).repeat(n)
-        cand = self.prior(zh[:, -1].repeat_interleave(S, 0), g.repeat_interleave(S, 0), k).view(n, S, HORIZON, -1)
-        pred = deterministic_rollouts(self.model, zh.repeat_interleave(S, 0), cand.flatten(0, 1))  # (n S, P, D)
-        P = pred.shape[1]  # the states after blocks H .. HORIZON
-        togo = self.khat(pred.flatten(0, 1), g.repeat_interleave(S * P, 0)).clamp(min=0).view(n, S, P)
-        best = (togo + BLOCK * torch.arange(H, H + P, device=togo.device)).min(dim=-1).values.argmin(dim=1)
-        self.chosen_k += [self.ks[j] for j in best.tolist()]
-        return {"actions": cand[torch.arange(n, device=cand.device), best].cpu()}
+        cand, cost, var = self.score(*encode_history_goal(self.model, info_dict))
+        if self.penalty:
+            self.penalty_changed += (cost.argmin(dim=1) != (cost + self.penalty * var).argmin(dim=1)).tolist()
+            cost = cost + self.penalty * var
+        best = cost.argmin(dim=1)
+        self.chosen_k += [self.ks[j // self.samples] for j in best.tolist()]
+        self.chosen_sample += [j % self.samples for j in best.tolist()]
+        return {"actions": cand[torch.arange(len(cand), device=cand.device), best].cpu()}
+
+
+class KhatCost(nn.Module):
+    """LeWM as a CEM cost model scored by ``time_to_goal`` instead of its terminal latent distance.
+
+    ``get_cost`` rolls every candidate out deterministically from the encoded observation history
+    (the rollout LeWM's own cost uses) and returns its estimated steps to the goal; lower is better,
+    as for the latent distance. ``encode`` is LeWM's, so ``PriorInitCEMSolver`` proposes as usual.
+    """
+
+    def __init__(self, model, khat):
+        super().__init__()
+        self.model, self.khat = model, khat
+
+    def encode(self, info: dict) -> dict:
+        return self.model.encode(info)
+
+    @torch.no_grad()
+    def get_cost(self, info_dict: dict, action_candidates: torch.Tensor) -> torch.Tensor:
+        info = {k: v[:, 0] for k, v in info_dict.items() if torch.is_tensor(v)}  # CEM repeats it per sample
+        zh, g = encode_history_goal(self.model, info)
+        B, S = action_candidates.shape[:2]
+        pred = deterministic_rollouts(self.model, zh.repeat_interleave(S, 0), action_candidates.flatten(0, 1).float())
+        return time_to_goal(self.khat, pred, g.repeat_interleave(S, 0), zh.shape[1]).view(B, S)

@@ -17,8 +17,14 @@ eval:
 
 compare:
   out_dir: results/cube/compare
+  # trained components (scripts/cube_train.py); point it at the main run's models to evaluate into
+  # another out_dir with the same models (the tuning runs: results/cube/compare_tune)
+  models_dir: ${compare.out_dir}/models
   # latent cache of the training episodes (scripts/cube_train.py builds it if missing)
   latents: results/cube/step1/ensemble/latents.pt
+  # Step-1 predictor ensemble (member_*.pt, trained on the latent cache only): the evaluator's epistemic
+  # sigma^2 of bc_select_khat_*_ens; penalty unit from scripts/cube_ens_scale.py (models/ens_scale.json)
+  ensemble_dir: results/cube/step1/ensemble
   cache_episodes: 3200       # episodes encoded for training; the last val_episodes are held out
   val_episodes: 200
   episode_seed: 0
@@ -38,4 +44,9 @@ compare:
       steps: 20000
       gaussian: true
     prior_tc: {offsets: [1, 100], k_max: 100, steps: 8000}   # time-conditioned BC prior (bc_select_khat)
+    sigma_prior_tc:   # the same as a Gaussian prior: mu_k and sigma_k (bc_select_khat_m1, _sp_m*, _sconst_m*)
+      offsets: [1, 100]
+      k_max: 100
+      steps: 8000
+      gaussian: true
     khat: {offsets: [0, 150], expectile: 0.1, steps: 10000}  # steps-to-goal estimate (bc_select_khat)

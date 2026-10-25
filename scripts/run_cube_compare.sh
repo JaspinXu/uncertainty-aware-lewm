@@ -11,9 +11,12 @@
 #
 # Environment (defaults in brackets):
 #   STAGES     [train calibrate eval summary]
-#   METHODS    [lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp
-#               bc_only_var prior_cem_s1_var prior_cem_sconst_var prior_cem_sp_var bc_select_khat]
-#              goal_cvar is available too; see scripts/cube_compare.py for what each one is
+#   METHODS    [lewm bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp bc_only_var
+#               prior_cem_s1_var prior_cem_sconst_var prior_cem_sp_var bc_select_khat bc_select_khat_m1
+#               bc_select_khat_sp_m4 bc_select_khat_sconst_m4 bc_select_khat_sp_m16 bc_select_khat_m1_ens
+#               bc_select_khat_sp_m4_ens bc_select_khat_m1_ens3 bc_select_khat_sp_m4_ens3]
+#               mc5 gated gated_tc goal_cvar and the CEM-on-k̂ *_khat runs still run when named
+#               (dropped from the default); scripts/cube_compare.py says what each one is
 #   SEEDS      [0 1 2 3 4 5 6 7 8 9]   evaluation seeds, 50 non-trivial episodes each
 #   CAL_SEEDS  [900 901]               calibration seeds of the gates, disjoint from SEEDS
 #   OFFSET     [25]                    goal offset in env steps (LeWM protocol); budget = 2 x OFFSET
@@ -23,6 +26,7 @@
 #   DATASET    [cube_single_expert]    eval.dataset_name: $STABLEWM_HOME/datasets/<DATASET>.h5
 #   PYTHON [python]  MUJOCO_GL [egl on Linux, glfw on macOS]  STABLEWM_HOME [repo root]
 #   EXTRA      extra hydra overrides for every python call, e.g. EXTRA="eval.num_eval=10"
+#   LOGS       [results/cube/compare/logs]   where the per-method logs go
 # Resumable: trained components and finished seeds are skipped. Logs: results/cube/compare/logs/.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -30,7 +34,7 @@ cd "$ROOT"
 
 export PYTHON="${PYTHON:-python}"
 STAGES="${STAGES:-train calibrate eval summary}"
-METHODS="${METHODS:-lewm mc5 gated gated_tc bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp bc_only_var prior_cem_s1_var prior_cem_sconst_var prior_cem_sp_var bc_select_khat}"
+METHODS="${METHODS:-lewm bc_only prior_cem_s1 prior_cem_sconst prior_cem_sp bc_only_var prior_cem_s1_var prior_cem_sconst_var prior_cem_sp_var bc_select_khat bc_select_khat_m1 bc_select_khat_sp_m4 bc_select_khat_sconst_m4 bc_select_khat_sp_m16 bc_select_khat_m1_ens bc_select_khat_sp_m4_ens bc_select_khat_m1_ens3 bc_select_khat_sp_m4_ens3}"
 export SEEDS="${SEEDS:-0 1 2 3 4 5 6 7 8 9}"
 CAL_SEEDS="${CAL_SEEDS:-900 901}"
 export OFFSET="${OFFSET:-25}"
@@ -41,7 +45,7 @@ if [[ "$(uname)" == "Darwin" ]]; then export MUJOCO_GL="${MUJOCO_GL:-glfw}"; els
 export STABLEWM_HOME="${STABLEWM_HOME:-$ROOT}"
 export PYTHONPATH="$ROOT:$ROOT/stable-worldmodel:$ROOT/stable-pretraining${PYTHONPATH:+:$PYTHONPATH}"
 export PYTORCH_ENABLE_MPS_FALLBACK=1
-export LOGS="$ROOT/results/cube/compare/logs"
+export LOGS="${LOGS:-$ROOT/results/cube/compare/logs}"
 mkdir -p "$LOGS"
 
 has() { [[ " $STAGES " == *" $1 "* ]]; }

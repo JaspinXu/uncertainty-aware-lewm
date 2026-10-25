@@ -79,6 +79,18 @@ def new_head(config_json: str | Path, seed: int) -> PredictorHead:
     )
 
 
+def load_members(ensemble_dir: str | Path, config_json: str | Path, device) -> list[PredictorHead]:
+    """The trained members (member_<m>.pt, saved on whatever device they trained on), eval mode."""
+    members = []
+    for path in sorted(Path(ensemble_dir).glob("member_*.pt")):
+        ck = torch.load(path, weights_only=False, map_location="cpu")
+        head = new_head(config_json, seed=ck["seed"])
+        head.load_state_dict(ck["state_dict"])
+        members.append(head.to(device).eval())
+    assert members, f"no member_*.pt in {ensemble_dir}"
+    return members
+
+
 def base_head(base) -> PredictorHead:
     """The released predictor viewed as a head (shares parameters with ``base``)."""
     return PredictorHead(base.predictor, base.action_encoder, base.pred_proj)

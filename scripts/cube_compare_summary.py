@@ -33,7 +33,12 @@ from ua.step1.stats import mcnemar  # noqa: E402
 REFERENCE = "lewm"
 ORDER = ("lewm", "mc5", "gated", "gated_tc", "goal_cvar", "bc_only",
          "prior_cem_s1", "prior_cem_sconst", "prior_cem_sp", "bc_only_var",
-         "prior_cem_s1_var", "prior_cem_sconst_var", "prior_cem_sp_var", "bc_select_khat")
+         "prior_cem_s1_var", "prior_cem_sconst_var", "prior_cem_sp_var", "bc_select_khat", "lewm_khat",
+         "prior_cem_s1_var_khat", "prior_cem_sconst_var_khat", "prior_cem_sp_var_khat", "bc_select_khat_m1",
+         "bc_select_khat_sp_m4", "bc_select_khat_sconst_m4", "bc_select_khat_sp_m16", "bc_select_khat_m1_ens",
+         "bc_select_khat_sp_m4_ens", "bc_select_khat_m1_ens3", "bc_select_khat_sp_m4_ens3",
+         "prior_cem_sp_var_a01", "prior_cem_sp_var_a025", "prior_cem_sp_var_a05", "bc_select_khat_sp_m4_ens03",
+         "prior_cem_sconst_var_a01")
 PAIRS = (  # (run, against): the questions the comparison is meant to answer
     ("gated", "mc5"), ("gated_tc", "mc5"), ("gated_tc", "gated"),
     ("prior_cem_sconst", "prior_cem_s1"), ("prior_cem_sp", "prior_cem_s1"), ("prior_cem_sp", "prior_cem_sconst"),
@@ -42,6 +47,24 @@ PAIRS = (  # (run, against): the questions the comparison is meant to answer
     ("prior_cem_sconst_var", "prior_cem_s1_var"), ("prior_cem_sp_var", "prior_cem_s1_var"),
     ("prior_cem_sp_var", "prior_cem_sconst_var"), ("prior_cem_sp_var", "bc_only_var"), ("bc_only", "bc_only_var"),
     ("bc_select_khat", "bc_only"), ("bc_select_khat", "prior_cem_sp"), ("bc_select_khat", "prior_cem_sp_var"),
+    # RQ2: the k̂ time to the goal as the CEM cost (_khat), and whether sigma_p still matters under it
+    ("prior_cem_sp_var_khat", "bc_select_khat"), ("prior_cem_sp_var_khat", "prior_cem_sp_var"),
+    ("prior_cem_sp_var_khat", "prior_cem_sconst_var_khat"), ("prior_cem_sconst_var_khat", "prior_cem_s1_var_khat"),
+    ("prior_cem_sp_var_khat", "bc_only_var"), ("lewm_khat", "lewm"),
+    # sigma_k draws as extra proposals for the k̂ selection (bc_select_khat on the Gaussian prior)
+    ("bc_select_khat_sp_m4", "bc_select_khat_m1"), ("bc_select_khat_sp_m4", "bc_select_khat_sconst_m4"),
+    ("bc_select_khat_sp_m16", "bc_select_khat_sp_m4"), ("bc_select_khat_m1", "bc_select_khat"),
+    ("bc_select_khat_sp_m4", "bc_select_khat"),
+    # the evaluator's epistemic uncertainty: ensemble sigma^2 penalty on the k̂ selection (2 x 2 + dose)
+    ("bc_select_khat_sp_m4_ens", "bc_select_khat_sp_m4"), ("bc_select_khat_m1_ens", "bc_select_khat_m1"),
+    ("bc_select_khat_sp_m4_ens", "bc_select_khat_m1"), ("bc_select_khat_sp_m4_ens3", "bc_select_khat_sp_m4_ens"),
+    ("bc_select_khat_sp_m4_ens", "bc_select_khat"),
+    # tuning: the scale alpha of sigma_p (alpha -> 0 is bc_only_var) and a weaker ensemble penalty
+    ("prior_cem_sp_var_a01", "bc_only_var"), ("prior_cem_sp_var_a025", "bc_only_var"),
+    ("prior_cem_sp_var_a05", "bc_only_var"),
+    ("bc_select_khat_sp_m4_ens03", "bc_select_khat_sp_m4"), ("bc_select_khat_sp_m4_ens03", "bc_select_khat"),
+    # the confirmed alpha = 0.1: its constant-width control and the strongest reference
+    ("prior_cem_sp_var_a01", "prior_cem_sconst_var_a01"), ("prior_cem_sp_var_a01", "bc_select_khat"),
 )
 TYPES = ("carry", "pick", "place", "move")
 
