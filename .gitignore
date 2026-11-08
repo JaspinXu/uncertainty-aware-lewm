@@ -39,3 +39,7 @@ results/cube/viz/frames/
 results/cube/viz/scene_*.npz
 results/cube/viz/out/**/*.gif
 !results/cube/viz/out/**/*.mp4
+
+# final presentation deck and script (kept locally, not on GitHub)
+report/slides/CS5478_final_presentation.*
+report/slides/CS5478_final_script.md
