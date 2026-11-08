@@ -1,4 +1,4 @@
-# Uncertainty-as-penalty (proposal 4.3): MC-5 mean trajectory, full horizon,
+# Uncertainty-as-penalty: MC-5 mean trajectory, full horizon,
 #   J = ||mean z_H - z_goal||^2 + penalty_weight * sigma^2_H.
 # penalty_weight is environment-specific: for Cube it is selected on the
 # calibration seeds by the L1 re-ranking analysis (results/cube/l1/signal_summary.json,

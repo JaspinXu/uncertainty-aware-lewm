@@ -11,7 +11,7 @@ Computes *reproducible* prediction metrics on the held-out validation split
     + the worst-predicted samples
 
 Results (metrics.json, rollout_mse.csv, *.png plots) are written to
-``results/wm_eval/<run>/`` and are meant to feed the baseline-milestone report.
+``results/wm_eval/<run>/``.
 
 Usage (reuses the training config so data/model stay consistent):
 
