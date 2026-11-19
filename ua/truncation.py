@@ -9,16 +9,15 @@ disagreement) of the latent prediction. The planner then evaluates its cost at
 the truncated step k* instead of the fixed final horizon H, so it cannot
 exploit "hallucinated" deep-rollout predictions.
 
-Several modes are provided so the project can run the ablations described in
-the proposal (fixed horizon vs. adaptive, different penalty weights):
+Several modes are provided for ablations (fixed horizon vs. adaptive,
+different penalty weights):
 
 - ``"none"``            : no truncation, score the final step (standard LeWM MPC).
 - ``"fixed"``           : always truncate at a constant length ``k_base`` (ablation).
 - ``"adaptive_length"`` : single k* per candidate from the start-state sigma^2
                           (faithful to UA-MBRL Eq. 18).
 - ``"adaptive_perstep"``: walk the rollout and cut at the first step whose
-                          sigma^2 exceeds a calibrated ``threshold`` (faithful to
-                          the proposal's step-by-step description, 488proposal.pdf 4.2).
+                          sigma^2 exceeds a calibrated ``threshold``.
 - ``"gated"``             : if the start-state sigma^2 is below a calibrated
                           ``threshold``, keep the full horizon (k* = H, like baseline);
                           otherwise apply the adaptive_length rule. This preserves
@@ -46,7 +45,7 @@ class TruncationConfig:
     # Scalar for gated, or scalar/per-step sequence for adaptive_perstep.
     threshold: Optional[Union[float, Sequence[float]]] = None
     penalty_weight: float = 0.0  # optional extra cost = weight * sigma^2 at k*
-                                 # (proposal 4.3: uncertainty-as-penalty variant)
+                                 # (the uncertainty-as-penalty variant)
 
     def __post_init__(self):
         valid = {"none", "fixed", "adaptive_length", "adaptive_perstep", "gated"}

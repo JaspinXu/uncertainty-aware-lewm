@@ -1,4 +1,4 @@
-"""OGBench-Cube experiments for the uncertainty-aware LeWM project (CS5478).
+"""OGBench-Cube experiments for the uncertainty-aware LeWM project.
 
 Modules
 -------

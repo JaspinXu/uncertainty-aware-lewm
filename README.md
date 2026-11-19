@@ -2,7 +2,7 @@
 
 **Does uncertainty help a latent world-model planner?** A ground-truth study of
 [LeWorldModel](https://le-wm.github.io/) (LeWM) planning on OGBench-Cube
-robot-arm pick-and-place. CS5478 final project.
+robot-arm pick-and-place.
 
 <p align="center">
   <img src="docs/figures/rollout_s42_ep31.gif" width="100%"
@@ -20,7 +20,6 @@ test episodes, success is 65.6% for the baseline and 70.7% with gating
 <a href="results/cube/viz/README.md">results/cube/viz</a>.</sub>
 
 <p align="center">
-  <a href="report/final_report.md"><b>Report</b></a> ·
   <a href="results/cube/RESULTS.md"><b>All result tables</b></a> ·
   <a href="results/cube/viz/README.md"><b>Videos</b></a> ·
   <a href="cluster/README.md"><b>Running on Slurm</b></a>
@@ -122,8 +121,8 @@ simulator.
   we did not compare selected with unselected candidates.
 - **Not a rendering artefact.** Live-rendered frames encode like the
   dataset's frames: a latent distance of 0.01 with the hardware renderer and
-  0.02 with the software one, against 32.8 for one block of motion (§5.6 of
-  the report).
+  0.02 with the software one, against 32.8 for one block of motion
+  ([results/cube/diag](results/cube/diag/domain_gap.md)).
 
 ### 3 · Uncertainty can help when it shapes the search (L2, L3)
 
@@ -198,7 +197,7 @@ trained for 20,000 steps under the same recipe:
   plausible contributor: the
   de-redundancy penalty also strips linearly decodable cube position from
   z_vis (linear r 0.996 → 0.29), because the cube moves with the gripper. It
-  does not explain everything (report §6.4).
+  does not explain everything.
 
 ### 5 · Checks
 
@@ -260,7 +259,6 @@ The evidence points at the search distribution and the data the model sees:
 | `ua/` | MC-dropout σ² (`uncertainty.py`), latent ensemble (`ensemble.py`), gated truncation (`truncation.py`), MC planner (`ua_jepa.py`), Goal-CVaR (`goal_cvar.py`), risk head (`risk.py`) |
 | `cube/` | everything Cube-specific: recorder, exact simulator state, oracle, rollout logger, L4 variants and clip loader, metrics |
 | `cluster/` | the Slurm pipeline: `submit.sh` (one command per phase), job scripts, environment setup |
-| `report/final_report.md` | the final report |
 | `docs/figures/` | the README figures (`scripts/cube/make_readme_figures.py`) |
 | `tests/` | unit tests on synthetic Cube data |
 | `train.py`, `jepa.py`, `module.py`, `utils.py`, `config/train/` | LeWM training code (upstream, unchanged) |
@@ -428,5 +426,3 @@ python train.py data=pusht     # config/train/lewm.yaml
 - T. Yu et al. *MOPO: Model-based Offline Policy Optimization*. NeurIPS 2020.
 - J. E. Smith, R. L. Winkler. *The Optimizer's Curse*. Management Science, 2006.
 - S. Ross, G. Gordon, D. Bagnell. *A Reduction of Imitation Learning and Structured Prediction to No-Regret Online Learning* (DAgger). AISTATS 2011.
-
-The full list is in the [report](report/final_report.md#references).

@@ -39,3 +39,7 @@ results/cube/viz/frames/
 results/cube/viz/scene_*.npz
 results/cube/viz/out/**/*.gif
 !results/cube/viz/out/**/*.mp4
+
+# local write-ups and slides, not part of the project
+report/
+Claude outputs/
