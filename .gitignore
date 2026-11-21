@@ -3,26 +3,49 @@ __pycache__/
 *.pyc
 *.egg-info/
 .venv/
+.ipynb_checkpoints/
 
 # editors / macOS
 .DS_Store
 .idea/
 .cursor/
 .vscode/
+*.swp
+
+# local secrets
+.env
+.env.*
 
 # data and run-time artifacts (never committed)
 datasets/
+*.h5
+*.hdf5
 outputs/
+multirun/
 wandb/
 *.mp4
 *.log
+slurm-*.out
 results/logs/
 results/videos/
 results/archive/
+results/**/logs/
+results/**/videos/
+results/**/archive/
 
 # cluster job logs (keep the folder)
 logs/*
 !logs/.gitkeep
+
+# bulky result data: under results/ only text, json, csv and figures are committed
+# (results/cube/step1/ keeps report.md, *.json, fig_*.png and drops ~940 MB of
+# closed-loop logs, replays, latent cache and ensemble weights;
+# results/cube/compare/ keeps the per-seed json, summary.md, per_seed.csv and
+# split.json and drops the trained models and the calibration sigma^2 arrays)
+results/**/*.pt
+results/**/*.npy
+results/**/*.npz
+results/**/*.pkl
 
 # large Cube experiment artifacts (kept on the cluster)
 results/cube/records/
@@ -30,8 +53,6 @@ results/cube/oracle/
 results/cube/smoke/records/
 results/cube/smoke/oracle/
 results/cube/**/*.csv.gz
-results/cube/**/*.pt
-results/cube/**/*.npz
 # executed actions for the rollout videos (small)
 !results/cube/viz_runs/rollouts/*.npz
 # rendered frames for the rollout videos (large; the composed videos/strips are kept)
@@ -40,6 +61,15 @@ results/cube/viz/scene_*.npz
 results/cube/viz/out/**/*.gif
 !results/cube/viz/out/**/*.mp4
 
-# local write-ups and slides, not part of the project
+# model weights are never committed (the LeWM checkpoints come from the HuggingFace
+# collection via scripts/cube/download_assets.py; train.py writes weights_epoch_*.pt
+# and *.ckpt); the PushT checkpoint under checkpoints/pusht/lewm/ is the one exception
+checkpoints/**/*.ckpt
+checkpoints/**/*.pth
+checkpoints/**/*.safetensors
+checkpoints/cube/**/*.pt
+
+# local write-ups, slides and notes, not part of the project
 report/
 Claude outputs/
+research_notes/

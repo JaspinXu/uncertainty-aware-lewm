@@ -1,0 +1,81 @@
+{
+  "expert_vs_cem": {
+    "n": 400,
+    "replay_vs_dataset_max_abs_m": 0.011935158242487323,
+    "expert_replay_success": 1.0,
+    "cem_first_segment_success": 0.5025,
+    "median_d_pred": {
+      "expert": 3.500566005706787,
+      "cem": 6.56841516494751
+    },
+    "median_d_real": {
+      "expert": 0.018771134316921234,
+      "cem": 170.14203643798828
+    },
+    "median_e5": {
+      "expert": 3.487323045730591,
+      "cem": 134.05722045898438
+    },
+    "median_s2_mc": {
+      "expert": 0.5194644927978516,
+      "cem": 0.55855393409729
+    },
+    "median_s2_ens": {
+      "expert": 0.5311574935913086,
+      "cem": 2.4528194665908813
+    },
+    "frac_model_prefers_cem_plan": 0.2625,
+    "expert_rank_in_last_pool_median": 0.0,
+    "frac_expert_better_than_all_last_pool": 0.67,
+    "frac_expert_worse_than_all_last_pool": 0.0
+  },
+  "action_support": {
+    "expert_plan_median": 16.08241081237793,
+    "cem_plan_median": 73.45249938964844,
+    "expert_block_reference_median": 15.778627395629883,
+    "c1_median_rho": 0.02968477427526972,
+    "c1_frac_positive": 0.77,
+    "c1_median_first": 0.033762597362192906,
+    "c1_median_last": 0.03150923899154435,
+    "c2_share": 0.30322841988371496,
+    "c2_ci": [
+      0.1674514373784559,
+      0.45022450945403725
+    ],
+    "c3_auroc": 0.5601299439215396,
+    "c3_delta": 0.003940314731095018,
+    "c3_delta_ci": [
+      -0.002030243408905394,
+      0.01029105809550035
+    ]
+  },
+  "cost_alignment": {
+    "probe_r2_xyz": [
+      0.9934430892632915,
+      0.994417565987367,
+      0.9919502881104184
+    ],
+    "probe_val_err_cm_median": 1.1800318620371535,
+    "within_state_rho_latent_cost_vs_physical": 0.4133911192787551,
+    "within_state_rho_probe_cost_vs_physical": 0.6206017844642717,
+    "capture_latent_oracle": [
+      0.6291806697845459,
+      0.52
+    ],
+    "capture_probe_oracle_real_latents": [
+      0.881942868232727,
+      0.51
+    ],
+    "capture_probe_cost_predicted_latents": [
+      0.059042174369096756,
+      0.3
+    ],
+    "c2_probe_penalty_on_predicted": {
+      "share": -0.01649717141908146,
+      "ci": [
+        -0.14986749922070092,
+        0.19527299540306797
+      ]
+    }
+  }
+}

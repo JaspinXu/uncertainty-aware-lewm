@@ -1,0 +1,23 @@
+# Gated truncation with quantile thresholds and a terminal charge, on top of MC-5.
+# Every predicted step is gated against that depth's threshold, the `quantile` of
+# planning-time sigma^2 at that depth (calibrated on held-out planning runs, so the
+# rule does not depend on the raw sigma^2 scale). A candidate is scored at its last
+# step before the first uncertain one, and the part of its plan that was cut is
+# charged terminal_weight x (q90 - q10 of the candidates' full-horizon costs) x
+# (fraction of the horizon cut): a HALT-style pessimistic terminal cost (MOReL),
+# instead of leaving the cut part unscored although it is executed.
+# The per-step `threshold` list is filled in by scripts/cube_compare.py from its
+# calibration run (+planner=calibrate); see ua/truncation.py.
+name: gated_tc
+planner: ua
+n_samples: 5
+history_size: 3
+quantile: 0.9
+truncation:
+  mode: gated_tc
+  omega: 1.0
+  k_base: 5
+  k_min: 1
+  k_max: null
+  threshold: null
+  terminal_weight: 1.0

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import stable_worldmodel as swm
 import torch
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from ua import (
     GoalCVaRConfig,
@@ -41,14 +41,17 @@ def load_base(policy: str, device: str, overrides: dict | None = None) -> torch.
 
 def truncation_config(trunc: DictConfig) -> TruncationConfig:
     threshold = trunc.get("threshold")
+    if threshold is not None:  # a scalar, or one value per predicted step (adaptive_perstep / gated_tc)
+        threshold = [float(t) for t in threshold] if OmegaConf.is_list(threshold) else float(threshold)
     return TruncationConfig(
         mode=str(trunc.mode),
         omega=float(trunc.omega),
         k_base=float(trunc.k_base),
         k_min=int(trunc.k_min),
         k_max=None if trunc.get("k_max") is None else int(trunc.k_max),
-        threshold=None if threshold is None else float(threshold),
+        threshold=threshold,
         penalty_weight=float(trunc.get("penalty_weight", 0.0) or 0.0),
+        terminal_weight=float(trunc.get("terminal_weight", 0.0) or 0.0),
     )
 
 

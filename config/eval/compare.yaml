@@ -1,0 +1,53 @@
+# Multi-seed method comparison on OGBench Cube (frozen LeWM).
+#
+#   bash scripts/run_cube_compare.sh       # train -> calibrate -> evaluate -> summary
+#
+# Protocol = config/eval/cube.yaml with the LeWM paper's CEM budget for Cube (App. D: 300 samples /
+# 10 iterations / top-30; cube.yaml keeps the 30 iterations of the original panel A), horizon 5 blocks,
+# receding horizon 5, on non-trivial start states (cube more
+# than 4 cm from the goal), with the goal `compare.offset` expert steps ahead and
+# a budget of 2 x offset steps. Start states come only from dataset episodes
+# outside the latent cache, which no learned component (prior, k̂) has seen. For a
+# seed every planner sees the same start states, so all runs are paired.
+defaults:
+  - cube
+  - _self_
+
+solver:
+  n_steps: 10                # CEM iterations of panels B and C (cube.yaml: 30, panel A)
+
+compare:
+  out_dir: results/cube/compare
+  # trained components (scripts/cube_train.py); point it at the main run's models to evaluate into
+  # another out_dir with the same models (the tuning runs: results/cube/compare_tune)
+  models_dir: ${compare.out_dir}/models
+  # latent cache of the training episodes (scripts/cube_train.py builds it if missing)
+  latents: results/cube/step1/ensemble/latents.pt
+  # Step-1 predictor ensemble (member_*.pt, trained on the latent cache only): the evaluator's epistemic
+  # sigma^2 of bc_select_khat_*_ens; penalty unit from scripts/cube_ens_scale.py (models/ens_scale.json)
+  ensemble_dir: results/cube/step1/ensemble
+  cache_episodes: 3200       # episodes encoded for training; the last val_episodes are held out
+  val_episodes: 200
+  episode_seed: 0
+  offset: 25                 # goal offset in env steps (LeWM protocol); budget = 2 x offset
+  min_init_dist: 0.04        # m; start states already within the success radius are dropped
+  seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # evaluation seeds, 50 episodes each (eval.num_eval)
+  cal_seeds: [900, 901]      # calibration runs of the gates, disjoint from the evaluation seeds
+  # learned components: scripts/cube_train.py -> <out_dir>/models/<file> (default <name>.pt)
+  train:
+    sigma_prior:      # Gaussian BC prior for goals exactly `offset` steps ahead (bc_only, prior_cem_*)
+      offsets: ["${compare.offset}", "${compare.offset}"]
+      steps: 8000
+      gaussian: true
+      file: "sigma_prior_k${compare.offset}.pt"
+    sigma_prior_var:  # the same for goals 1-100 steps ahead, not told how far (bc_only_var, prior_cem_*_var)
+      offsets: [1, 100]
+      steps: 20000
+      gaussian: true
+    prior_tc: {offsets: [1, 100], k_max: 100, steps: 8000}   # time-conditioned BC prior (bc_select_khat)
+    sigma_prior_tc:   # the same as a Gaussian prior: mu_k and sigma_k (bc_select_khat_m1, _sp_m*, _sconst_m*)
+      offsets: [1, 100]
+      k_max: 100
+      steps: 8000
+      gaussian: true
+    khat: {offsets: [0, 150], expectile: 0.1, steps: 10000}  # steps-to-goal estimate (bc_select_khat)

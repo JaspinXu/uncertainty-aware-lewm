@@ -23,6 +23,13 @@ different penalty weights):
                           otherwise apply the adaptive_length rule. This preserves
                           baseline behavior on familiar states while truncating only
                           high-uncertainty candidates.
+- ``"gated_tc"``          : gate every predicted step against a per-step ``threshold``
+                          (a quantile of planning-time sigma^2 at that depth, so the
+                          rule does not depend on the raw sigma^2 scale) and keep only
+                          the steps before the first uncertain one. Meant to be used with
+                          ``terminal_weight`` > 0 (see ``terminal_charge``): a truncated
+                          candidate is charged for the part of its plan that was cut,
+                          instead of having it scored as free.
 """
 
 from __future__ import annotations
@@ -46,9 +53,10 @@ class TruncationConfig:
     threshold: Optional[Union[float, Sequence[float]]] = None
     penalty_weight: float = 0.0  # optional extra cost = weight * sigma^2 at k*
                                  # (the uncertainty-as-penalty variant)
+    terminal_weight: float = 0.0  # HALT-style terminal charge on the truncated part (see terminal_charge)
 
     def __post_init__(self):
-        valid = {"none", "fixed", "adaptive_length", "adaptive_perstep", "gated"}
+        valid = {"none", "fixed", "adaptive_length", "adaptive_perstep", "gated", "gated_tc"}
         if self.mode not in valid:
             raise ValueError(f"Unknown truncation mode {self.mode!r}; expected one of {valid}")
 
@@ -141,6 +149,22 @@ def compute_truncation_index(
         idx_full = sigma2_steps.new_full(lead, P - 1, dtype=torch.long)
         idx = torch.where(sigma2_ref < threshold.reshape(()), idx_full, idx_adaptive)
 
+    elif cfg.mode == "gated_tc":
+        if cfg.threshold is None:
+            raise ValueError(
+                "gated_tc requires per-step thresholds (quantiles of planning-time sigma^2 per "
+                "depth, see scripts/cube_compare.py +planner=calibrate)"
+            )
+        exceeds = sigma2_steps > _perstep_threshold(cfg.threshold, sigma2_steps)  # (..., P)
+        first_exceed = torch.argmax(exceeds.int(), dim=-1)
+        # trusted horizon: the steps before the first uncertain one (at least k_min)
+        idx = torch.where(
+            exceeds.any(dim=-1),
+            first_exceed - 1,
+            torch.full_like(first_exceed, k_max - 1),
+        )
+        idx = idx.clamp(min=k_min - 1, max=k_max - 1)
+
     else:  # adaptive_perstep
         if cfg.threshold is None:
             raise ValueError(
@@ -167,6 +191,31 @@ def compute_truncation_index(
         idx = idx.clamp(min=k_min - 1, max=P - 1)
 
     return idx
+
+
+def terminal_charge(dist_steps: torch.Tensor, idx: torch.Tensor, weight: float) -> torch.Tensor:
+    """HALT-style terminal cost for the part of each candidate's horizon that was cut.
+
+    Truncation scores a candidate at an earlier step, so the cut part of its plan is never
+    scored, yet the whole plan is executed (receding horizon = horizon). As in MOReL's
+    pessimistic MDP, a candidate that enters an uncertain region is instead charged:
+
+        charge = weight * (q90 - q10 of the population's full-horizon costs) * (P - 1 - idx) / (P - 1)
+
+    i.e. zero when nothing is cut, and for a fully cut candidate a whole 10-90% spread of the
+    current CEM population, enough to rank it behind most confident candidates. The scale comes
+    from the population being ranked, so no calibration is needed.
+
+    ``dist_steps`` (..., S, P) per-step costs, ``idx`` (..., S) truncation indices -> (..., S).
+    """
+    P = dist_steps.shape[-1]
+    if P < 2 or not weight:
+        return torch.zeros(idx.shape, dtype=dist_steps.dtype, device=dist_steps.device)
+    final = dist_steps[..., P - 1].sort(dim=-1).values  # (..., S) full-horizon costs, sorted
+    S = final.shape[-1]
+    spread = (final[..., round(0.9 * (S - 1))] - final[..., round(0.1 * (S - 1))]).clamp(min=0)
+    cut = (P - 1 - idx).to(dist_steps.dtype) / (P - 1)
+    return weight * spread.unsqueeze(-1) * cut
 
 
 def gather_at_index(values: torch.Tensor, idx: torch.Tensor) -> torch.Tensor:

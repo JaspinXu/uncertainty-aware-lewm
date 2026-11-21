@@ -1,0 +1,20 @@
+{
+ "unit": 84.53702545166016,
+ "median_time_to_goal": 37.284481048583984,
+ "median_sigma2": 0.4410431981086731,
+ "n_states": 800,
+ "goal_offsets": [
+  10,
+  50
+ ],
+ "samples": 4,
+ "members": 5,
+ "median_sigma2_means": 0.34251484274864197,
+ "median_sigma2_draws": 0.4783821105957031,
+ "frac_draw_above_its_mean": 0.8580729365348816,
+ "draw_chosen": {
+  "0": 0.8662499785423279,
+  "1": 0.5237500071525574,
+  "3": 0.4362500011920929
+ }
+}
