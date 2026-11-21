@@ -1,0 +1,17 @@
+# OGBench-Cube (single cube, expert data). Select with:  python train.py data=cube
+# Same content as upstream le-wm config/train/data/ogb.yaml.
+# Resolves to $STABLEWM_HOME/datasets/ogbench/cube_single_expert.h5
+# (or $LOCAL_DATASET_DIR/datasets/... when that variable is set).
+dataset:
+  num_steps: ${eval:'${num_preds} + ${history_size}'}
+  frameskip: 5
+  name: ogbench/cube_single_expert.h5
+  keys_to_load:
+    - pixels
+    - action
+    - observation
+  keys_to_cache:
+    - action
+    - observation
+  keys_to_merge:
+    proprio: proprio

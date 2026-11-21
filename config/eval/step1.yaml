@@ -1,0 +1,34 @@
+# Step 1: does sigma^2 separate failures on Cube?  (docs/step1_preregistration.md)
+# Protocol = config/eval/cube.yaml with CEM 300/10/30 (baseline LeWM, horizon 5,
+# receding horizon 5, budget 50) on non-trivial start states only.
+#
+#   bash scripts/run_step1.sh                 # every stage, resumable
+#   python scripts/step1_collect.py step1.stage=closed_loop
+
+defaults:
+  - cube
+  - _self_
+
+solver:
+  n_steps: 10                 # CEM iterations (cube.yaml: 30, the original panel A)
+
+step1:
+  out_dir: results/cube/step1
+  stage: all                  # collect: closed_loop | replay_plans | replay_candidates | all
+  seeds: [61, 62, 63, 64, 65, 66, 67, 68]
+  min_init_dist: 0.04         # m; start states with the cube already at the goal are dropped
+  record_iters: [0, 9]        # CEM iterations whose populations are replayed (1st and 10th)
+  n_states_failed: 100        # replay states from episodes that end in failure
+  n_states_success: 100       # ... and from episodes that end in success
+  select_seed: 0
+  workers: 6                  # replay worker processes
+  mc_samples: 20              # MC-dropout rollouts (the first 5 give the N=5 sensitivity)
+  mc_seed: 0
+  ensemble:
+    members: 5
+    train_episodes: 3000      # includes every Step-1 episode
+    val_episodes: 200         # held out from every member
+    episode_seed: 0
+    steps: 8000
+    batch: 512
+    lr: 3.0e-4

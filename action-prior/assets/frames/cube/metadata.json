@@ -1,0 +1,14 @@
+{
+  "domain": "cube",
+  "episode": 1087,
+  "start_step": 103,
+  "index": 11,
+  "seed": 62,
+  "cem_iterations": 5,
+  "rho": 0.25,
+  "baseline_success": false,
+  "guided_success": true,
+  "frames": 50,
+  "fps": 5,
+  "note": "Complete recorded frame sequence, including held frames after early termination. Selected successful example, not a random sample."
+}

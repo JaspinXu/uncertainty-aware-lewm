@@ -1,0 +1,31 @@
+{
+  "budgets": [
+    5,
+    10,
+    20,
+    30
+  ],
+  "planner_seeds": [
+    62,
+    63,
+    64,
+    65,
+    66
+  ],
+  "final_tasks": 50,
+  "goal_offset": 25,
+  "action_budget": 50,
+  "samples": 300,
+  "rho_validation": [
+    0,
+    0.25,
+    0.5,
+    0.75,
+    1
+  ],
+  "guided_std": 0.5,
+  "selection": "Mean validation success at 5 iterations, ties prefer smaller rho; test never selects settings",
+  "checkpoint_sha256": "06b65b459a2f9bef8095c063c9e6ae6c44855d3c628583dad6dddcaff29b1b12",
+  "evaluator_sha256": "fc5debed7c3f76062957c9e72679021c45c751bb6e6b0ab475d907a3351da004",
+  "note": "50 fresh trajectories held out from proposal training and previous evaluations, not necessarily from pretrained world model. Five planner seeds, one trained prior checkpoint."
+}

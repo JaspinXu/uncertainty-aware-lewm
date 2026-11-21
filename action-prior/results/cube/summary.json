@@ -1,0 +1,421 @@
+{
+  "complete": true,
+  "groups": {
+    "bc-5": {
+      "success_percent_per_seed": [
+        92.0,
+        92.0,
+        92.0,
+        92.0,
+        92.0
+      ],
+      "mean_percent": 92.0,
+      "std_percent": 1.2412670766236365e-14,
+      "mean_seconds_per_batched_solve": 0.15911887027323246,
+      "total_planning_seconds": 1.5911887027323246,
+      "seconds_per_task": 0.006364754810929299,
+      "note": "Batch solve timing includes proposal inference. Per-task totals depend on early termination, not fixed-length latency."
+    },
+    "baseline-5": {
+      "success_percent_per_seed": [
+        74.0,
+        72.0,
+        70.0,
+        74.0,
+        72.0
+      ],
+      "mean_percent": 72.39999999999999,
+      "std_percent": 1.6733200530681527,
+      "mean_seconds_per_batched_solve": 4.117714844550937,
+      "total_planning_seconds": 41.177148445509374,
+      "seconds_per_task": 0.1647085937820375,
+      "note": "Batch solve timing includes proposal inference. Per-task totals depend on early termination, not fixed-length latency."
+    },
+    "guided-5": {
+      "success_percent_per_seed": [
+        96.0,
+        96.0,
+        96.0,
+        96.0,
+        94.0
+      ],
+      "mean_percent": 95.6,
+      "std_percent": 0.8944271909999166,
+      "mean_seconds_per_batched_solve": 3.362958793435246,
+      "total_planning_seconds": 33.62958793435246,
+      "seconds_per_task": 0.13451835173740984,
+      "note": "Batch solve timing includes proposal inference. Per-task totals depend on early termination, not fixed-length latency."
+    },
+    "baseline-10": {
+      "success_percent_per_seed": [
+        76.0,
+        72.0,
+        70.0,
+        70.0,
+        76.0
+      ],
+      "mean_percent": 72.8,
+      "std_percent": 3.0331501776206227,
+      "mean_seconds_per_batched_solve": 7.638090751506388,
+      "total_planning_seconds": 76.38090751506388,
+      "seconds_per_task": 0.3055236300602555,
+      "note": "Batch solve timing includes proposal inference. Per-task totals depend on early termination, not fixed-length latency."
+    },
+    "guided-10": {
+      "success_percent_per_seed": [
+        96.0,
+        96.0,
+        94.0,
+        96.0,
+        94.0
+      ],
+      "mean_percent": 95.19999999999999,
+      "std_percent": 1.095445115010333,
+      "mean_seconds_per_batched_solve": 6.536146276071667,
+      "total_planning_seconds": 65.36146276071668,
+      "seconds_per_task": 0.2614458510428667,
+      "note": "Batch solve timing includes proposal inference. Per-task totals depend on early termination, not fixed-length latency."
+    },
+    "baseline-20": {
+      "success_percent_per_seed": [
+        72.0,
+        72.0,
+        72.0,
+        70.0,
+        72.0
+      ],
+      "mean_percent": 71.6,
+      "std_percent": 0.8944271909999166,
+      "mean_seconds_per_batched_solve": 15.417620489932597,
+      "total_planning_seconds": 154.17620489932597,
+      "seconds_per_task": 0.6167048195973038,
+      "note": "Batch solve timing includes proposal inference. Per-task totals depend on early termination, not fixed-length latency."
+    },
+    "guided-20": {
+      "success_percent_per_seed": [
+        96.0,
+        94.0,
+        94.0,
+        96.0,
+        96.0
+      ],
+      "mean_percent": 95.19999999999999,
+      "std_percent": 1.0954451150103333,
+      "mean_seconds_per_batched_solve": 12.489679227024316,
+      "total_planning_seconds": 124.89679227024317,
+      "seconds_per_task": 0.49958716908097267,
+      "note": "Batch solve timing includes proposal inference. Per-task totals depend on early termination, not fixed-length latency."
+    },
+    "baseline-30": {
+      "success_percent_per_seed": [
+        72.0,
+        70.0,
+        72.0,
+        74.0,
+        66.0
+      ],
+      "mean_percent": 70.8,
+      "std_percent": 3.0331501776206187,
+      "mean_seconds_per_batched_solve": 22.563852134533228,
+      "total_planning_seconds": 225.63852134533226,
+      "seconds_per_task": 0.9025540853813291,
+      "note": "Batch solve timing includes proposal inference. Per-task totals depend on early termination, not fixed-length latency."
+    },
+    "guided-30": {
+      "success_percent_per_seed": [
+        92.0,
+        98.0,
+        94.0,
+        96.0,
+        94.0
+      ],
+      "mean_percent": 94.8,
+      "std_percent": 2.2803508501982748,
+      "mean_seconds_per_batched_solve": 17.9127395208925,
+      "total_planning_seconds": 179.127395208925,
+      "seconds_per_task": 0.7165095808357,
+      "note": "Batch solve timing includes proposal inference. Per-task totals depend on early termination, not fixed-length latency."
+    }
+  },
+  "paired": {
+    "guided-5_minus_baseline-5": {
+      "delta_pp": 23.2,
+      "trajectory_cluster_bootstrap_95_pp": [
+        12.8,
+        34.8
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 11,
+          "losses": 0,
+          "exact_mcnemar_p": 0.0009765625
+        },
+        {
+          "wins": 12,
+          "losses": 0,
+          "exact_mcnemar_p": 0.00048828125
+        },
+        {
+          "wins": 13,
+          "losses": 0,
+          "exact_mcnemar_p": 0.000244140625
+        },
+        {
+          "wins": 11,
+          "losses": 0,
+          "exact_mcnemar_p": 0.0009765625
+        },
+        {
+          "wins": 11,
+          "losses": 0,
+          "exact_mcnemar_p": 0.0009765625
+        }
+      ]
+    },
+    "guided-5_minus_bc-5": {
+      "delta_pp": 3.6000000000000005,
+      "trajectory_cluster_bootstrap_95_pp": [
+        -4.0,
+        11.2
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 2,
+          "losses": 1,
+          "exact_mcnemar_p": 1.0
+        }
+      ]
+    },
+    "guided-10_minus_baseline-10": {
+      "delta_pp": 22.400000000000002,
+      "trajectory_cluster_bootstrap_95_pp": [
+        12.8,
+        33.2
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 10,
+          "losses": 0,
+          "exact_mcnemar_p": 0.001953125
+        },
+        {
+          "wins": 12,
+          "losses": 0,
+          "exact_mcnemar_p": 0.00048828125
+        },
+        {
+          "wins": 12,
+          "losses": 0,
+          "exact_mcnemar_p": 0.00048828125
+        },
+        {
+          "wins": 13,
+          "losses": 0,
+          "exact_mcnemar_p": 0.000244140625
+        },
+        {
+          "wins": 9,
+          "losses": 0,
+          "exact_mcnemar_p": 0.00390625
+        }
+      ]
+    },
+    "guided-10_minus_bc-5": {
+      "delta_pp": 3.2,
+      "trajectory_cluster_bootstrap_95_pp": [
+        -4.0,
+        11.2
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 2,
+          "losses": 1,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 3,
+          "losses": 2,
+          "exact_mcnemar_p": 1.0
+        }
+      ]
+    },
+    "guided-20_minus_baseline-20": {
+      "delta_pp": 23.599999999999998,
+      "trajectory_cluster_bootstrap_95_pp": [
+        13.600000000000001,
+        34.0
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 12,
+          "losses": 0,
+          "exact_mcnemar_p": 0.00048828125
+        },
+        {
+          "wins": 11,
+          "losses": 0,
+          "exact_mcnemar_p": 0.0009765625
+        },
+        {
+          "wins": 11,
+          "losses": 0,
+          "exact_mcnemar_p": 0.0009765625
+        },
+        {
+          "wins": 13,
+          "losses": 0,
+          "exact_mcnemar_p": 0.000244140625
+        },
+        {
+          "wins": 12,
+          "losses": 0,
+          "exact_mcnemar_p": 0.00048828125
+        }
+      ]
+    },
+    "guided-20_minus_bc-5": {
+      "delta_pp": 3.2,
+      "trajectory_cluster_bootstrap_95_pp": [
+        -4.4,
+        11.2
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 3,
+          "losses": 2,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "wins": 2,
+          "losses": 1,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        }
+      ]
+    },
+    "guided-30_minus_baseline-30": {
+      "delta_pp": 24.0,
+      "trajectory_cluster_bootstrap_95_pp": [
+        14.799999999999999,
+        34.0
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 10,
+          "losses": 0,
+          "exact_mcnemar_p": 0.001953125
+        },
+        {
+          "wins": 14,
+          "losses": 0,
+          "exact_mcnemar_p": 0.0001220703125
+        },
+        {
+          "wins": 11,
+          "losses": 0,
+          "exact_mcnemar_p": 0.0009765625
+        },
+        {
+          "wins": 11,
+          "losses": 0,
+          "exact_mcnemar_p": 0.0009765625
+        },
+        {
+          "wins": 14,
+          "losses": 0,
+          "exact_mcnemar_p": 0.0001220703125
+        }
+      ]
+    },
+    "guided-30_minus_bc-5": {
+      "delta_pp": 2.8,
+      "trajectory_cluster_bootstrap_95_pp": [
+        -3.6000000000000005,
+        10.0
+      ],
+      "per_seed_mcnemar": [
+        {
+          "wins": 2,
+          "losses": 2,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "wins": 3,
+          "losses": 0,
+          "exact_mcnemar_p": 0.25
+        },
+        {
+          "wins": 3,
+          "losses": 2,
+          "exact_mcnemar_p": 1.0
+        },
+        {
+          "wins": 3,
+          "losses": 1,
+          "exact_mcnemar_p": 0.625
+        },
+        {
+          "wins": 2,
+          "losses": 1,
+          "exact_mcnemar_p": 1.0
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Repeated seeds are not 250 independent trajectories.",
+    "McNemar p values are per-seed, unadjusted exploratory comparisons.",
+    "One trained prior checkpoint; no cross-training-seed robustness claim.",
+    "No PushT regression check or Solution 1/2 evaluation included.",
+    "This protocol does not require complete pick, place, and release."
+  ]
+}

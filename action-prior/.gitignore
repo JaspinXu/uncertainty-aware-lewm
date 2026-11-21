@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+.idea/
+.vscode/
+.env
+.env.*
+.venv/
+workspace/
+datasets/
+checkpoints/
+runs/
+*.pt
+*.pth
+*.h5
+*.h5.zst
+*.log
+*.partial
+*.zip
+
+# Deliberately included compact demonstrations (override parent repository rules).
+!assets/cube_expert_comparison.mp4
+!assets/pusht_expert_comparison.mp4
