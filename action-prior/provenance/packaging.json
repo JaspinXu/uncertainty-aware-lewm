@@ -1,0 +1,571 @@
+{
+  "results_transform": "Only absolute cluster root replaced by ${LEWM_ROOT}; numeric data and code/checkpoint hashes unchanged.",
+  "results": [
+    {
+      "path": "results/cube/val-guided-k5-s42-rho0.75.json",
+      "source_sha256": "cf025bca39de4fa23c1f69c03ee12fa3b87ea1aa39059624a454171476f3f8c9",
+      "published_sha256": "f8e644df8c30326d4ceffb958d56b32c622b5535ebc73f0df29b96faa6fb78ce"
+    },
+    {
+      "path": "results/cube/test-baseline-k10-s64-rho0.25.json",
+      "source_sha256": "b67d72894ac397676c0535e3515600a7e58470fc54b1d73d4c2da1b0c8fa10f5",
+      "published_sha256": "e4a4365b5e116208cc877db47c1c2c1ed48b4ae04aaefa8c6c77b2d34610d2ad"
+    },
+    {
+      "path": "results/cube/test-baseline-k10-s63-rho0.25.json",
+      "source_sha256": "c63f8571c8bd418b2525331876c30bdf11ab22124d444676fb54b487f8a3fc0b",
+      "published_sha256": "da82f6e47d7fadf6b5992814a61a28c8fa315796a6ec5cb998b62ca67c1ea743"
+    },
+    {
+      "path": "results/cube/summary.json",
+      "source_sha256": "b17d31c89f15b9967aa4654baf7990966c7e29fc69f6ff691de5cee8793a2f17",
+      "published_sha256": "06cfc74c7155593427c2c4269e71356da6f58d4d5fbc0a62460826cd3fa990b6"
+    },
+    {
+      "path": "results/cube/test-guided-k30-s66-rho0.25.json",
+      "source_sha256": "fc3cca2480c18c690d68ade4427c0746564bba509db29453ed0f29eb2c213fa1",
+      "published_sha256": "226c8e8bd17dfd253b8e0254409a4fa5a3b11523f016c4d2ef1b1a1ff87fc25b"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s43-rho0.json",
+      "source_sha256": "69a1fa781f55e56ae09bc1bafb421c3b84de49a51c54c5b70f45fb8b32e7309d",
+      "published_sha256": "f1818074cb9ed4a464090ef57fd39eda0e28a1e9e6ca3d10f95b1e2efab52835"
+    },
+    {
+      "path": "results/cube/test-baseline-k10-s62-rho0.25.json",
+      "source_sha256": "bba8ef090788427ddc1d1014e82472ae9f2d44c9fd8f5fdcaa143da0a1f740d2",
+      "published_sha256": "191855c2a45b67f9f719a76b85b43097f5d324cd34f04abbce3ba1448621bd45"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s43-rho1.json",
+      "source_sha256": "0ecdbace9d810046350849facf42b8b4c9e53490a9098d13d984aa3eb9539063",
+      "published_sha256": "0a154c0a39e48f9bdfe9aec6dc2cf2b7c2275a189333a35f6409800bdc92ba27"
+    },
+    {
+      "path": "results/cube/test-baseline-k10-s65-rho0.25.json",
+      "source_sha256": "fe963ea57abffaf023490ea779bafb93728dbab3f2be6f015cbe9d3b66535206",
+      "published_sha256": "bc105b1f51413a211b0bf243644c2e7d2f741421e5d44cc39b98e7b20a1388fc"
+    },
+    {
+      "path": "results/cube/pilot-splits.json",
+      "source_sha256": "6c28e878923a32ad81f10e302929fba9d61aaccd3387c86ec57b14320a868fda",
+      "published_sha256": "5f28c9c830d6cc94f0b0ef2c09b9e7b507af7df7c0bb10db68f782a5904eb7fe"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s44-rho0.75.json",
+      "source_sha256": "4a2bff396137a71d4fc6f691486dd73db96594f2e10c8be3864ee5dadd8e1170",
+      "published_sha256": "2d381665797833ec07b50f2eeadd79ec00cae0b9332c2549df53808b381fa232"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s43-rho0.75.json",
+      "source_sha256": "02ea2cdaab952dad2a31babdfe24676cdcceccd7cd95fd30131b9057926d4b1b",
+      "published_sha256": "4e062affee4c91d1eaae348346b4260eed15e8dc992c8d1c6ab8244241cf835d"
+    },
+    {
+      "path": "results/cube/test-baseline-k5-s66-rho0.25.json",
+      "source_sha256": "763342aed78a4b6f68b60cc629ccb3caa5fddb20232c568023e9f132612c7370",
+      "published_sha256": "c02cc0fc8534a1d83675256f0bb30ee2f5ba810ff6c5edafe8c2e3006bbd0096"
+    },
+    {
+      "path": "results/cube/test-guided-k20-s66-rho0.25.json",
+      "source_sha256": "4a9db179a9b3486111aba59ab67d8d704b18fb50f708ff72a4815fcd7f5e256a",
+      "published_sha256": "823a7c2638816e2fc637d74c8eccb52e7f3497a5694f9470a1d2a5f5a5051aa5"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s44-rho0.25.json",
+      "source_sha256": "ba2aa4751a78233625d6b41575caeb16be1e8c50d490afa994ff06554c008ecb",
+      "published_sha256": "37fbc8becee7f27128adbaecbdaa60490b26b2e169f3cb64037639849de34bc8"
+    },
+    {
+      "path": "results/cube/test-baseline-k20-s62-rho0.25.json",
+      "source_sha256": "a1fd2323f4ad6f0e6420bd58b7e649e04d828b64ce9f01cfe23003b925d55391",
+      "published_sha256": "e64c14b2cbb1019bdf057348c8f2669638a0094c82e11ba98ff24e770f064da1"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s43-rho0.25.json",
+      "source_sha256": "f1f4e832c79cfcb110932052aabc4eb22138d6e0f7718248e3ebf8b3043c2e2b",
+      "published_sha256": "714f84bfc4b741cf1adfce2303a8559762bf4b448eb328bc12cddc840ad05501"
+    },
+    {
+      "path": "results/cube/test-baseline-k20-s65-rho0.25.json",
+      "source_sha256": "73b124acdd0ef48f770016f0cd43ee411bc518da84e9dd215447ecc986e5c12e",
+      "published_sha256": "2b48a5508d263b7b5559475b8104e9bb120bc730db01c3bab56cb32089a04f9d"
+    },
+    {
+      "path": "results/cube/test-baseline-k30-s64-rho0.25.json",
+      "source_sha256": "6218d98a81a2a5c0ef22f2eafae7d6ced4618303d30d963c5ddd01a0b17ea7a2",
+      "published_sha256": "d4090cc6ecf81791b2c51f198f42e030069ae233ad354b7e135ef75682ef13c6"
+    },
+    {
+      "path": "results/cube/test-baseline-k30-s63-rho0.25.json",
+      "source_sha256": "cc216017c44bfb4a917b84fff133a2123d4e3bfd50c63fdda44cb6b5c9f935c4",
+      "published_sha256": "dc685c5c7a87a55556a0bc25df6b84c87dd22c741232ede070514d7574c0e9e0"
+    },
+    {
+      "path": "results/cube/test-bc-k5-s64-rho0.25.json",
+      "source_sha256": "0c3756f84ca0626ed0b88883fc9e14e8428b6cbbdb407dc5eb738dc9f39808de",
+      "published_sha256": "fa6340d2c24093ee86af8e803132f417b50343350682afc590a83125b8113f43"
+    },
+    {
+      "path": "results/cube/test-bc-k5-s63-rho0.25.json",
+      "source_sha256": "ee111a35ab4cdba9e0a87227b5ce000af670c88213a88890c2faaa65c69aefe3",
+      "published_sha256": "e938b9659044f4ce1232106f4fd6827b7689bb1820bd4a294fa4555d5801adec"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s44-rho1.json",
+      "source_sha256": "7b7d219b0049927d56c6f630aa2ff170254846ffc88fe932fee4adb5bb3a1a30",
+      "published_sha256": "6b74cb915c5ef8e1be0e545f2d37e1d313b925f8428aff1db2b77009ae6e9055"
+    },
+    {
+      "path": "results/cube/test-guided-k10-s66-rho0.25.json",
+      "source_sha256": "95ce7ecab9aa61a36784e7ba0aaeaabf06bebda7e9975db9d6a6145520435519",
+      "published_sha256": "d4af86ebb62fa2663c7226a63c2135160ba84e70279fa6d481fdf0cad2badf3d"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s42-rho0.json",
+      "source_sha256": "407307ecd5c30d5b5c633f7fda71af31e4be8a9dad1713c57556e14199de8f77",
+      "published_sha256": "f451f3dd17dbbefb010a51b02dafd1b6ec644c4ea748d9c052a6e27bd16c33d7"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s43-rho0.5.json",
+      "source_sha256": "36af024c1603a484654d047faf88e060135044157fd65173fdfe5a735e0f35ba",
+      "published_sha256": "157944b7abc7f27ed5f7122753a61531e66e1ea1c5646546fcb2bc0e31b0ce66"
+    },
+    {
+      "path": "results/cube/test-baseline-k30-s62-rho0.25.json",
+      "source_sha256": "f34d4333042396f003bfdbffb51618bf3eec422ae9ec8cebfbbdb0d92e29f032",
+      "published_sha256": "b1519b2b447f4b036dacf227c800b24ff8aa444314bf3971f78dfcfba11b2ff1"
+    },
+    {
+      "path": "results/cube/test-baseline-k30-s65-rho0.25.json",
+      "source_sha256": "89e117fb6cdfedc21ccde2d00d3ae0409c21824d98d5a5b7a2f8630952b302b5",
+      "published_sha256": "c6bbb74a5edbbff59329dcf9e140460ee10ed3e921a7e3b8eb2d14f278118db2"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s42-rho1.json",
+      "source_sha256": "b74a177eada8e653b3cfb0bc1f7f2d4ef796019049b11512898970d6e5d3ef8b",
+      "published_sha256": "41fe94b9c9d5c51af2d3cd3ededdfb0d8c201a6ae42496786ded45edb0f1d1bd"
+    },
+    {
+      "path": "results/cube/test-bc-k5-s62-rho0.25.json",
+      "source_sha256": "6712a1a84ee4899f9fa0e21933d621d5aa565a83ca7e20d8ecbc58fc7bd2f254",
+      "published_sha256": "64abdec43b8cecde4dfd7e2888fc9c12f7f0f002b6040a97b27d31374f1e67e8"
+    },
+    {
+      "path": "results/cube/test-bc-k5-s65-rho0.25.json",
+      "source_sha256": "a3e8312eda99192cca0abf3b9604c8bcf71f976ffe811e3fcf53b9b30209e5fc",
+      "published_sha256": "cfbc9c06bc13e8a23171c5e44eb47c4946c7eb5394eb649d3cf48fb74682f149"
+    },
+    {
+      "path": "results/cube/test-baseline-k20-s64-rho0.25.json",
+      "source_sha256": "eeddd1ecdbd64e7423b792314e707e6f5f28d619e611fa20ddc7edcb33186488",
+      "published_sha256": "5eaf008c6780cd16a2406e00645f01d84d8b46c23970ac8ba80ff65192fca6b6"
+    },
+    {
+      "path": "results/cube/test-guided-k5-s66-rho0.25.json",
+      "source_sha256": "f373a09483d5ad94b56f06f55d3f6a5b852ac40f316f1d00c718411ed4f060e7",
+      "published_sha256": "379d07816adba55c000e413dc98f7c9cb493088d40f839de3a51e688e746230b"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s42-rho0.25.json",
+      "source_sha256": "f867aa5042348beb3c2bf5c37882ac7b526024f4728d5265794f16cf7bfbe694",
+      "published_sha256": "32407c2be25dcb6d407b45380f666e633b3caca6941d252ebd1ce5de60123ddd"
+    },
+    {
+      "path": "results/cube/test-baseline-k20-s63-rho0.25.json",
+      "source_sha256": "f2a51e32afed780b6f6367b3df398900098c9caa87d7ad3616e871370c815c10",
+      "published_sha256": "ac80ec3f13d236e208731cefed405fbad837597b343b0dd941136f75eaea6c32"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s44-rho0.json",
+      "source_sha256": "b4e2260f5300b03e16c34c6d9dc90c6bb2db4d5356ae1334e59b4822ab343146",
+      "published_sha256": "d6ea716793fbcc6cf977912b6c60fbfd9b9d2389ef1204a2657d7938eb8d3bad"
+    },
+    {
+      "path": "results/cube/test-guided-k5-s63-rho0.25.json",
+      "source_sha256": "dfa686764eeb0b609191c3b0b583dfd3f49daab0206b26166330eac7e5ca1b4d",
+      "published_sha256": "e8d1fd85917c0e2de7e7494b7396ea8d624b087d070f5bafefb7bf26ec02fb66"
+    },
+    {
+      "path": "results/cube/test-guided-k5-s64-rho0.25.json",
+      "source_sha256": "8d2d73587f117d20e3e1ab8f4b89cc46b7c260437a68db4fc7cc441b5cd8f92c",
+      "published_sha256": "4d43250bc0d0a084382696effb379b8325b2ea1df98bcb9292fdb67cdf53a9ee"
+    },
+    {
+      "path": "results/cube/test-baseline-k20-s66-rho0.25.json",
+      "source_sha256": "ac48f07adb5d60515b9aa2c2129fb54a472ff17d316ed06cb4e94b9757974ae8",
+      "published_sha256": "2b365c4f2adb70b71a6ce63fb3ba7df78b5c9396d1f0823676e2fc2d1a765886"
+    },
+    {
+      "path": "results/cube/test-guided-k10-s65-rho0.25.json",
+      "source_sha256": "345544adb0b3cc796a360df360d3d1ead0346516719dcba1d4c331cd5bf7eb5f",
+      "published_sha256": "f823a8ba35649271f27e4cc18b84074f6430522c0d1207a4b8f1744a0c81edf4"
+    },
+    {
+      "path": "results/cube/test-guided-k10-s62-rho0.25.json",
+      "source_sha256": "0cfe37dda8fb67e09730033db34ec7957b3a69ee43830d705fc4417bbb2cafed",
+      "published_sha256": "5facb28d8c77dc9e56ebd3fb036d65fdcb74decb6cfb6290cabcf385e18fc26b"
+    },
+    {
+      "path": "results/cube/test-guided-k5-s65-rho0.25.json",
+      "source_sha256": "e1b8d77d1b334c36bbfdae87bb896f3a1ff4f691a2d408e5f7535cb51685fa7f",
+      "published_sha256": "f26bde192c5578b7c3743ee2e2658dd25d324f431b1958cbbc62dd728e1e9457"
+    },
+    {
+      "path": "results/cube/test-guided-k5-s62-rho0.25.json",
+      "source_sha256": "78ab9710561c10603908feb50052496b96eeecb6aab9526f6a180f550ab76c42",
+      "published_sha256": "4f7f24d14eef6a4c9af82d0e44f2f31a47ec982a7915d3a59a703262781b0890"
+    },
+    {
+      "path": "results/cube/test-bc-k5-s66-rho0.25.json",
+      "source_sha256": "ee1a56a0c61a4a3da671fa3365c069b9cc211fdfdc8f7d42566ee5487d040196",
+      "published_sha256": "fd4d5df37bde655f2fcca897433fda35e555b8feb780f57e510f5de5867f81c4"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s44-rho0.5.json",
+      "source_sha256": "d54d768afd9221e91ec2cbf6e7dc6e7488620c332b3bbf5e0d53037d89ae88fc",
+      "published_sha256": "d6ebf4bbb2ad95fc57a8d5893c217972d2252f24d3cd0b3e331037cfad82833b"
+    },
+    {
+      "path": "results/cube/test-baseline-k30-s66-rho0.25.json",
+      "source_sha256": "8b5c958b8fb2789b8269dc9d2e7cb137f930478e4c291d6f829b23f605c51a82",
+      "published_sha256": "5320c81e704f75fb105b80f05f63383688663f0650ccf8f51ad2be8fa90f86ff"
+    },
+    {
+      "path": "results/cube/selection.json",
+      "source_sha256": "0a70eec2098e0048a113a1e51cfef68a1db3add6fbc96288c0274145bce0c14b",
+      "published_sha256": "5b6941c86df8661cda5bfe9021c57eb54dfa6b3a97563dab801b7e92350aa021"
+    },
+    {
+      "path": "results/cube/test-guided-k10-s63-rho0.25.json",
+      "source_sha256": "e5b59df438b5060b7da357632ee320307b7a851ffa10b49971578775e277cc68",
+      "published_sha256": "f7b0bedb74742bf11d3c0198b8300acc70a598200cfa146c25e0c929efcc141b"
+    },
+    {
+      "path": "results/cube/test-guided-k10-s64-rho0.25.json",
+      "source_sha256": "917c02cc07e7960c380bbea27fdd2a4b682e7d45f8c59448bdb5acea6ec37ca3",
+      "published_sha256": "b82ffe02938d10b2cf6928940cb13c8f317ee5e35713f5f18de3249878778245"
+    },
+    {
+      "path": "results/cube/protocol.json",
+      "source_sha256": "b6731f3f48e199b3514cb40489c6040319048937a3aed9cd2f1fe9e627c46b12",
+      "published_sha256": "562ff33b9f9bd408a6880d83ce2acb27bdd712a1b5ce7b3e815861f7e0d586bb"
+    },
+    {
+      "path": "results/cube/test-guided-k20-s63-rho0.25.json",
+      "source_sha256": "a2567f7d10154e33b76b80f536d71573149ce2ad8cbdea0a4f1fa194e08754fa",
+      "published_sha256": "b1d684339d9ee58e81792ff6c9c9803a94340af0a5328e2ba5ad24ccd6896d85"
+    },
+    {
+      "path": "results/cube/test-guided-k20-s64-rho0.25.json",
+      "source_sha256": "3a67b4777049f93c05d1b66b5600145a13927f5f47e079fd9345ade2b05c6707",
+      "published_sha256": "957d3902608428d6ecd4e2ea7cec59e3b725c2813b4955255bedb07658ff1dc1"
+    },
+    {
+      "path": "results/cube/tasks.json",
+      "source_sha256": "2ba86f3bb4a2fbe61ba75eb48932ba44a6fdbdb9f55a9511fbd81ebef1d443b0",
+      "published_sha256": "374842d69f4294acbf02ed2d477f197851459edb2f3c8e8a70877e59d859f935"
+    },
+    {
+      "path": "results/cube/test-baseline-k5-s64-rho0.25.json",
+      "source_sha256": "0b6ad9ed4208089d996ef9449a1e2f13741ab3802d5a004b97ab38ddb247d72c",
+      "published_sha256": "cde0abbaf3f90af363130d2d8837a8654aee2e78236b4f4db3b30d784efe49b3"
+    },
+    {
+      "path": "results/cube/test-baseline-k5-s63-rho0.25.json",
+      "source_sha256": "732c20de3466235acd96be4cee8005b279a52de68b928687b80e7a8168d5b396",
+      "published_sha256": "521a7f4800818e9ac54616d7571b85eeb116e94e4543d940c4b1c86a73ef5a88"
+    },
+    {
+      "path": "results/cube/test-guided-k30-s65-rho0.25.json",
+      "source_sha256": "ef1a6fc57e728575c9dceb3e63ca10d4e293bb50a75b4a1c53bc916a9fba589c",
+      "published_sha256": "3dd073858c355227f991d1cb0c8308817c635126841c1753a2d34e87db4d7073"
+    },
+    {
+      "path": "results/cube/test-guided-k30-s62-rho0.25.json",
+      "source_sha256": "b7553b3be26541a63ddf42f87f143242e68cd26cb95844bf5f7393d4508bf41b",
+      "published_sha256": "5f4c95ce95e132ce2d1bb528f1c9660df56cd935c79dcd533cf135e765e6abc3"
+    },
+    {
+      "path": "results/cube/val-guided-k5-s42-rho0.5.json",
+      "source_sha256": "b34187a7524f01443d04e095cafb4b459bc851928747f5aef4d51e9d42ec309e",
+      "published_sha256": "1b7451ae13663b57e35fe691ae3f6335b65a2dea1bb442dd034294322b5a478e"
+    },
+    {
+      "path": "results/cube/test-baseline-k10-s66-rho0.25.json",
+      "source_sha256": "717218336a9cece2ce5407caf93ef9057761bbfd73d0f1f5baa8a131b458fa36",
+      "published_sha256": "7cdb96724c2245ac8b06e65a95940d0037146d2e72e6f5bf949f516dbfe64724"
+    },
+    {
+      "path": "results/cube/test-guided-k30-s63-rho0.25.json",
+      "source_sha256": "7fc44fa457787b0f4ff454a39c1bda8c4b4feba230e10f8bbf9fa2068c5ce90c",
+      "published_sha256": "b49af4c1b45b7d75b7ae82ad9f6da5a449486a41639efc1e456fb4d1fbc35e59"
+    },
+    {
+      "path": "results/cube/test-guided-k30-s64-rho0.25.json",
+      "source_sha256": "e6dd6520da27b5c6414cd7d2e075e03ca84b1c41e0568f6a9127ad4386aade0d",
+      "published_sha256": "d3c10e5f3a7fdccc5289e08b043f7cc0d65f17d6ebe6a81ea1153eea47e17bda"
+    },
+    {
+      "path": "results/cube/test-guided-k20-s65-rho0.25.json",
+      "source_sha256": "97a2c302c5fc4a11ad8d48202d6e0b5e0dff9e164ad0f7ca9ed3e60dd1fa0744",
+      "published_sha256": "a42870e1bc910072bf3ebff56d8081eab154e8c1e90fd11cbfc5da9ca7b212bd"
+    },
+    {
+      "path": "results/cube/test-guided-k20-s62-rho0.25.json",
+      "source_sha256": "a43dd63cb549087095c75d74616f0dce1c78be2dca199da285318576b72dd54f",
+      "published_sha256": "a1cd15ac82dd75f3e05fca772fa8992f73c7c84b92fb5d0d6e377b27eafdf4a9"
+    },
+    {
+      "path": "results/cube/test-baseline-k5-s62-rho0.25.json",
+      "source_sha256": "47ecba690ce147fa5422577f956114628284bfc675975441a923598cfab2888e",
+      "published_sha256": "d618f9cabc145fda85b96057abd7254c77ecf662cf8fda05ca2b242bab9ed3d2"
+    },
+    {
+      "path": "results/cube/test-baseline-k5-s65-rho0.25.json",
+      "source_sha256": "45f83a883d187f04265dab2458c6c513e2a28bd40e3ff92ca3b8368e33089716",
+      "published_sha256": "fca8759847c9293ab726b9ab7983dbff084324c505ec0d02bf5472d4345f4f09"
+    },
+    {
+      "path": "results/pusht/baseline-k5-s62.json",
+      "source_sha256": "0e852968927027edd64b715d230575226c5396fefbe26a7a18e58e7147eec698",
+      "published_sha256": "2b5e4f4d080717cabc33244672d8613ee3be14d5d1ad3b51a2eae45332abf12e"
+    },
+    {
+      "path": "results/pusht/summary.json",
+      "source_sha256": "ceff84f51e4dca9f5f920b521c461ddb4e9a61cf45109313efb204c1bed7d6c7",
+      "published_sha256": "35b34d9433f3479b75daa32731a1584d42b5442d0436890ab6a24277d9844610"
+    },
+    {
+      "path": "results/pusht/guided-k5-s66.json",
+      "source_sha256": "7726fb95c2f7b429654eb24a4689c4e45a719a00b846ba844faf0f02370b6b01",
+      "published_sha256": "2a40a2185006af2c0faf0021b115415f1b5b8410b5453f114649e735b2383ace"
+    },
+    {
+      "path": "results/pusht/baseline-k30-s62.json",
+      "source_sha256": "1b4c7196f261dfe3aa69a8078fc2abbfeb2afb513172a1eea165166302b641d6",
+      "published_sha256": "e89f7dadc4e628bb542c154d85a9ddcda55816aca5ae74465695780b0c772a28"
+    },
+    {
+      "path": "results/pusht/guided-k30-s62.json",
+      "source_sha256": "2b1c3a54961f9a9e76828e6e222ae6ebf7e2946fe48f314e142fcecaf219920e",
+      "published_sha256": "0d2ed31c0136839d3979387a39bdd6138835ab75ea5f2db2d18ab25ac079389e"
+    },
+    {
+      "path": "results/pusht/guided-k30-s63.json",
+      "source_sha256": "40d97c64b74d63a6d861ba113cfd231a75dfc46ee60639b5b873c745b698fca9",
+      "published_sha256": "027233b9b91a76c6830667d38ac68b797ca83afb3162953b58ea7c8dbdf39a2d"
+    },
+    {
+      "path": "results/pusht/baseline-k30-s63.json",
+      "source_sha256": "7012b8d9e554217e3e7ec551bb0e4bf762bf96bbb3a2330b9fefee21d6b96346",
+      "published_sha256": "a709058c625038f3afbbb9feea6ae6b5130df1960832858ba631547aa473ba80"
+    },
+    {
+      "path": "results/pusht/baseline-k5-s63.json",
+      "source_sha256": "38cc327ba2c8845b442f2606022abd64cbbe7f1443a27059ce38516194c9e545",
+      "published_sha256": "d001c2a1d9c950772cfe0c796de769705149d46ca0ea2f67025aa3d6dab35696"
+    },
+    {
+      "path": "results/pusht/baseline-k30-s64.json",
+      "source_sha256": "683a1c4e2468c6bcd30e5d16acd857585fa80a4023545115c8985b31c1227155",
+      "published_sha256": "fc25282119a42c068f62146b72a8d093c722130638719014f2f01a0c3e94816f"
+    },
+    {
+      "path": "results/pusht/guided-k30-s64.json",
+      "source_sha256": "431fb0030ba2692ff8df7a300f534d1f4388fcb88b51d1f49278758e534bf985",
+      "published_sha256": "c6076e575296d19c815d51011ec915b0b5dfd2269e09608448d6bf827f0c9266"
+    },
+    {
+      "path": "results/pusht/baseline-k5-s64.json",
+      "source_sha256": "337f3855d341f60a02f95ee74f2e3203eba3b8827bb79a53520d37b95c059336",
+      "published_sha256": "8230b7fbd1b53a577d93f136a1fd8d92be41107564ac586867dfa0374dded470"
+    },
+    {
+      "path": "results/pusht/bc-k5-s66.json",
+      "source_sha256": "dbda6a6f2faf1db3dd3479f60a6048ad009dc32f71f3c976aa741e361d9aa150",
+      "published_sha256": "d126e1f0c56b6fc7e8351969c4280e97cf57611afef61062e1bc6ec8aac81ee6"
+    },
+    {
+      "path": "results/pusht/baseline-k5-s65.json",
+      "source_sha256": "56dc0fa65692ff6270b836814362ddd4fa7f1e909842c9796a926848453216eb",
+      "published_sha256": "db3c5f7e6b939b9589e2fc550988f645030eef1ff99e5126a3b3b84f8a9d6ee0"
+    },
+    {
+      "path": "results/pusht/guided-k30-s65.json",
+      "source_sha256": "2b9958244c286aee6c60102dfbfa95b7b377b0c676fdf76d59e0fd2bff99c721",
+      "published_sha256": "4148a6425443b40af01d0ab679961a3071e903f3257386bdbdf26a279477f92b"
+    },
+    {
+      "path": "results/pusht/baseline-k30-s65.json",
+      "source_sha256": "0e5e37ad13e1e48b0b8d34b59ae982fdd554d414af48cc931df5fde2e90dd544",
+      "published_sha256": "dbe11de2e292a6e1fb95d1acc1aa6ba4177450a7314cb9371885e330dff265e6"
+    },
+    {
+      "path": "results/pusht/guided-k30-s66.json",
+      "source_sha256": "45b6b9d51302164c21d5168bfb11ea2df5a1917a871a8bb046d242a38de27d7b",
+      "published_sha256": "657e2972e012c55d4919166ed7d1da901c06cf304d1cb0567da7d2ad3a96803a"
+    },
+    {
+      "path": "results/pusht/baseline-k30-s66.json",
+      "source_sha256": "28744317cf392cab2e616f175676e9ba5c359c015d0ac057a294f9d9d6962507",
+      "published_sha256": "4ab6bb882239275ee93aad149eb1a05a8048faae15576cfe7518474ca9c6e88e"
+    },
+    {
+      "path": "results/pusht/guided-k5-s62.json",
+      "source_sha256": "30bc64af592c1ce7cc68910bab6eec283325fe8fd432da8ff0227d0ad11f59d8",
+      "published_sha256": "8ce188bfba80b42ef0fb7af7219fee4952db16a8fb9cf19b52b307cd10a9c7eb"
+    },
+    {
+      "path": "results/pusht/bc-k5-s65.json",
+      "source_sha256": "7f81791c428d80347e323d84d1b446bdc4842ec12785ad41cd25d2e1e8a2f158",
+      "published_sha256": "9999c1b92a11784ff02782cf21db82d2ba77fc72f947f73f7776465e3c5dd174"
+    },
+    {
+      "path": "results/pusht/baseline-k5-s66.json",
+      "source_sha256": "fc21fec53abcdb02e3c0bdec09540a1ef8ba5ace35ef6b48eda2557ee0e4f282",
+      "published_sha256": "316ff86a99844d8080334aec85904ae6956fe27305ad5b438170cf98ad2f9e3e"
+    },
+    {
+      "path": "results/pusht/bc-k5-s64.json",
+      "source_sha256": "9cb2a422b80bbf854a44fd40d37b44c36172893baa2e8a96c0ec802cce4d7c71",
+      "published_sha256": "0c5791955ff0f92f8daee9bc9287ee83ea1876eaec404276fbd57a06a27b1b4e"
+    },
+    {
+      "path": "results/pusht/guided-k5-s63.json",
+      "source_sha256": "d6bf5dd86f44a61761922316d4d376003dfdb681550bead2b71a6479608fa110",
+      "published_sha256": "1f4cf06bc65e7c8dc37958f060d27faddfe08d775c43848062635f814680b5ad"
+    },
+    {
+      "path": "results/pusht/protocol.json",
+      "source_sha256": "492de6a3e812dff6f7b624e8ac02af31427237d495e54b8be950c6693b8391ab",
+      "published_sha256": "79fa7a909ba509a736b056fc9048a580a3876a9295f385b9c0acd921aff9ff4a"
+    },
+    {
+      "path": "results/pusht/bc-k5-s63.json",
+      "source_sha256": "f9dd1291b85af41f0b0d56b099e328803647e23d9f5ffca6cd5227e5c8d05e64",
+      "published_sha256": "0890ea9464f48ddd0f10594d669576432644af94c99119e87bef812d00aeb453"
+    },
+    {
+      "path": "results/pusht/guided-k5-s64.json",
+      "source_sha256": "04397baefbda659d5a8cebde83f986cb7a7c45c7084dd9370a6d98a7265d416f",
+      "published_sha256": "c0b9225e8faa721f50965f2d87fac06a2abf13208712b7ed8970eca3bc9c3708"
+    },
+    {
+      "path": "results/pusht/guided-k5-s65.json",
+      "source_sha256": "caa43667defc8b6c261d83e97e40c974deb78759d2e15e3b52906772747d5c9f",
+      "published_sha256": "0608cd586108ae6f5185eb97aa78e32dff1335e662abd85e118fe66558f61316"
+    },
+    {
+      "path": "results/pusht/bc-k5-s62.json",
+      "source_sha256": "eee4ba20211788463ebdd96ac3f281f73aca59e6a2ad06cec8710615bd27ed9c",
+      "published_sha256": "65a9b660420921c387d189c44af0bea533c716c21b2c5c636c4532c979bc9d08"
+    }
+  ],
+  "source": [
+    {
+      "path": "src/cube/evaluate.py",
+      "original_sha256": "fc5debed7c3f76062957c9e72679021c45c751bb6e6b0ab475d907a3351da004",
+      "matches_recorded_experiment": true,
+      "published_sha256": "94cd2970f11ef8de5b8c95d8d3c2997349ae6d05fd1659e1b3c8fcac8848a854",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/cube/prior.py",
+      "original_sha256": "44923e948776b5e5ff1be9c2e4609d259a4c8ec89326987acb9bc70d8017f493",
+      "matches_recorded_experiment": true,
+      "published_sha256": "44923e948776b5e5ff1be9c2e4609d259a4c8ec89326987acb9bc70d8017f493",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/cube/planner.py",
+      "original_sha256": "19f73995a966ec67260fb647881b14f8e2278e012ba30f04f68b199207b6f213",
+      "matches_recorded_experiment": true,
+      "published_sha256": "19f73995a966ec67260fb647881b14f8e2278e012ba30f04f68b199207b6f213",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/cube/train_prior.py",
+      "original_sha256": "5799e11c6ba834325e77652daea85d4ef4f094ef788afc4bf6d6fa681a36af69",
+      "matches_recorded_experiment": true,
+      "published_sha256": "5799e11c6ba834325e77652daea85d4ef4f094ef788afc4bf6d6fa681a36af69",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/cube/cache_latents.py",
+      "original_sha256": "8d671c7cd8209d9f4285e451187298a7015ad7b453dbeefcaee6b975fe4e65b0",
+      "matches_recorded_experiment": true,
+      "published_sha256": "68f2f3adc5080c3d3cf6e1967983bafc03fcaff93f85259c6242af68b227175a",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/cube/test_planner.py",
+      "original_sha256": "2602ebdebaf720a0402dd9708af682f84938fc752661ea549e9ae9d639e7fb0a",
+      "matches_recorded_experiment": null,
+      "published_sha256": "2602ebdebaf720a0402dd9708af682f84938fc752661ea549e9ae9d639e7fb0a",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/cube/ppt_completion.py",
+      "original_sha256": "c864787f9a87fc66b7841a9270f0f7c48b6d1cfe7e2daa83b059e479a50737a7",
+      "matches_recorded_experiment": null,
+      "published_sha256": "ee3e50d63cc02475592a5adcf644eb8c2c4f377eab5365386c5cd9209fd42616",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/pusht/evaluate.py",
+      "original_sha256": "821e1d0978ec2a416df5ee75fd2a76a806b4e828f59b786fcc2bd4dde1820cb8",
+      "matches_recorded_experiment": true,
+      "published_sha256": "261b819cb5cbcc978b61921796aa371e161b31669f1c08d0dde3b75edd486215",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/pusht/prior.py",
+      "original_sha256": "44923e948776b5e5ff1be9c2e4609d259a4c8ec89326987acb9bc70d8017f493",
+      "matches_recorded_experiment": true,
+      "published_sha256": "44923e948776b5e5ff1be9c2e4609d259a4c8ec89326987acb9bc70d8017f493",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/pusht/planner.py",
+      "original_sha256": "19f73995a966ec67260fb647881b14f8e2278e012ba30f04f68b199207b6f213",
+      "matches_recorded_experiment": true,
+      "published_sha256": "19f73995a966ec67260fb647881b14f8e2278e012ba30f04f68b199207b6f213",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/pusht/train_prior.py",
+      "original_sha256": "9da4c774b27966905f6255e195318284ad50dffff36e335bbac42379d90ed55e",
+      "matches_recorded_experiment": true,
+      "published_sha256": "9da4c774b27966905f6255e195318284ad50dffff36e335bbac42379d90ed55e",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/pusht/cache_latents.py",
+      "original_sha256": "e9dfd9b25a4033df16cb0f158dabf7d24623c8616659976ced9957e0448cc25f",
+      "matches_recorded_experiment": true,
+      "published_sha256": "85c5e30beabcfa45299a65184504150475ce1cb2b9c905c84c6e99bdbe3a8775",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/pusht/test_planner.py",
+      "original_sha256": "21d24b5cb0763329d285599945955c1429015750ba2865adc1152dbe040e96c7",
+      "matches_recorded_experiment": null,
+      "published_sha256": "21d24b5cb0763329d285599945955c1429015750ba2865adc1152dbe040e96c7",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    },
+    {
+      "path": "src/pusht/pusht_regression.py",
+      "original_sha256": "4bbf95ba3faa02dbd7928eaf4c32422c5125a6b040b09be17074f0c71ebe3eda",
+      "matches_recorded_experiment": null,
+      "published_sha256": "59f34d887e31542476e78297f94922d373d6c1579be2c35ea40a979e934e789c",
+      "change": "Only root path defaults changed to LEWM_ROOT where applicable; algorithm unchanged."
+    }
+  ],
+  "verification": "All ten core files match the exact hashes recorded by final test experiments before portability edits.",
+  "not_bundled": [
+    "Datasets",
+    "Official model weights",
+    "Trained action-prior checkpoints"
+  ]
+}

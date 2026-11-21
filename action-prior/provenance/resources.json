@@ -1,0 +1,22 @@
+{
+  "cube": {
+    "model": {
+      "id": "quentinll/lewm-cube",
+      "revision": "b0747c5002e86d2ce8f3cd8178004b97524c587d"
+    },
+    "dataset": {
+      "id": "quentinll/lewm-cube",
+      "revision": "02a19a67a0dc8c9d6215f89c19e0a597691e152a"
+    }
+  },
+  "pusht": {
+    "model": {
+      "id": "quentinll/lewm-pusht",
+      "revision": "22b330c28c27ead4bfd1888615af1340e3fe9052"
+    },
+    "data": {
+      "id": "quentinll/lewm-pusht",
+      "revision": "655cd446b9929369d7d406001da85c15d1457850"
+    }
+  }
+}

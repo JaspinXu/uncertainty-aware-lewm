@@ -1,5 +1,22 @@
 # Uncertainty-Aware Planning for LeWorldModel
 
+## Additional midterm experiment: action-prior-guided CEM
+
+The separate [action-prior experiment package](action-prior/README.md) contains
+goal-conditioned action guidance for frozen LeWM, Cube and PushT code,
+70 final test records, demonstrations, and Conda reproduction instructions.
+Behavioral cloning trains the proposal network; LeWM and CEM still evaluate
+and refine the guided candidates. This is **not uncertainty-gated planning**.
+Its short-horizon goal-reaching protocol and test panel differ from the study
+below: do not combine the result tables or interpret its Cube success as
+complete grasp–transport–release success.
+
+See [reproduction](action-prior/docs/REPRODUCE.md),
+[verified results](action-prior/README.md#results), and
+[third-party notices](action-prior/THIRD_PARTY_NOTICES.md).
+
+---
+
 **Does uncertainty help a latent world-model planner?** A ground-truth study of
 [LeWorldModel](https://le-wm.github.io/) (LeWM) planning on OGBench-Cube
 robot-arm pick-and-place.
