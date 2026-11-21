@@ -1,0 +1,78 @@
+% Figure 1: the method. Needs tikz with the arrows.meta, positioning, fit, backgrounds and calc libraries
+% and the colours ourblue, ourbluedark and lwgray (defined in main.tex and in method_flow_standalone.tex).
+\begin{tikzpicture}[
+  x=1cm, y=1cm,
+  font=\fontsize{6.8}{8}\selectfont,
+  >={Stealth[length=1.5mm,width=1.2mm]},
+  box/.style={rounded corners=1.6pt, align=center, inner sep=2.6pt, line width=0.55pt},
+  frozen/.style={box, draw=lwgray, fill=lwgray!16},
+  ours/.style={box, draw=ourblue, fill=ourblue!10},
+  ext/.style={box, draw=ourbluedark, fill=ourbluedark!9},
+  plainbox/.style={box, draw=lwgray, fill=white},
+  alt/.style={rounded corners=1.6pt, draw=lwgray, dashed, align=center, inner sep=2.2pt,
+              font=\fontsize{6.2}{7.2}\selectfont, text=black!62, line width=0.5pt},
+  flow/.style={->, line width=0.55pt, draw=black!72},
+  lab/.style={font=\fontsize{6.2}{7.2}\selectfont, text=black!66, inner sep=1.2pt},
+]
+% ---------------- inputs and the frozen encoder
+\node[plainbox, minimum width=1.0cm, minimum height=0.5cm] (ot) at (-0.1, 0.5) {image $o_t$};
+\node[plainbox, minimum width=1.0cm, minimum height=0.5cm] (og) at (-0.1,-0.5) {goal $o_g$};
+\node[frozen, minimum width=1.0cm, minimum height=1.9cm] (enc) at (1.4, 0) {LeWM\\encoder $E$\\[2pt]\textit{frozen}};
+\draw[flow] (ot.east) -- (ot.east -| enc.west);
+\draw[flow] (og.east) -- (og.east -| enc.west);
+
+% ---------------- sigma_p-CEM: the prior sets the start and the width of the search
+\node[ours, text width=3.0cm] (prior) at (4.45, 0)
+  {\textbf{Gaussian action prior}\\[2pt]
+   $\pi_\theta(\mathbf a\mid z_t, z_g)$\\$=\mathcal N(\mu_p,\operatorname{diag}\sigma_p^2)$\\[2pt]
+   {\fontsize{6}{7}\selectfont trained on frozen latents of expert\\ data, goals 1--100 steps ahead}};
+\draw[flow] (enc.east) -- node[lab, above, pos=0.45] {$z_t, z_g$} (prior.west);
+\node[ours, text width=1.6cm] (init) at (7.25, 0)
+  {\textbf{$\boldsymbol{\sigma_p}$-CEM start}\\[2pt] $\mu^0=\mu_p$\\[1pt] $\sigma^0=\alpha\,\sigma_p$};
+\draw[flow] (prior.east) -- (init.west);
+\node[lab, text=ourblue, align=center] at (7.25,-0.95) {the only change\\to LeWM's planner};
+
+% ---------------- LeWM's CEM loop, unchanged
+\node[plainbox, text width=1.95cm] (sample) at (9.62, 0.6) {sample 300 plans\\$\mathbf a\sim\mathcal N(\mu,\sigma^2)$};
+\node[frozen, text width=1.95cm] (imag) at (12.2, 0.6) {imagine $\hat z_{1:5}$\\with predictor $P$};
+\node[plainbox, text width=1.95cm] (score) at (12.2,-0.6) {score\\$C=\|\hat z_5-z_g\|^2$};
+\node[plainbox, text width=1.95cm] (refit) at (9.62,-0.6) {refit $(\mu,\sigma)$\\to the best 30};
+\draw[flow] (sample) -- (imag);
+\draw[flow] (imag) -- (score);
+\draw[flow] (score) -- (refit);
+\draw[flow] (refit) -- (sample);
+\node[lab] at (10.91, 0) {$\times\,T$};
+\begin{scope}[on background layer]
+  \node[fit=(sample)(imag)(score)(refit), inner sep=3.6pt, rounded corners=2.5pt, draw=black!22, fill=black!2.5,
+        line width=0.5pt] (loop) {};
+\end{scope}
+\node[lab, anchor=south] at (loop.north) {LeWM's CEM, unchanged};
+\draw[flow] (init.east) -- (init.east -| loop.west);
+\node[plainbox, text width=2.1cm] (exec) at (9.62,-1.75) {execute $\mu$ (25 steps),\\then replan};
+\draw[flow] (refit.south |- loop.south) -- (exec.north);
+
+% ---------------- the alternatives (Sec. 4.5, 4.6): tested, did not improve planning
+\node[alt, text width=1.95cm] (alt1) at (12.2,-1.78) {Alt.\ 1 (\S4.5): add world-model\\$\sigma^2$ to $C$ --- no robust gain};
+\draw[lwgray, dashed, line width=0.5pt] (alt1.north) -- (score.south |- loop.south);
+\node[alt, text width=1.6cm] (alt2) at (1.0,-1.78) {Alt.\ 2 (\S4.6): retrain\\$E, P$ for a better\\latent --- no gain};
+\draw[lwgray, dashed, line width=0.5pt] (alt2.north) -- (enc.south);
+
+% ---------------- extension for distant goals (Sec. 3.4)
+\node[ext, text width=3.0cm] (tcp) at (4.45,-3.25)
+  {time-conditioned prior $\pi_\theta(\mathbf a\mid z_t, z_g, k)$\\proposes one plan per horizon\\$k\in\{5, 10, \dots, 100\}$};
+\node[frozen, text width=1.6cm] (roll) at (7.25,-3.25) {imagine each\\plan with LeWM};
+\node[ext, text width=2.3cm] (khat) at (9.75,-3.25) {time to goal $\mathrm T=$\\$\min_j\, 5j+\hat k(\hat z_j, z_g)$};
+\node[plainbox, text width=1.75cm] (exec2) at (12.3,-3.25) {execute the plan\\with the smallest $\mathrm T$};
+\draw[flow] (tcp.east) -- (roll.west);
+\draw[flow] (roll.east) -- (khat.west);
+\draw[flow] (khat.east) -- (exec2.west);
+\begin{scope}[on background layer]
+  \node[fit=(tcp)(roll)(khat)(exec2), inner sep=3.6pt, rounded corners=2.5pt, draw=ourbluedark!55, dashed,
+        line width=0.5pt] (band) {};
+\end{scope}
+\node[lab, anchor=south west, text=ourbluedark] at (band.north west)
+  {\textbf{Extension for distant goals} (\S3.4): the prior proposes, LeWM imagines, $\hat k$ picks};
+\coordinate (branch) at ($(enc.east)!0.5!(prior.west)$);
+\fill[black!72] (branch) circle (0.9pt);
+\draw[flow] (branch) |- (tcp.west);
+\end{tikzpicture}

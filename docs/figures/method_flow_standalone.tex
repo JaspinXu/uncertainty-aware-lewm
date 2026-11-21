@@ -1,0 +1,23 @@
+% Builds figures/method_flow.pdf (cropped to the picture) for the README:
+%   pdflatex method_flow_standalone.tex
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\renewcommand{\rmdefault}{ptm}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc}
+\definecolor{ourblue}{HTML}{2A78D6}
+\definecolor{ourbluedark}{HTML}{184F95}
+\definecolor{lwgray}{HTML}{8C8A84}
+\newsavebox\flowbox
+\pagestyle{empty}
+\begin{document}
+\savebox\flowbox{\input{method_flow.tex}}%
+\pdfpagewidth=\dimexpr\wd\flowbox+8pt\relax
+\pdfpageheight=\dimexpr\ht\flowbox+\dp\flowbox+8pt\relax
+\hoffset=-1in \voffset=-1in
+\oddsidemargin=4pt \evensidemargin=4pt \topmargin=4pt \headheight=0pt \headsep=0pt
+\textwidth=\wd\flowbox \textheight=\dimexpr\ht\flowbox+\dp\flowbox+2pt\relax
+\parindent=0pt \hsize=\textwidth
+\noindent\usebox\flowbox
+\end{document}
